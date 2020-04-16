@@ -7,7 +7,7 @@ variables:
   solution: '**/*.sln'
   buildPlatform: 'Any CPU'
   buildConfiguration: 'Release'
-  projectKey: 'regmut: Regex Parser'
+  projectKey: 'regmut:RegexParser'
   peojectName: 'Regex Mutaties in Stryker Mutator'
 
 steps:
