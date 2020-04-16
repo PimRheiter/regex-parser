@@ -22,7 +22,7 @@ namespace RegexParser
         {
             try
             {
-                new Regex(regex);
+                _ = new Regex(regex);
             }
             catch (Exception ex)
             {
@@ -68,10 +68,7 @@ namespace RegexParser
 
         private void AddToAlt()
         {
-            if (_alternation == null)
-            {
-                _alternation = new List<RegexNode>();
-            }
+            _alternation ??= new List<RegexNode>();
             _alternation.Add(new ConcatenationNode(_concatenation));
             _concatenation = null;
         }
@@ -80,10 +77,7 @@ namespace RegexParser
         {
             while (CharsRight() > 0 && !IsSpecial(_regex[_currentPosition]))
             {
-                if (_concatenation == null)
-                {
-                    _concatenation = new List<RegexNode>();
-                }
+                _concatenation ??= new List<RegexNode>();
                 _concatenation.Add(new CharNode(_regex[_currentPosition]));
                 MoveRight();
             }
