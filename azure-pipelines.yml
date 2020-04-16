@@ -8,7 +8,7 @@ variables:
   buildPlatform: 'Any CPU'
   buildConfiguration: 'Release'
   projectKey: 'regmut:RegexParser'
-  peojectName: 'Regex Mutaties in Stryker Mutator'
+  projectName: 'Regex Mutaties in Stryker Mutator'
 
 steps:
 - task: DotNetCoreCLI@2
