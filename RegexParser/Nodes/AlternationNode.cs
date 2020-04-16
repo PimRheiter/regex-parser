@@ -10,7 +10,7 @@ namespace RegexParser.Nodes
 
         public override string ToString()
         {
-            return string.Join("|", ChildNodes); ;
+            return string.Join("|", ChildNodes);
         }
     }
 }

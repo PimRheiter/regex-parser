@@ -1,23 +1,20 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.Linq;
 
 namespace RegexParser.Nodes.Quantifiers
 {
     public class QuantifierNOrMoreNode : QuantifierNode
     {
-        public readonly int N;
+        public int N { get; private set; }
         // n can be written with leading zeroes as 005 in the regex
-        public readonly string OriginalN;
+        public string OriginalN { get; private set; }
 
-        public QuantifierNOrMoreNode(string n) : base()
+        public QuantifierNOrMoreNode(string n)
         {
             OriginalN = n;
             N = int.Parse(n);
         }
 
-        public QuantifierNOrMoreNode(int n) : base()
+        public QuantifierNOrMoreNode(int n)
         {
             N = n;
         }

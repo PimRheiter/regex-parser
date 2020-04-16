@@ -4,17 +4,17 @@ namespace RegexParser.Nodes.Quantifiers
 {
     public class QuantifierNNode : QuantifierNode
     {
-        public readonly int N;
+        public int N { get; private set; }
         // n can be written with leading zeroes as 005 in the regex
-        public readonly string OriginalN;
+        public string OriginalN { get; private set; }
 
-        public QuantifierNNode(string n) : base()
+        public QuantifierNNode(string n)
         {
             OriginalN = n;
             N = int.Parse(n);
         }
 
-        public QuantifierNNode(int n) : base()
+        public QuantifierNNode(int n)
         {
             N = n;
         }

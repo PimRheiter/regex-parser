@@ -7,22 +7,22 @@ namespace RegexParser
 {
     public class Parser
     {
-        private int _currentPosition = 0;
+        private int _currentPosition;
         private List<RegexNode> _alternation;
         private List<RegexNode> _concatenation;
-        private string regex;
+        private readonly string _regex;
 
         public Parser(string regex)
         {
             IsValidRegex(regex);
-            this.regex = regex;
+            _regex = regex;
         }
 
         private void IsValidRegex(string regex)
         {
             try
             {
-                var _ = new Regex(regex);
+                new Regex(regex);
             }
             catch (Exception ex)
             {
@@ -54,12 +54,12 @@ namespace RegexParser
                 return new ConcatenationNode(_concatenation);
             }
 
-            throw new Exception("Something went wrong while parsing regex");
+            throw new RegexParseException("Something went wrong while parsing regex");
         }
 
         private void ParseAlternation()
         {
-            if (CharsRight() > 0 && regex[_currentPosition] == '|')
+            if (CharsRight() > 0 && _regex[_currentPosition] == '|')
             {
                 AddToAlt();
                 MoveRight();
@@ -68,15 +68,23 @@ namespace RegexParser
 
         private void AddToAlt()
         {
-            (_alternation ??= new List<RegexNode>()).Add(new ConcatenationNode(_concatenation));
+            if (_alternation == null)
+            {
+                _alternation = new List<RegexNode>();
+            }
+            _alternation.Add(new ConcatenationNode(_concatenation));
             _concatenation = null;
         }
 
         private void ParseChars()
         {
-            while (CharsRight() > 0 && !IsSpecial(regex[_currentPosition]))
+            while (CharsRight() > 0 && !IsSpecial(_regex[_currentPosition]))
             {
-                (_concatenation ??= new List<RegexNode>()).Add(new CharNode(regex[_currentPosition]));
+                if (_concatenation == null)
+                {
+                    _concatenation = new List<RegexNode>();
+                }
+                _concatenation.Add(new CharNode(_regex[_currentPosition]));
                 MoveRight();
             }
         }
@@ -93,7 +101,7 @@ namespace RegexParser
 
         private int CharsRight()
         {
-            return regex.Length - _currentPosition;
+            return _regex.Length - _currentPosition;
         }
     }
 }

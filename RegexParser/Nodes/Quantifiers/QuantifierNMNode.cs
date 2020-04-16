@@ -7,13 +7,13 @@ namespace RegexParser.Nodes.Quantifiers
     /// </summary>
     public class QuantifierNMNode : QuantifierNode
     {
-        public readonly int N;
-        public readonly int M;
+        public int N { get; private set; }
+        public int M { get; private set; }
         // n and m can be written with leading zeroes as 005 in the regex
-        public readonly string OriginalN;
-        public readonly string OriginalM;
+        public string OriginalN { get; private set; }
+        public string OriginalM { get; private set; }
 
-        public QuantifierNMNode(string n, string m) : base()
+        public QuantifierNMNode(string n, string m)
         {
             OriginalN = n;
             N = int.Parse(n);
@@ -21,7 +21,7 @@ namespace RegexParser.Nodes.Quantifiers
             M = int.Parse(m);
         }
 
-        public QuantifierNMNode(int n, int m) : base()
+        public QuantifierNMNode(int n, int m)
         {
             N = n;
             M = m;

@@ -2,9 +2,9 @@
 {
     public class CharNode : RegexNode
     {
-        public readonly char Ch;
+        public char Ch { get; private set; }
 
-        public CharNode(char ch) : base()
+        public CharNode(char ch)
         {
             Ch = ch;
         }
