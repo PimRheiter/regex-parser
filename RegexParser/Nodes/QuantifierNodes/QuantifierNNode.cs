@@ -1,6 +1,6 @@
 ﻿using System.Linq;
 
-namespace RegexParser.Nodes.Quantifiers
+namespace RegexParser.Nodes.QuantifierNodes
 {
     public class QuantifierNNode : QuantifierNode
     {

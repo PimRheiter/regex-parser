@@ -1,4 +1,4 @@
-﻿namespace RegexParser.Nodes.Quantifiers
+﻿namespace RegexParser.Nodes.QuantifierNodes
 {
     public abstract class QuantifierNode : RegexNode
     {

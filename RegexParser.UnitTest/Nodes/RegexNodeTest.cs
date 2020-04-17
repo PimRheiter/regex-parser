@@ -1,7 +1,7 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using RegexParser.Nodes;
-using RegexParser.Nodes.Quantifiers;
+using RegexParser.Nodes.QuantifierNodes;
 using System.Collections.Generic;
 using System.Linq;
 

@@ -1,8 +1,8 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using RegexParser.Nodes;
-using RegexParser.Nodes.Quantifiers;
+using RegexParser.Nodes.QuantifierNodes;
 
-namespace RegexParser.UnitTest.Nodes.Quantifiers
+namespace RegexParser.UnitTest.Nodes.QuantifierNodes
 {
     [TestClass]
     public class QuantifierStarNodeTest
