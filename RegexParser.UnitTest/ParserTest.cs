@@ -9,7 +9,7 @@ namespace RegexParser.UnitTest
     public class ParserTest
     {
         [TestMethod]
-        public void ConstructorWithInvalidRegexThrowsArgumentException()
+        public void ConstructorWithInvalidRegexThrowsRegexParseException()
         {
             // Arrange
             var invalidRegex = ")";
@@ -18,7 +18,7 @@ namespace RegexParser.UnitTest
             Action act = () => new Parser(invalidRegex);
 
             // Assert
-            Assert.ThrowsException<ArgumentException>(act);
+            Assert.ThrowsException<RegexParseException>(act);
         }
 
         [TestMethod]

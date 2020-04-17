@@ -24,9 +24,9 @@ namespace RegexParser
             {
                 _ = new Regex(regex);
             }
-            catch (Exception ex)
+            catch (ArgumentException ex)
             {
-                throw new ArgumentException(ex.Message);
+                throw new RegexParseException(ex.Message);
             }
         }
 
