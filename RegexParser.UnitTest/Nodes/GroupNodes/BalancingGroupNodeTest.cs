@@ -35,16 +35,16 @@ namespace RegexParser.UnitTest.Nodes.GroupNodes
         }
 
         [TestMethod]
-        public void ToStringOnBalancingGroupWithUseQuotesTrueShouldReturnBalancedGroupWithNameBetweenSingleQuotes()
+        public void ToStringOnBalancingGroupWithUseQuotesTrueShouldReturnBalancedGroupWithNamesBetweenSingleQuotes()
         {
             // Arrange
-            var target = new BalancingGroupNode("balencedGroup", true);
+            var target = new BalancingGroupNode("balencedGroup", "currentGroup", true);
 
             // Act
             var result = target.ToString();
 
             // Assert
-            Assert.AreEqual("(?'-balencedGroup')", result);
+            Assert.AreEqual("(?'currentGroup-balencedGroup')", result);
         }
 
         [TestMethod]
@@ -52,13 +52,27 @@ namespace RegexParser.UnitTest.Nodes.GroupNodes
         {
             // Arrange
             var childNodes = new List<RegexNode> { new CharacterNode('a'), new CharacterNode('b'), new CharacterNode('c') };
-            var target = new BalancingGroupNode("balencedGroup", childNodes);
+            var target = new BalancingGroupNode("balencedGroup", true, childNodes);
 
             // Act
             var result = target.ToString();
 
             // Assert
-            Assert.AreEqual("(?<-balencedGroup>abc)", result);
+            Assert.AreEqual("(?'-balencedGroup'abc)", result);
+        }
+
+        [TestMethod]
+        public void ToStringOnBalancingGroupWithTwoNamesAndChildNodesShouldReturnBalancedGroupWithTwoNamesAndChildNodes()
+        {
+            // Arrange
+            var childNodes = new List<RegexNode> { new CharacterNode('a'), new CharacterNode('b'), new CharacterNode('c') };
+            var target = new BalancingGroupNode("balencedGroup", "currentGroup", true, childNodes);
+
+            // Act
+            var result = target.ToString();
+
+            // Assert
+            Assert.AreEqual("(?'currentGroup-balencedGroup'abc)", result);
         }
     }
 }
