@@ -6,11 +6,11 @@ namespace RegexParser.Nodes
     {
         public ConcatenationNode() { }
 
-        public ConcatenationNode(List<RegexNode> childNodes) : base(childNodes) { }
+        public ConcatenationNode(IEnumerable<RegexNode> childNodes) : base(childNodes) { }
 
         public override string ToString()
         {
-            return string.Join("", ChildNodes);
+            return string.Concat(ChildNodes);
         }
     }
 }

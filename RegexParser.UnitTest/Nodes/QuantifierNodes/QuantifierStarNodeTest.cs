@@ -11,7 +11,7 @@ namespace RegexParser.UnitTest.Nodes.QuantifierNodes
         public void ToStringShouldReturnQuantifierStarOnChildNodeToString()
         {
             // Arrange
-            var target = new QuantifierStarNode().Add(new CharNode('a'));
+            var target = new QuantifierStarNode().Add(new CharacterNode('a'));
 
             // Act
             var result = target.ToString();

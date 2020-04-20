@@ -1,37 +1,41 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using RegexParser.Nodes;
+using RegexParser.Nodes.GroupNodes;
 using System.Collections.Generic;
 
-namespace RegexParser.UnitTest.Nodes
+namespace RegexParser.UnitTest.Nodes.GroupNodes
 {
     [TestClass]
-    public class ConcatenationNodeTest
+    public class NonCaptureGroupNodeTest
     {
+
         [TestMethod]
-        public void ToStringShouldReturnConcatenationOfChildNodesToString()
+        public void ToStringShouldReturnChildNodesToStringInNonCaptureGroup()
         {
+
             // Arrange
             var childNodes = new List<RegexNode> { new CharacterNode('a'), new CharacterNode('b'), new CharacterNode('c') };
-            var target = new ConcatenationNode(childNodes);
+            var target = new NonCaptureGroupNode(new List<RegexNode> { new ConcatenationNode(childNodes) });
 
             // Act
             var result = target.ToString();
 
             // Assert
-            Assert.AreEqual("abc", result);
+            Assert.AreEqual("(?:abc)", result);
         }
 
         [TestMethod]
-        public void ToStringOnEmptyNodeShouldReturnEmptyString()
+        public void EmptyNodeToStringShouldReturnEmptyCapturingGroup()
         {
+
             // Arrange
-            var target = new ConcatenationNode();
+            var target = new NonCaptureGroupNode();
 
             // Act
             var result = target.ToString();
 
             // Assert
-            Assert.AreEqual("", result);
+            Assert.AreEqual("(?:)", result);
         }
     }
 }

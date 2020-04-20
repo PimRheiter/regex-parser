@@ -4,9 +4,9 @@ namespace RegexParser.Nodes.QuantifierNodes
 {
     public class QuantifierNOrMoreNode : QuantifierNode
     {
-        public int N { get; private set; }
+        public int N { get; }
         // n can be written with leading zeroes as 005 in the regex
-        public string OriginalN { get; private set; }
+        public string OriginalN { get; }
 
         public QuantifierNOrMoreNode(string n)
         {

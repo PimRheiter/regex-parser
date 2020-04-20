@@ -11,11 +11,14 @@ namespace RegexParser.UnitTest.Nodes
         public void ToStringShouldReturnConcatenationOfChildNodesToStringSeperatedByPipes()
         {
             // Arrange
-            var childNodes = new List<RegexNode> { new CharNode('a'), new CharNode('b'), new CharNode('c') };
+            var childNodes = new List<RegexNode> { new CharacterNode('a'), new CharacterNode('b'), new CharacterNode('c') };
             var target = new AlternationNode(childNodes);
 
+            // Act
+            var result = target.ToString();
+
             // Assert
-            Assert.AreEqual("a|b|c", target.ToString());
+            Assert.AreEqual("a|b|c", result);
         }
 
         [TestMethod]
@@ -24,8 +27,11 @@ namespace RegexParser.UnitTest.Nodes
             // Arrange
             var target = new AlternationNode();
 
+            // Act
+            var result = target.ToString();
+
             // Assert
-            Assert.AreEqual("", target.ToString());
+            Assert.AreEqual("", result);
         }
     }
 }

@@ -49,9 +49,9 @@ namespace RegexParser.UnitTest
             // Assert
             Assert.IsInstanceOfType(result, typeof(ConcatenationNode));
             Assert.AreEqual(3, result.ChildNodes.Count());
-            Assert.IsInstanceOfType(result.ChildNodes.First(), typeof(CharNode));
-            Assert.IsInstanceOfType(result.ChildNodes.ElementAt(1), typeof(CharNode));
-            Assert.IsInstanceOfType(result.ChildNodes.ElementAt(2), typeof(CharNode));
+            Assert.IsInstanceOfType(result.ChildNodes.First(), typeof(CharacterNode));
+            Assert.IsInstanceOfType(result.ChildNodes.ElementAt(1), typeof(CharacterNode));
+            Assert.IsInstanceOfType(result.ChildNodes.ElementAt(2), typeof(CharacterNode));
         }
 
         [TestMethod]

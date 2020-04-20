@@ -1,10 +1,10 @@
 ﻿namespace RegexParser.Nodes
 {
-    public class CharNode : RegexNode
+    public class CharacterNode : RegexNode
     {
-        public char Ch { get; private set; }
+        public char Ch { get; }
 
-        public CharNode(char ch)
+        public CharacterNode(char ch)
         {
             Ch = ch;
         }
@@ -16,7 +16,7 @@
 
         protected override RegexNode CopyInstance()
         {
-            return new CharNode(Ch);
+            return new CharacterNode(Ch);
         }
     }
 }

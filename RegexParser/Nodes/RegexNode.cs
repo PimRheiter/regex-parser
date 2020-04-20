@@ -12,7 +12,7 @@ namespace RegexParser.Nodes
 
         protected RegexNode() { }
 
-        protected RegexNode(List<RegexNode> childNodes)
+        protected RegexNode(IEnumerable<RegexNode> childNodes)
         {
             AddRange(childNodes);
         }
@@ -30,9 +30,9 @@ namespace RegexParser.Nodes
         }
 
         /// <summary>
-        /// Sets this RegexNode as the parent of the new RegexNode and the new node to it's child nodes.
+        /// Sets the current RegexNode as the parent of the new RegexNode and the new node to it's child nodes.
         /// </summary>
-        /// <returns>This RegexNode</returns>
+        /// <returns>The current RegexNode</returns>
         public RegexNode Add(RegexNode newNode)
         {
             newNode.Parent = this;
@@ -41,9 +41,9 @@ namespace RegexParser.Nodes
         }
 
         /// <summary>
-        /// Sets this RegexNode as the parent of each new RegexNode and the new nodes to it's child nodes.
+        /// Sets the current RegexNode as the parent of each new RegexNode and the new nodes to it's child nodes.
         /// </summary>
-        /// <returns>This RegexNode</returns>
+        /// <returns>The current RegexNode</returns>
         public RegexNode AddRange(IEnumerable<RegexNode> newNodes)
         {
             foreach (RegexNode newNode in newNodes)
@@ -57,8 +57,8 @@ namespace RegexParser.Nodes
         /// Creates a deepcopy of the RegexNode.
         /// </summary>
         /// <param name="copyChildNodes">Whether child nodes should be copied as well. Defaults to false.</param>
-        /// <returns>This RegexNode</returns>
-        private RegexNode Copy(bool copyChildNodes = false)
+        /// <returns>The current RegexNode</returns>
+        internal RegexNode Copy(bool copyChildNodes = false)
         {
             RegexNode copy = CopyInstance();
             if (copyChildNodes)
@@ -70,7 +70,7 @@ namespace RegexParser.Nodes
 
         /// <summary>
         /// Creates a new instance of the RegexNode's derived type, cast to a RegexNode, using the default constructor.
-        /// Derived classes that contain field members should override this method to make sure the field members are copied.
+        /// Derived classes that contain field members or properties that should be copied should override this method to make sure the field members are copied.
         /// </summary>
         /// <returns>A new instance of the RegexNode's derived type, cast to a RegexNode</returns>
         protected virtual RegexNode CopyInstance()
@@ -80,10 +80,10 @@ namespace RegexParser.Nodes
         }
 
         /// <summary>
-        /// Creates a deepcopy of each RegexNode in childNodes and adds it to this RegexNode's childNodes.
+        /// Creates a deepcopy of each RegexNode in childNodes and adds it to the current RegexNode's childNodes.
         /// </summary>
         /// <param name="childNodes">childNodes to copy and add</param>
-        /// <returns>This RegexNode</returns>
+        /// <returns>The current RegexNode</returns>
         protected RegexNode CopyChildNodes(IEnumerable<RegexNode> childNodes)
         {
             foreach (RegexNode childNode in childNodes)

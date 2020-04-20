@@ -78,7 +78,7 @@ namespace RegexParser
             while (CharsRight() > 0 && !IsSpecial(_regex[_currentPosition]))
             {
                 _concatenation ??= new List<RegexNode>();
-                _concatenation.Add(new CharNode(_regex[_currentPosition]));
+                _concatenation.Add(new CharacterNode(_regex[_currentPosition]));
                 MoveRight();
             }
         }

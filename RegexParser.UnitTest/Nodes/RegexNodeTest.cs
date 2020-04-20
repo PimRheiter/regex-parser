@@ -13,7 +13,7 @@ namespace RegexParser.UnitTest.Nodes
         [TestMethod]
         public void EmptyConstructorShouldReturnNewRegexNodeWithNoChildNodes()
         {
-            // Act
+            // Arrange
             var target = new Mock<RegexNode>().Object;
 
             // Assert
@@ -24,7 +24,7 @@ namespace RegexParser.UnitTest.Nodes
         public void ConstructorWithChildNodesShouldReturnNewRegexNodeWithChildNodes()
         {
             // Arrange
-            var childNodes = new List<RegexNode> { new CharNode('a'), new CharNode('b') };
+            var childNodes = new List<RegexNode> { new CharacterNode('a'), new CharacterNode('b') };
 
             // Act
             var target = new Mock<RegexNode>(childNodes).Object;
@@ -39,7 +39,7 @@ namespace RegexParser.UnitTest.Nodes
         public void ConstructorWithChildNodesShouldReturnSetNewRegexNodeAsParentOfChildNodes()
         {
             // Arrange
-            var childNodes = new List<RegexNode> { new CharNode('a'), new CharNode('b') };
+            var childNodes = new List<RegexNode> { new CharacterNode('a'), new CharacterNode('b') };
 
             // Act
             var target = new Mock<RegexNode>(childNodes).Object;
@@ -57,7 +57,7 @@ namespace RegexParser.UnitTest.Nodes
             var target = new Mock<RegexNode>().Object;
 
             // Act
-            target.Add(new CharNode('a'));
+            target.Add(new CharacterNode('a'));
 
             // Assert
             Assert.AreEqual(1, target.ChildNodes.Count());
@@ -71,7 +71,7 @@ namespace RegexParser.UnitTest.Nodes
             var target = new Mock<RegexNode>().Object;
 
             // Act
-            RegexNode result = target.Add(new CharNode('a'));
+            RegexNode result = target.Add(new CharacterNode('a'));
 
             // Assert
             Assert.AreEqual(target, result);
@@ -84,7 +84,7 @@ namespace RegexParser.UnitTest.Nodes
             var target = new Mock<RegexNode>().Object;
 
             // Act
-            RegexNode result = target.Add(new CharNode('a'));
+            RegexNode result = target.Add(new CharacterNode('a'));
 
             // Assert
             Assert.AreEqual(target, result.ChildNodes.First().Parent);
@@ -99,7 +99,7 @@ namespace RegexParser.UnitTest.Nodes
             var target = new Mock<RegexNode>().Object;
 
             // Act
-            target.AddRange(new List<RegexNode> { new CharNode('a'), new CharNode('b') });
+            target.AddRange(new List<RegexNode> { new CharacterNode('a'), new CharacterNode('b') });
 
             // Assert
             Assert.AreEqual(2, target.ChildNodes.Count());
@@ -114,7 +114,7 @@ namespace RegexParser.UnitTest.Nodes
             var target = new Mock<RegexNode>().Object;
 
             // Act
-            RegexNode result = target.AddRange(new List<RegexNode> { new CharNode('a'), new CharNode('b') });
+            RegexNode result = target.AddRange(new List<RegexNode> { new CharacterNode('a'), new CharacterNode('b') });
 
             // Assert
             Assert.AreEqual(target, result);
@@ -127,7 +127,7 @@ namespace RegexParser.UnitTest.Nodes
             var target = new Mock<RegexNode>().Object;
 
             // Act
-            RegexNode result = target.AddRange(new List<RegexNode> { new CharNode('a'), new CharNode('b') });
+            RegexNode result = target.AddRange(new List<RegexNode> { new CharacterNode('a'), new CharacterNode('b') });
 
             // Assert
             Assert.AreEqual(target, result.ChildNodes.First().Parent);
@@ -139,8 +139,8 @@ namespace RegexParser.UnitTest.Nodes
         {
             // Arrange
             var target = new Mock<RegexNode>() { CallBase = true, }.Object;
-            target.AddRange(new List<RegexNode> { new CharNode('a'), new CharNode('b') });
-            var newNode = new CharNode('c');
+            target.AddRange(new List<RegexNode> { new CharacterNode('a'), new CharacterNode('b') });
+            var newNode = new CharacterNode('c');
 
             // Act
             RegexNode result = target.AddNode(newNode);
@@ -155,9 +155,9 @@ namespace RegexParser.UnitTest.Nodes
         {
             // Arrange
             var target = new Mock<RegexNode>() { CallBase = true, }.Object;
-            var concatenationNode = new ConcatenationNode(new List<RegexNode> { new CharNode('a'), new CharNode('b') });
+            var concatenationNode = new ConcatenationNode(new List<RegexNode> { new CharacterNode('a'), new CharacterNode('b') });
             target.Add(concatenationNode);
-            var newNode = new CharNode('c');
+            var newNode = new CharacterNode('c');
 
             // Act
             RegexNode result = target.AddNode(newNode);
@@ -172,10 +172,10 @@ namespace RegexParser.UnitTest.Nodes
         {
             // Arrange
             var target = new Mock<RegexNode>() { CallBase = true, }.Object;
-            var charNodeA = new CharNode('a');
-            var charNodeB = new CharNode('b');
+            var charNodeA = new CharacterNode('a');
+            var charNodeB = new CharacterNode('b');
             target.AddRange(new List<RegexNode> { charNodeA, charNodeB });
-            var newNode = new CharNode('c');
+            var newNode = new CharacterNode('c');
 
             // Act
             RegexNode result = target.AddNode(newNode);
@@ -193,10 +193,10 @@ namespace RegexParser.UnitTest.Nodes
             var root = new Mock<RegexNode>() { CallBase = true, }.Object;
             var firstChild = new Mock<RegexNode>() { CallBase = true, }.Object;
             var target = new Mock<RegexNode>() { CallBase = true }.Object;
-            target.AddRange(new List<RegexNode> { new CharNode('a'), new CharNode('b') });
+            target.AddRange(new List<RegexNode> { new CharacterNode('a'), new CharacterNode('b') });
             firstChild.Add(target);
             root.Add(firstChild);
-            var newNode = new CharNode('c');
+            var newNode = new CharacterNode('c');
 
             // Act
             RegexNode result = target.AddNode(newNode);
@@ -214,9 +214,9 @@ namespace RegexParser.UnitTest.Nodes
             // Arrange
             var root = new Mock<RegexNode>() { CallBase = true, }.Object;
             var target = new Mock<RegexNode>() { CallBase = true }.Object;
-            target.AddRange(new List<RegexNode> { new CharNode('a'), new CharNode('b') });
+            target.AddRange(new List<RegexNode> { new CharacterNode('a'), new CharacterNode('b') });
             root.Add(target);
-            var newNode = new CharNode('c');
+            var newNode = new CharacterNode('c');
 
             // Act
             RegexNode result = target.AddNode(newNode, false);
@@ -231,10 +231,10 @@ namespace RegexParser.UnitTest.Nodes
         {
             // Arrange
             var target = new Mock<RegexNode>() { CallBase = true, }.Object;
-            var charNodeA = new CharNode('a');
-            var charNodeB = new CharNode('b');
+            var charNodeA = new CharacterNode('a');
+            var charNodeB = new CharacterNode('b');
             target.AddRange(new List<RegexNode> { charNodeA, charNodeB });
-            var newNode = new CharNode('c');
+            var newNode = new CharacterNode('c');
 
             // Act
             RegexNode result = target.ReplaceNode(charNodeA, newNode);
@@ -249,10 +249,10 @@ namespace RegexParser.UnitTest.Nodes
         {
             // Arrange
             var target = new Mock<RegexNode>() { CallBase = true, }.Object;
-            var charNodeA = new CharNode('a');
-            var charNodeB = new CharNode('b');
+            var charNodeA = new CharacterNode('a');
+            var charNodeB = new CharacterNode('b');
             target.AddRange(new List<RegexNode> { charNodeA, charNodeB });
-            var newNode = new CharNode('c');
+            var newNode = new CharacterNode('c');
 
             // Act
             RegexNode result = target.ReplaceNode(charNodeA, newNode);
@@ -270,12 +270,12 @@ namespace RegexParser.UnitTest.Nodes
             var root = new Mock<RegexNode>() { CallBase = true, }.Object;
             var firstChild = new Mock<RegexNode>() { CallBase = true, }.Object;
             var target = new Mock<RegexNode>() { CallBase = true }.Object;
-            var charNodeA = new CharNode('a');
-            var charNodeB = new CharNode('b');
+            var charNodeA = new CharacterNode('a');
+            var charNodeB = new CharacterNode('b');
             target.AddRange(new List<RegexNode> { charNodeA, charNodeB });
             firstChild.Add(target);
             root.Add(firstChild);
-            var newNode = new CharNode('c');
+            var newNode = new CharacterNode('c');
 
             // Act
             RegexNode result = target.ReplaceNode(charNodeA, newNode);
@@ -293,11 +293,11 @@ namespace RegexParser.UnitTest.Nodes
             // Arrange
             var root = new Mock<RegexNode>() { CallBase = true, }.Object;
             var target = new Mock<RegexNode>() { CallBase = true }.Object;
-            var charNodeA = new CharNode('a');
-            var charNodeB = new CharNode('b');
+            var charNodeA = new CharacterNode('a');
+            var charNodeB = new CharacterNode('b');
             target.AddRange(new List<RegexNode> { charNodeA, charNodeB });
             root.Add(target);
-            var newNode = new CharNode('c');
+            var newNode = new CharacterNode('c');
 
             // Act
             RegexNode result = target.ReplaceNode(charNodeA, newNode, false);
@@ -312,8 +312,8 @@ namespace RegexParser.UnitTest.Nodes
         {
             // Arrange
             var target = new Mock<RegexNode>() { CallBase = true, }.Object;
-            var charNodeA = new CharNode('a');
-            var charNodeB = new CharNode('b');
+            var charNodeA = new CharacterNode('a');
+            var charNodeB = new CharacterNode('b');
             target.AddRange(new List<RegexNode> { charNodeA, charNodeB });
 
             // Act
@@ -329,8 +329,8 @@ namespace RegexParser.UnitTest.Nodes
         {
             // Arrange
             var target = new Mock<RegexNode>() { CallBase = true, }.Object;
-            var charNodeA = new CharNode('a');
-            var charNodeB = new CharNode('b');
+            var charNodeA = new CharacterNode('a');
+            var charNodeB = new CharacterNode('b');
             target.AddRange(new List<RegexNode> { charNodeA, charNodeB });
 
             // Act
@@ -349,12 +349,11 @@ namespace RegexParser.UnitTest.Nodes
             var root = new Mock<RegexNode>() { CallBase = true, }.Object;
             var firstChild = new Mock<RegexNode>() { CallBase = true, }.Object;
             var target = new Mock<RegexNode>() { CallBase = true }.Object;
-            var charNodeA = new CharNode('a');
-            var charNodeB = new CharNode('b');
+            var charNodeA = new CharacterNode('a');
+            var charNodeB = new CharacterNode('b');
             target.AddRange(new List<RegexNode> { charNodeA, charNodeB });
             firstChild.Add(target);
             root.Add(firstChild);
-            var newNode = new CharNode('c');
 
             // Act
             RegexNode result = target.RemoveNode(charNodeA);
@@ -372,8 +371,8 @@ namespace RegexParser.UnitTest.Nodes
             // Arrange
             var root = new Mock<RegexNode>() { CallBase = true, }.Object;
             var target = new Mock<RegexNode>() { CallBase = true }.Object;
-            var charNodeA = new CharNode('a');
-            var charNodeB = new CharNode('b');
+            var charNodeA = new CharacterNode('a');
+            var charNodeB = new CharacterNode('b');
             target.AddRange(new List<RegexNode> { charNodeA, charNodeB });
             root.Add(target);
 
@@ -391,9 +390,9 @@ namespace RegexParser.UnitTest.Nodes
             // Arrange
             var target = new Mock<RegexNode>() { CallBase = true, }.Object;
             // a+bc*
-            var charNodeA = new CharNode('a');
-            var charNodeB = new CharNode('b');
-            var charNodeC = new CharNode('c');
+            var charNodeA = new CharacterNode('a');
+            var charNodeB = new CharacterNode('b');
+            var charNodeC = new CharacterNode('c');
             var quantifierPlus = new QuantifierPlusNode().Add(charNodeA);
             var quantifierStar = new QuantifierStarNode().Add(charNodeC);
             var grandchildren =  new List<RegexNode> { quantifierPlus, charNodeB, quantifierStar };

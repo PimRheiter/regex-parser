@@ -6,7 +6,7 @@ namespace RegexParser.Nodes
     {
         public AlternationNode() { }
 
-        public AlternationNode(List<RegexNode> childNodes) : base(childNodes) { }
+        public AlternationNode(IEnumerable<RegexNode> childNodes) : base(childNodes) { }
 
         public override string ToString()
         {

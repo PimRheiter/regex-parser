@@ -7,11 +7,11 @@ namespace RegexParser.Nodes.QuantifierNodes
     /// </summary>
     public class QuantifierNMNode : QuantifierNode
     {
-        public int N { get; private set; }
-        public int M { get; private set; }
+        public int N { get; }
+        public int M { get; }
         // n and m can be written with leading zeroes as 005 in the regex
-        public string OriginalN { get; private set; }
-        public string OriginalM { get; private set; }
+        public string OriginalN { get; }
+        public string OriginalM { get; }
 
         public QuantifierNMNode(string n, string m)
         {
