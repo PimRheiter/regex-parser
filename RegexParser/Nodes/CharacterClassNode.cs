@@ -4,14 +4,10 @@ namespace RegexParser.Nodes
 {
     public class CharacterClassNode : RegexNode
     {
+        public bool Negated { get; }
         public CharacterClassNode Subtraction { get; }
 
         public CharacterClassNode()
-        {
-        }
-
-        public CharacterClassNode(IEnumerable<RegexNode> childNodes)
-            : base(childNodes)
         {
         }
 
@@ -20,8 +16,36 @@ namespace RegexParser.Nodes
             Subtraction = subtraction;
         }
 
+        public CharacterClassNode(bool negated)
+        {
+            Negated = negated;
+        }
+
+        public CharacterClassNode(CharacterClassNode subtraction, bool negated)
+            : this(negated)
+        {
+            Subtraction = subtraction;
+        }
+
+        public CharacterClassNode(IEnumerable<RegexNode> childNodes)
+            : base(childNodes)
+        {
+        }
+
         public CharacterClassNode(CharacterClassNode subtraction, IEnumerable<RegexNode> childNodes)
             : base(childNodes)
+        {
+            Subtraction = subtraction;
+        }
+
+        public CharacterClassNode(bool negated, IEnumerable<RegexNode> childNodes)
+            : base(childNodes)
+        {
+            Negated = negated;
+        }
+
+        public CharacterClassNode(CharacterClassNode subtraction, bool negated, IEnumerable<RegexNode> childNodes)
+            : this(negated, childNodes)
         {
             Subtraction = subtraction;
         }
@@ -34,7 +58,7 @@ namespace RegexParser.Nodes
 
         public override string ToString()
         {
-            return $"[{string.Concat(ChildNodes)}{(Subtraction == null ? "" : $"-{Subtraction}")}]";
+            return $"[{(Negated ? "^": "")}{string.Concat(ChildNodes)}{(Subtraction == null ? "" : $"-{Subtraction}")}]";
         }
     }
 }
