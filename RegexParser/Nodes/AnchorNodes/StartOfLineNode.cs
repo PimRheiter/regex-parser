@@ -2,6 +2,9 @@
 {
     public class StartOfLineNode : AnchorNode
     {
-        protected override string Anchor => "^";
+        public override string ToString()
+        {
+            return "^";
+        }
     }
 }

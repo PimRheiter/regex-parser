@@ -8,6 +8,11 @@ namespace RegexParser.Nodes.GroupNodes
         {
         }
 
+        public AtomicGroupNode(RegexNode childNode)
+            : base(childNode)
+        {
+        }
+
         public AtomicGroupNode(IEnumerable<RegexNode> childNodes)
             : base(childNodes)
         {

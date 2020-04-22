@@ -2,6 +2,9 @@
 {
     public class EndOfStringNode : AnchorNode
     {
-        protected override string Anchor => @"\z";
+        public override string ToString()
+        {
+            return @"\z";
+        }
     }
 }

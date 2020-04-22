@@ -11,7 +11,8 @@ namespace RegexParser.UnitTest.Nodes.QuantifierNodes
         public void ToStringShouldReturnQuantifierQuestionMarkOnChildNodeToString()
         {
             // Arrange
-            var target = new QuantifierQuestionMarkNode().Add(new CharacterNode('a'));
+            var characterNode = new CharacterNode('a');
+            var target = new QuantifierQuestionMarkNode(characterNode);
 
             // Act
             var result = target.ToString();

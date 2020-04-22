@@ -2,6 +2,9 @@
 {
     public class NonWordBoundaryNode : AnchorNode
     {
-        protected override string Anchor => @"\B";
+        public override string ToString()
+        {
+            return @"\B";
+        }
     }
 }

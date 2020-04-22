@@ -8,67 +8,9 @@ namespace RegexParser.UnitTest.Nodes.GroupNodes
     [TestClass]
     public class NamedGroupNodeTest
     {
-        [TestMethod]
-        public void GroupWithChildNodesToStringShouldReturnChildNodesToStringInNamedGroupWithNameBetweenBrackets()
-        {
-
-            // Arrange
-            var childNodes = new List<RegexNode> { new CharacterNode('a'), new CharacterNode('b'), new CharacterNode('c') };
-            var target = new NamedGroupNode("name", new List<RegexNode> { new ConcatenationNode(childNodes) });
-
-            // Act
-            var result = target.ToString();
-
-            // Assert
-            Assert.AreEqual("(?<name>abc)", result);
-        }
 
         [TestMethod]
-        public void GroupWithChildNodesAndUseQuotesFalseToStringShouldReturnChildNodesToStringInNamedGroupWithNameBetweenBrackets()
-        {
-
-            // Arrange
-            var childNodes = new List<RegexNode> { new CharacterNode('a'), new CharacterNode('b'), new CharacterNode('c') };
-            var target = new NamedGroupNode("name", false, new List<RegexNode> { new ConcatenationNode(childNodes) });
-
-            // Act
-            var result = target.ToString();
-
-            // Assert
-            Assert.AreEqual("(?<name>abc)", result);
-        }
-
-        [TestMethod]
-        public void GroupWithChildNodesAndUseQuotesTrueToStringShouldReturnChildNodesToStringInNamedGroupWithNameBetweenBrackets()
-        {
-
-            // Arrange
-            var childNodes = new List<RegexNode> { new CharacterNode('a'), new CharacterNode('b'), new CharacterNode('c') };
-            var target = new NamedGroupNode("name", true, new List<RegexNode> { new ConcatenationNode(childNodes) });
-
-            // Act
-            var result = target.ToString();
-
-            // Assert
-            Assert.AreEqual("(?'name'abc)", result);
-        }
-
-        [TestMethod]
-        public void ToStringShouldReturnEmptyNamedGroupWithNameBetweenBrackets()
-        {
-
-            // Arrange
-            var target = new NamedGroupNode("name");
-
-            // Act
-            var result = target.ToString();
-
-            // Assert
-            Assert.AreEqual("(?<name>)", result);
-        }
-
-        [TestMethod]
-        public void GroupWithUseQuotesFalseToStringShouldReturnEmptyNamedGroupWithNameBetweenBrackets()
+        public void ToStringOnGroupWithUseQuotesFalseShouldReturnEmptyNamedGroupWithNameBetweenBrackets()
         {
 
             // Arrange
@@ -82,7 +24,7 @@ namespace RegexParser.UnitTest.Nodes.GroupNodes
         }
 
         [TestMethod]
-        public void GroupWithUseQuotesTrueToStringShouldReturnEmptyNamedGroupWithNameBetweenBrackets()
+        public void ToStringOnGroupWithUseQuotesTrueShouldReturnEmptyNamedGroupWithNameBetweenSingleQuotes()
         {
 
             // Arrange
@@ -93,6 +35,35 @@ namespace RegexParser.UnitTest.Nodes.GroupNodes
 
             // Assert
             Assert.AreEqual("(?'name')", result);
+        }
+        [TestMethod]
+        public void ToStringOnGroupWithChildNodesAndUseQuotesIsFalseShouldReturnChildNodesToStringInNamedGroupWithNameBetweenBrackets()
+        {
+
+            // Arrange
+            var childNodes = new List<RegexNode> { new CharacterNode('a'), new CharacterNode('b'), new CharacterNode('c') };
+            var target = new NamedGroupNode("name", false, new ConcatenationNode(childNodes));
+
+            // Act
+            var result = target.ToString();
+
+            // Assert
+            Assert.AreEqual("(?<name>abc)", result);
+        }
+
+        [TestMethod]
+        public void ToStringOnGroupWithChildNodesAndUseQuotesTrueToStringShouldReturnChildNodesToStringInNamedGroupWithNameBetweenBrackets()
+        {
+
+            // Arrange
+            var childNodes = new List<RegexNode> { new CharacterNode('a'), new CharacterNode('b'), new CharacterNode('c') };
+            var target = new NamedGroupNode("name", true, new List<RegexNode> { new ConcatenationNode(childNodes) });
+
+            // Act
+            var result = target.ToString();
+
+            // Assert
+            Assert.AreEqual("(?'name'abc)", result);
         }
     }
 }

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using RegexParser.Nodes.AnchorNodes;
+using System;
 using System.Collections.Generic;
 
 namespace RegexParser.Nodes
@@ -11,6 +12,11 @@ namespace RegexParser.Nodes
         public RegexNode Parent { get; private set; }
 
         protected RegexNode() { }
+
+        protected RegexNode(RegexNode childNode)
+        {
+            Add(childNode);
+        }
 
         protected RegexNode(IEnumerable<RegexNode> childNodes)
         {
@@ -33,7 +39,7 @@ namespace RegexParser.Nodes
         /// Sets the current RegexNode as the parent of the new RegexNode and the new node to it's child nodes.
         /// </summary>
         /// <returns>The current RegexNode</returns>
-        public RegexNode Add(RegexNode newNode)
+        private RegexNode Add(RegexNode newNode)
         {
             newNode.Parent = this;
             _childNodes.Add(newNode);
@@ -44,7 +50,7 @@ namespace RegexParser.Nodes
         /// Sets the current RegexNode as the parent of each new RegexNode and the new nodes to it's child nodes.
         /// </summary>
         /// <returns>The current RegexNode</returns>
-        public RegexNode AddRange(IEnumerable<RegexNode> newNodes)
+        private RegexNode AddRange(IEnumerable<RegexNode> newNodes)
         {
             foreach (RegexNode newNode in newNodes)
             {
@@ -84,11 +90,11 @@ namespace RegexParser.Nodes
         /// </summary>
         /// <param name="childNodes">childNodes to copy and add</param>
         /// <returns>The current RegexNode</returns>
-        protected RegexNode CopyChildNodes(IEnumerable<RegexNode> childNodes)
+        private RegexNode CopyChildNodes(IEnumerable<RegexNode> childNodes)
         {
             foreach (RegexNode childNode in childNodes)
             {
-                RegexNode childCopy = childNode.Copy();
+                RegexNode childCopy = childNode.Copy(true);
                 Add(childCopy);
             }
             return this;
@@ -164,5 +170,32 @@ namespace RegexParser.Nodes
         }
 
         public abstract override string ToString();
+
+        /// <summary>
+        /// Create an new instance of an AnchorNode based on a character:
+        /// 'A' creates a new StartOfStringNode instance
+        /// 'Z' creates a new EndOfStringZNode instance
+        /// 'z' creates a new EndOfStringNode instance
+        /// 'b' creates a new WordBoundaryNode instance
+        /// 'B' creates a new NonWordBoundaryNode instance
+        /// 'G' creates a new ContiguousMatchNode instance
+        /// </summary>
+        /// <param name="ch"></param>
+        /// <returns></returns>
+        internal static RegexNode FromCode(char ch)
+        {
+            return ch switch
+            {
+                '^' => new StartOfLineNode(),
+                '$' => new EndOfLineNode(),
+                'A' => new StartOfStringNode(),
+                'Z' => new EndOfStringZNode(),
+                'z' => new EndOfStringNode(),
+                'b' => new WordBoundaryNode(),
+                'B' => new NonWordBoundaryNode(),
+                'G' => new ContiguousMatchNode(),
+                _ => throw new RegexParseException($"Invalid code for AnchorNode: {ch}")
+            };
+        }
     }
 }

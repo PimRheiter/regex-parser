@@ -6,7 +6,15 @@ namespace RegexParser.Nodes
     {
         public ConcatenationNode() { }
 
-        public ConcatenationNode(IEnumerable<RegexNode> childNodes) : base(childNodes) { }
+        public ConcatenationNode(RegexNode childNode)
+            : base(childNode)
+        {
+        }
+
+        public ConcatenationNode(IEnumerable<RegexNode> childNodes)
+            : base(childNodes)
+        { 
+        }
 
         public override string ToString()
         {

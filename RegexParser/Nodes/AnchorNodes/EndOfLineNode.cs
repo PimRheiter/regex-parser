@@ -2,6 +2,9 @@
 {
     public class EndOfLineNode : AnchorNode
     {
-        protected override string Anchor => "$";
+        public override string ToString()
+        {
+            return "$";
+        }
     }
 }

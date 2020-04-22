@@ -7,26 +7,23 @@ namespace RegexParser.Nodes.GroupNodes
         public string Name { get; }
         public bool UseQuotes { get; }
 
-        public NamedGroupNode(string name)
+        public NamedGroupNode(string name, bool useQuotes)
         {
             Name = name;
-        }
-
-        public NamedGroupNode(string name, bool useQuotes)
-            : this(name)
-        {
             UseQuotes = useQuotes;
         }
 
-        public NamedGroupNode(string name, IEnumerable<RegexNode> childNodes)
-            : base(childNodes)
+        public NamedGroupNode(string name, bool useQuotes, RegexNode childNode)
+            : base(childNode)
         {
             Name = name;
+            UseQuotes = useQuotes;
         }
 
         public NamedGroupNode(string name, bool useQuotes, IEnumerable<RegexNode> childNodes)
-            : this(name, childNodes)
+            : base(childNodes)
         {
+            Name = name;
             UseQuotes = useQuotes;
         }
 

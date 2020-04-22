@@ -8,8 +8,13 @@ namespace RegexParser.Nodes.GroupNodes
         {
         }
 
+        protected GroupNode(RegexNode childNode)
+            : base(childNode)
+        {
+        }
+
         protected GroupNode(IEnumerable<RegexNode> childNodes)
-            :base(childNodes)
+            : base(childNodes)
         {
         }
     }

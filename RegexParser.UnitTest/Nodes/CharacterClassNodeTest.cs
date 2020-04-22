@@ -11,7 +11,7 @@ namespace RegexParser.UnitTest.Nodes
         public void ToStringOnEmptyCharacterClassNodeShouldReturnEmptyBrackets()
         {
             // Arrange
-            var target = new CharacterClassNode();
+            var target = new CharacterClassNode(false);
 
             // Act
             var result = target.ToString();
@@ -25,8 +25,8 @@ namespace RegexParser.UnitTest.Nodes
         {
             // Arrange
             var subtractionChildNodes = new List<RegexNode> { new CharacterNode('a') };
-            var subtraction = new CharacterClassNode(subtractionChildNodes);
-            var target = new CharacterClassNode(subtraction);
+            var subtraction = new CharacterClassNode(false, subtractionChildNodes);
+            var target = new CharacterClassNode(subtraction, false);
 
             // Act
             var result = target.ToString();
@@ -40,7 +40,7 @@ namespace RegexParser.UnitTest.Nodes
         {
             // Arrange
             var subtractionChildNodes = new List<RegexNode> { new CharacterNode('a') };
-            var subtraction = new CharacterClassNode(subtractionChildNodes);
+            var subtraction = new CharacterClassNode(false, subtractionChildNodes);
             var target = new CharacterClassNode(subtraction, true);
 
             // Act
@@ -55,7 +55,7 @@ namespace RegexParser.UnitTest.Nodes
         {
             // Arrange
             var childNodes = new List<RegexNode> { new CharacterNode('a'), new CharacterNode('b'), new CharacterNode('c') };
-            var target = new CharacterClassNode(childNodes);
+            var target = new CharacterClassNode(false, childNodes);
 
             // Act
             var result = target.ToString();
@@ -69,9 +69,9 @@ namespace RegexParser.UnitTest.Nodes
         {
             // Arrange
             var subtractionChildNodes = new List<RegexNode> { new CharacterNode('a') };
-            var subtraction = new CharacterClassNode(subtractionChildNodes);
+            var subtraction = new CharacterClassNode(false, subtractionChildNodes);
             var childNodes = new List<RegexNode> { new CharacterNode('a'), new CharacterNode('b'), new CharacterNode('c') };
-            var target = new CharacterClassNode(subtraction, childNodes);
+            var target = new CharacterClassNode(subtraction, false, childNodes);
 
             // Act
             var result = target.ToString();
@@ -85,7 +85,7 @@ namespace RegexParser.UnitTest.Nodes
         {
             // Arrange
             var subtractionChildNodes = new List<RegexNode> { new CharacterNode('a') };
-            var subtraction = new CharacterClassNode(subtractionChildNodes);
+            var subtraction = new CharacterClassNode(false, subtractionChildNodes);
             var childNodes = new List<RegexNode> { new CharacterNode('a'), new CharacterNode('b'), new CharacterNode('c') };
             var target = new CharacterClassNode(subtraction, true, childNodes);
 

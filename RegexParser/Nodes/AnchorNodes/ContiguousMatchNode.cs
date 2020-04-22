@@ -2,6 +2,9 @@
 {
     public class ContiguousMatchNode : AnchorNode
     {
-        protected override string Anchor => @"\G";
+        public override string ToString()
+        {
+            return @"\G";
+        }
     }
 }

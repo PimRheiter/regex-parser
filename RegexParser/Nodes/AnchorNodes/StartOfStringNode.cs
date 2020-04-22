@@ -2,6 +2,9 @@
 {
     public class StartOfStringNode : AnchorNode
     {
-        protected override string Anchor => @"\A";
+        public override string ToString()
+        {
+            return @"\A";
+        }
     }
 }

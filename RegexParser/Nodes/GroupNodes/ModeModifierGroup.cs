@@ -12,6 +12,12 @@ namespace RegexParser.Nodes.GroupNodes
             Modifiers = modifiers;
         }
 
+        public ModeModifierGroupNode(string modifiers, RegexNode childNode)
+            : base(childNode)
+        {
+            Modifiers = modifiers;
+        }
+
         public ModeModifierGroupNode(string modifiers, IEnumerable<RegexNode> childNodes)
             : base(childNodes)
         {

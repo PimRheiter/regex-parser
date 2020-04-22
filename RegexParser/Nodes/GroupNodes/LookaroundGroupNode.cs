@@ -13,6 +13,13 @@ namespace RegexParser.Nodes.GroupNodes
             Possitive = possitive;
         }
 
+        public LookaroundGroupNode(bool lookahead, bool negative, RegexNode childNode)
+            : base(childNode)
+        {
+            Lookahead = lookahead;
+            Possitive = negative;
+        }
+
         public LookaroundGroupNode(bool lookahead, bool negative, IEnumerable<RegexNode> childNodes)
             : base(childNodes)
         {

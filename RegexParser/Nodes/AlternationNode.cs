@@ -4,7 +4,7 @@ namespace RegexParser.Nodes
 {
     public class AlternationNode : RegexNode
     {
-        public AlternationNode() { }
+        internal AlternationNode() { }
 
         public AlternationNode(IEnumerable<RegexNode> childNodes) : base(childNodes) { }
 

@@ -5,14 +5,9 @@
         public string Name { get; }
         public bool UseQuotes { get; }
 
-        public NamedReferenceNode(string name)
+        public NamedReferenceNode(string name, bool useQuotes)
         {
             Name = name;
-        }
-
-        public NamedReferenceNode(string name, bool useQuotes)
-            : this(name)
-        {
             UseQuotes = useQuotes;
         }
 

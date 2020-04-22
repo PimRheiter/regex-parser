@@ -8,6 +8,11 @@ namespace RegexParser.Nodes.GroupNodes
         {
         }
 
+        public NonCaptureGroupNode(RegexNode childNode)
+            : base(childNode)
+        {
+        }
+
         public NonCaptureGroupNode(IEnumerable<RegexNode> childNodes)
             : base(childNodes)
         {

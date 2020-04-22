@@ -8,47 +8,42 @@ namespace RegexParser.Nodes.GroupNodes
         public string BalancedGroupName { get; }
         public bool UseQuotes  { get; }
 
-        public BalancingGroupNode(string balancedGroupName)
-        {
-            BalancedGroupName = balancedGroupName;
-        }
-        public BalancingGroupNode(string balancedGroupName, string name)
-            : this(balancedGroupName)
-        {
-            Name = name;
-        }
-        public BalancingGroupNode(string balancedGroupName, string name, bool useQuotes)
-            : this(balancedGroupName, name)
-        {
-            UseQuotes = useQuotes;
-        }
-
         public BalancingGroupNode(string balancedGroupName, bool useQuotes)
-            : this(balancedGroupName)
         {
+            BalancedGroupName = balancedGroupName;
             UseQuotes = useQuotes;
         }
 
-        public BalancingGroupNode(string balancedGroupName, IEnumerable<RegexNode> childNodes)
-            : base(childNodes)
-        {
-            BalancedGroupName = balancedGroupName;
-        }
-        public BalancingGroupNode(string balancedGroupName, string name, IEnumerable<RegexNode> childNodes)
-            : this(balancedGroupName, childNodes)
+        public BalancingGroupNode(string balancedGroupName, string name, bool useQuotes)
+            : this(balancedGroupName, useQuotes)
         {
             Name = name;
         }
-        public BalancingGroupNode(string balancedGroupName, string name, bool useQuotes, IEnumerable<RegexNode> childNodes)
-            : this(balancedGroupName, name, childNodes)
+
+        public BalancingGroupNode(string balancedGroupName, bool useQuotes, RegexNode childNode)
+            : base(childNode)
         {
+            BalancedGroupName = balancedGroupName;
             UseQuotes = useQuotes;
+        }
+
+        public BalancingGroupNode(string balancedGroupName, string name, bool useQuotes, RegexNode childNode)
+            : this(balancedGroupName, useQuotes, childNode)
+        {
+            Name = name;
         }
 
         public BalancingGroupNode(string balancedGroupName, bool useQuotes, IEnumerable<RegexNode> childNodes)
-            : this(balancedGroupName, childNodes)
+            : base(childNodes)
         {
+            BalancedGroupName = balancedGroupName;
             UseQuotes = useQuotes;
+        }
+
+        public BalancingGroupNode(string balancedGroupName, string name, bool useQuotes, IEnumerable<RegexNode> childNodes)
+            : this(balancedGroupName, useQuotes, childNodes)
+        {
+            Name = name;
         }
 
         protected override RegexNode CopyInstance()

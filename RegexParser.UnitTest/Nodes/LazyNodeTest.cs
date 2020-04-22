@@ -11,9 +11,9 @@ namespace RegexParser.UnitTest.Nodes
         public void ToStringShouldAppendQuestionMarkToChildToString()
         {
             // Arrange
-            var target = new LazyNode()
-                .Add(new QuantifierStarNode()
-                    .Add(new CharacterNode('a')));
+            var characterNode = new CharacterNode('a');
+            var quantifierNode = new QuantifierStarNode(characterNode);
+            var target = new LazyNode(quantifierNode);
 
             // Act
             var result = target.ToString();

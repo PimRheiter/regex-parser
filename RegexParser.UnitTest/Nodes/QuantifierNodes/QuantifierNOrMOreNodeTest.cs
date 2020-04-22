@@ -11,7 +11,8 @@ namespace RegexParser.UnitTest.Nodes.QuantifierNodes
         public void ToStringShouldReturnOriginalQuantifierNOrMoreOnChildNodeToString()
         {
             // Arrange
-            var target = new QuantifierNOrMoreNode("05").Add(new CharacterNode('a'));
+            var characterNode = new CharacterNode('a');
+            var target = new QuantifierNOrMoreNode("05", characterNode);
 
             // Act
             var result = target.ToString();
@@ -25,7 +26,8 @@ namespace RegexParser.UnitTest.Nodes.QuantifierNodes
         public void ToStringShouldReturnQuantifierNOrMoreOfIntegerNIfNoOriginalNIsGiven()
         {
             // Arrange
-            var target = new QuantifierNOrMoreNode(5).Add(new CharacterNode('a'));
+            var characterNode = new CharacterNode('a');
+            var target = new QuantifierNOrMoreNode(5, characterNode);
 
             // Act
             var result = target.ToString();

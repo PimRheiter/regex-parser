@@ -9,10 +9,10 @@ namespace RegexParser.UnitTest.Nodes.GroupNodes
     public class BalancingGroupNodeTest
     {
         [TestMethod]
-        public void ToStringOnBalancingGroupWithOnlyBalencedGroupNameShouldReturnBalancedGroupWithNameBetweenBrackets()
+        public void ToStringOnBalancingGroupWithBalencedGroupNameAndUseQuotesIsFalseShouldReturnBalancedGroupWithNameBetweenBrackets()
         {
             // Arrange
-            var target = new BalancingGroupNode("balencedGroup");
+            var target = new BalancingGroupNode("balencedGroup", false);
 
             // Act
             var result = target.ToString();
@@ -22,10 +22,10 @@ namespace RegexParser.UnitTest.Nodes.GroupNodes
         }
 
         [TestMethod]
-        public void ToStringOnBalancingGroupWithBalencedGroupNameAndNameShouldReturnBalancedGroupWithTwoNamesBetweenBrackets()
+        public void ToStringOnBalancingGroupWithBalencedGroupNameAndNameAndUseQuotesIsFalseShouldReturnBalancedGroupWithTwoNamesBetweenBrackets()
         {
             // Arrange
-            var target = new BalancingGroupNode("balencedGroup", "currentGroup");
+            var target = new BalancingGroupNode("balencedGroup", "currentGroup", false);
 
             // Act
             var result = target.ToString();
@@ -35,7 +35,20 @@ namespace RegexParser.UnitTest.Nodes.GroupNodes
         }
 
         [TestMethod]
-        public void ToStringOnBalancingGroupWithUseQuotesTrueShouldReturnBalancedGroupWithNamesBetweenSingleQuotes()
+        public void ToStringOnBalancingGroupWithBalencedGroupNameAndUseQuotesIsTrueShouldReturnBalancedGroupWithNameBetweenSingleQuotes()
+        {
+            // Arrange
+            var target = new BalancingGroupNode("balencedGroup", true);
+
+            // Act
+            var result = target.ToString();
+
+            // Assert
+            Assert.AreEqual("(?'-balencedGroup')", result);
+        }
+
+        [TestMethod]
+        public void ToStringOnBalancingGroupWithBalencedGroupNameAndNameAndUseQuotesIsTrueShouldReturnBalancedGroupWithNamesBetweenSingleQuotes()
         {
             // Arrange
             var target = new BalancingGroupNode("balencedGroup", "currentGroup", true);
