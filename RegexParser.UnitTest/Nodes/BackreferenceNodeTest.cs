@@ -7,21 +7,7 @@ namespace RegexParser.UnitTest.Nodes
     public class BackreferenceNodeTest
     {
         [TestMethod]
-        public void ToStringShouldReturnBackslashOriginalN()
-        {
-            // Arrange
-            var target = new BackreferenceNode("05");
-
-            // Act
-            var result = target.ToString();
-
-            // Assert
-            Assert.AreEqual(@"\05", result);
-        }
-
-
-        [TestMethod]
-        public void ToStringShouldReturnBackslashIntegerNIfNoOriginalNIsGiven()
+        public void ToStringShouldReturnBackslashGroupNumber()
         {
             // Arrange
             var target = new BackreferenceNode(5);
@@ -37,7 +23,7 @@ namespace RegexParser.UnitTest.Nodes
         public void CopyingBackreferenceNodeShouldCopyOriginalGroupNumberAndGroupNumber()
         {
             // Arrange
-            var target = new BackreferenceNode("5");
+            var target = new BackreferenceNode(5);
 
             // Act
             // RemoveNode returns a copy of the current node.
@@ -46,7 +32,6 @@ namespace RegexParser.UnitTest.Nodes
             // Assert
             Assert.IsInstanceOfType(result, typeof(BackreferenceNode));
             var backreferenceNode = (BackreferenceNode)result;
-            Assert.AreEqual(target.OriginalGroupNumber, backreferenceNode.OriginalGroupNumber);
             Assert.AreEqual(target.GroupNumber, backreferenceNode.GroupNumber);
         }
     }
