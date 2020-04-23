@@ -9,8 +9,8 @@ namespace RegexParser
     public class Parser
     {
         private int _currentPosition;
-        private List<RegexNode> _alternation = new List<RegexNode>();
-        private List<RegexNode> _concatenation = new List<RegexNode>();
+        private readonly List<RegexNode> _alternation = new List<RegexNode>();
+        private readonly List<RegexNode> _concatenation = new List<RegexNode>();
         private readonly string _regex;
 
         public Parser(string regex)
@@ -75,7 +75,7 @@ namespace RegexParser
         private void ParseChars()
         {
             char ch;
-            while (CharsRight() > 0 && !IsSpecial(ch = RightChar()))
+            while (CharsRight() > 0 &&!IsSpecial(ch = RightChar()))
             {
                 AddNode(new CharacterNode(ch));
                 MoveRight();
@@ -215,8 +215,7 @@ namespace RegexParser
 
         private RegexNode ParseUnicodeCategoryNode(bool negated)
         {
-            char ch;
-            if (CharsRight() < 3 || (ch = RightCharMoveRight()) != '{')
+            if (CharsRight() < 3 || RightCharMoveRight() != '{')
             {
                 throw new RegexParseException($"Incomplete unicode category or block at position {_currentPosition}");
             }

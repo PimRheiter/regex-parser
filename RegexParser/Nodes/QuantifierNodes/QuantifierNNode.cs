@@ -4,6 +4,12 @@ namespace RegexParser.Nodes.QuantifierNodes
 {
     public class QuantifierNNode : QuantifierNode
     {
+        private QuantifierNNode(string n)
+        {
+            OriginalN = n;
+            N = int.Parse(n);
+        }
+
         public int N { get; }
         // n can be written with leading zeroes as 005 in the regex
         public string OriginalN { get; }
@@ -19,12 +25,6 @@ namespace RegexParser.Nodes.QuantifierNodes
             : base(childNode)
         {
             N = n;
-        }
-
-        private QuantifierNNode(string n)
-        {
-            OriginalN = n;
-            N = int.Parse(n);
         }
 
         protected override RegexNode CopyInstance()

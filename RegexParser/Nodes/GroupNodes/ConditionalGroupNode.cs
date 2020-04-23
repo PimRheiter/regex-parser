@@ -15,7 +15,7 @@
 
         protected override RegexNode CopyInstance()
         {
-            return new ConditionalGroupNode(Condition, Yes, No);
+            return new ConditionalGroupNode(Condition.Copy(true), Yes.Copy(true), No.Copy(true));
         }
 
         public override string ToString()

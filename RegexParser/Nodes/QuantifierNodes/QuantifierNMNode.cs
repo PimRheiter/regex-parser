@@ -13,6 +13,14 @@ namespace RegexParser.Nodes.QuantifierNodes
         public string OriginalN { get; }
         public string OriginalM { get; }
 
+        private QuantifierNMNode(string n, string m)
+        {
+            OriginalN = n;
+            N = int.Parse(n);
+            OriginalM = m;
+            M = int.Parse(m);
+        }
+
         public QuantifierNMNode(string n, string m, RegexNode childNode)
             : base(childNode)
         {
@@ -27,14 +35,6 @@ namespace RegexParser.Nodes.QuantifierNodes
         {
             N = n;
             M = m;
-        }
-
-        private QuantifierNMNode(string n, string m)
-        {
-            OriginalN = n;
-            N = int.Parse(n);
-            OriginalM = m;
-            M = int.Parse(m);
         }
 
         protected override RegexNode CopyInstance()

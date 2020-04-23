@@ -9,83 +9,75 @@ namespace RegexParser.UnitTest.Nodes.GroupNodes
     public class BalancingGroupNodeTest
     {
         [TestMethod]
-        public void ToStringOnBalancingGroupWithBalencedGroupNameAndUseQuotesIsFalseShouldReturnBalancedGroupWithNameBetweenBrackets()
+        public void ToStringOnBalancingGroupWithUseQuotesIsFalseShouldReturnBalancingGroupWithNameBetweenBrackets()
         {
             // Arrange
-            var target = new BalancingGroupNode("balencedGroup", false);
+            var target = new BalancingGroupNode("balancedGroup", "currentGroup", false);
 
             // Act
             var result = target.ToString();
 
             // Assert
-            Assert.AreEqual("(?<-balencedGroup>)", result);
+            Assert.AreEqual("(?<currentGroup-balancedGroup>)", result);
         }
 
         [TestMethod]
-        public void ToStringOnBalancingGroupWithBalencedGroupNameAndNameAndUseQuotesIsFalseShouldReturnBalancedGroupWithTwoNamesBetweenBrackets()
+        public void ToStringOnBalancingGroupWithUseQuotesIsTrueShouldReturnBalancingGroupWithNameBetweenBrackets()
         {
             // Arrange
-            var target = new BalancingGroupNode("balencedGroup", "currentGroup", false);
+            var target = new BalancingGroupNode("balancedGroup", "currentGroup", true);
 
             // Act
             var result = target.ToString();
 
             // Assert
-            Assert.AreEqual("(?<currentGroup-balencedGroup>)", result);
+            Assert.AreEqual("(?'currentGroup-balancedGroup')", result);
         }
 
         [TestMethod]
-        public void ToStringOnBalancingGroupWithBalencedGroupNameAndUseQuotesIsTrueShouldReturnBalancedGroupWithNameBetweenSingleQuotes()
+        public void ToStringOnBalancingGroupWithChildNodeShouldReturnBalencingGroupWithChildNode()
         {
             // Arrange
-            var target = new BalancingGroupNode("balencedGroup", true);
+            var childNode = new CharacterNode('a');
+            var target = new BalancingGroupNode("balancedGroup", "currentGroup", false, childNode);
 
             // Act
             var result = target.ToString();
 
             // Assert
-            Assert.AreEqual("(?'-balencedGroup')", result);
+            Assert.AreEqual("(?<currentGroup-balancedGroup>a)", result);
         }
 
         [TestMethod]
-        public void ToStringOnBalancingGroupWithBalencedGroupNameAndNameAndUseQuotesIsTrueShouldReturnBalancedGroupWithNamesBetweenSingleQuotes()
-        {
-            // Arrange
-            var target = new BalancingGroupNode("balencedGroup", "currentGroup", true);
-
-            // Act
-            var result = target.ToString();
-
-            // Assert
-            Assert.AreEqual("(?'currentGroup-balencedGroup')", result);
-        }
-
-        [TestMethod]
-        public void ToStringOnBalancingGroupWithChildNodesShouldReturnBalancedGroupWithChildNodes()
+        public void ToStringOnBalancingGroupWithMultipleChildNodesShouldReturnBalencingGroupWithChildNodes()
         {
             // Arrange
             var childNodes = new List<RegexNode> { new CharacterNode('a'), new CharacterNode('b'), new CharacterNode('c') };
-            var target = new BalancingGroupNode("balencedGroup", true, childNodes);
+            var target = new BalancingGroupNode("balancedGroup", "currentGroup", false, childNodes);
 
             // Act
             var result = target.ToString();
 
             // Assert
-            Assert.AreEqual("(?'-balencedGroup'abc)", result);
+            Assert.AreEqual("(?<currentGroup-balancedGroup>abc)", result);
         }
 
         [TestMethod]
-        public void ToStringOnBalancingGroupWithTwoNamesAndChildNodesShouldReturnBalancedGroupWithTwoNamesAndChildNodes()
+        public void CopyingBalancingGroupNodeShouldCopyBalancedGroupNameAndUseQuotes()
         {
             // Arrange
-            var childNodes = new List<RegexNode> { new CharacterNode('a'), new CharacterNode('b'), new CharacterNode('c') };
-            var target = new BalancingGroupNode("balencedGroup", "currentGroup", true, childNodes);
+            var target = new BalancingGroupNode("balancedGroup", "currentGroup", true);
 
             // Act
-            var result = target.ToString();
+            // AddNode returns a copy of the current node.
+            var result = target.AddNode(new CharacterNode('a'));
 
             // Assert
-            Assert.AreEqual("(?'currentGroup-balencedGroup'abc)", result);
+            Assert.IsInstanceOfType(result, typeof(BalancingGroupNode));
+            var balancingGroupNode = (BalancingGroupNode)result;
+            Assert.AreEqual(target.BalancedGroupName, balancingGroupNode.BalancedGroupName);
+            Assert.AreEqual(target.Name, balancingGroupNode.Name);
+            Assert.AreEqual(target.UseQuotes, balancingGroupNode.UseQuotes);
         }
     }
 }

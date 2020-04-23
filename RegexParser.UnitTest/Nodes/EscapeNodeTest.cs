@@ -18,5 +18,21 @@ namespace RegexParser.UnitTest.Nodes
             // Assert
             Assert.AreEqual(@"\n", result);
         }
+
+        [TestMethod]
+        public void CopyingEscapeNodeShouldCopyOriginalEscape()
+        {
+            // Arrange
+            var target = new EscapeNode("(");
+
+            // Act
+            // RemoveNode returns a copy of the current node.
+            var result = target.RemoveNode(new CharacterNode('x'));
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(EscapeNode));
+            var escapeNode = (EscapeNode)result;
+            Assert.AreEqual(target.Escape, escapeNode.Escape);
+        }
     }
 }

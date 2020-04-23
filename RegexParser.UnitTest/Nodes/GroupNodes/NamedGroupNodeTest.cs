@@ -8,9 +8,8 @@ namespace RegexParser.UnitTest.Nodes.GroupNodes
     [TestClass]
     public class NamedGroupNodeTest
     {
-
         [TestMethod]
-        public void ToStringOnGroupWithUseQuotesFalseShouldReturnEmptyNamedGroupWithNameBetweenBrackets()
+        public void ToStringOnNamedGroupNodeWithUseQuotesFalseShouldReturnNamedGroupWithNameBetweenBrackets()
         {
 
             // Arrange
@@ -24,7 +23,7 @@ namespace RegexParser.UnitTest.Nodes.GroupNodes
         }
 
         [TestMethod]
-        public void ToStringOnGroupWithUseQuotesTrueShouldReturnEmptyNamedGroupWithNameBetweenSingleQuotes()
+        public void ToStringOnNamedGroupNodeWithUseQuotesTrueShouldReturnNamedGroupWithNameBetweenSingleQuotes()
         {
 
             // Arrange
@@ -36,13 +35,29 @@ namespace RegexParser.UnitTest.Nodes.GroupNodes
             // Assert
             Assert.AreEqual("(?'name')", result);
         }
+
         [TestMethod]
-        public void ToStringOnGroupWithChildNodesAndUseQuotesIsFalseShouldReturnChildNodesToStringInNamedGroupWithNameBetweenBrackets()
+        public void ToStringOnNamedGroupNodeWithChildNodeShouldReturnNamedGroupWithChildNode()
+        {
+
+            // Arrange
+            var childNode = new CharacterNode('a');
+            var target = new NamedGroupNode("name", false, childNode);
+
+            // Act
+            var result = target.ToString();
+
+            // Assert
+            Assert.AreEqual("(?<name>a)", result);
+        }
+
+        [TestMethod]
+        public void ToStringOnNamedGroupNodeWithMultipleChildNodesShouldReturnNamedGroupWithChildNodes()
         {
 
             // Arrange
             var childNodes = new List<RegexNode> { new CharacterNode('a'), new CharacterNode('b'), new CharacterNode('c') };
-            var target = new NamedGroupNode("name", false, new ConcatenationNode(childNodes));
+            var target = new NamedGroupNode("name", false, childNodes);
 
             // Act
             var result = target.ToString();
@@ -52,18 +67,20 @@ namespace RegexParser.UnitTest.Nodes.GroupNodes
         }
 
         [TestMethod]
-        public void ToStringOnGroupWithChildNodesAndUseQuotesTrueToStringShouldReturnChildNodesToStringInNamedGroupWithNameBetweenBrackets()
+        public void CopyingNamedGroupNodeShouldCopyNameAndUseQuotes()
         {
-
             // Arrange
-            var childNodes = new List<RegexNode> { new CharacterNode('a'), new CharacterNode('b'), new CharacterNode('c') };
-            var target = new NamedGroupNode("name", true, new List<RegexNode> { new ConcatenationNode(childNodes) });
+            var target = new NamedGroupNode("name", true);
 
             // Act
-            var result = target.ToString();
+            // AddNode returns a copy of the current node.
+            var result = target.AddNode(new CharacterNode('a'));
 
             // Assert
-            Assert.AreEqual("(?'name'abc)", result);
+            Assert.IsInstanceOfType(result, typeof(NamedGroupNode));
+            var namedGroupNode = (NamedGroupNode)result;
+            Assert.AreEqual(target.Name, namedGroupNode.Name);
+            Assert.AreEqual(target.UseQuotes, namedGroupNode.UseQuotes);
         }
     }
 }

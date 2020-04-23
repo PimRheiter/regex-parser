@@ -82,7 +82,7 @@ namespace RegexParser.Nodes
         protected virtual RegexNode CopyInstance()
         {
             Type type = GetType();
-            return (RegexNode)Activator.CreateInstance(type);
+            return (RegexNode)Activator.CreateInstance(type, true);
         }
 
         /// <summary>

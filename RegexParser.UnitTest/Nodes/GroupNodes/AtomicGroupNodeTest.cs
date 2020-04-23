@@ -8,24 +8,8 @@ namespace RegexParser.UnitTest.Nodes.GroupNodes
     [TestClass]
     public class AtomicGroupNodeTest
     {
-
         [TestMethod]
-        public void ToStringShouldReturnChildNodesToStringInAtomicGroup()
-        {
-
-            // Arrange
-            var childNodes = new List<RegexNode> { new CharacterNode('a'), new CharacterNode('b'), new CharacterNode('c') };
-            var target = new AtomicGroupNode(new List<RegexNode> { new ConcatenationNode(childNodes) });
-
-            // Act
-            var result = target.ToString();
-
-            // Assert
-            Assert.AreEqual("(?>abc)", result);
-        }
-
-        [TestMethod]
-        public void EmptyNodeToStringShouldReturnEmptyAtomicGroup()
+        public void ToStringOnEmptyAtomicGroupNodeShouldReturnEmptyAtomicGroup()
         {
 
             // Arrange
@@ -36,6 +20,36 @@ namespace RegexParser.UnitTest.Nodes.GroupNodes
 
             // Assert
             Assert.AreEqual("(?>)", result);
+        }
+
+        [TestMethod]
+        public void ToStringOnAtomicGroupWithChildNodeShouldReturnAtomicGroupWithChildNode()
+        {
+
+            // Arrange
+            var childNode = new CharacterNode('a');
+            var target = new AtomicGroupNode(childNode);
+
+            // Act
+            var result = target.ToString();
+
+            // Assert
+            Assert.AreEqual("(?>a)", result);
+        }
+
+        [TestMethod]
+        public void ToStringOnAtomicGroupWithMultipleChildNodesShouldReturnAtomicGroupWithChildNodes()
+        {
+
+            // Arrange
+            var childNodes = new List<RegexNode> { new CharacterNode('a'), new CharacterNode('b'), new CharacterNode('c') };
+            var target = new AtomicGroupNode(childNodes);
+
+            // Act
+            var result = target.ToString();
+
+            // Assert
+            Assert.AreEqual("(?>abc)", result);
         }
     }
 }

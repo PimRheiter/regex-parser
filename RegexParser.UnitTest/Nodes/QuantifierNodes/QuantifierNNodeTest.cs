@@ -35,5 +35,23 @@ namespace RegexParser.UnitTest.Nodes.QuantifierNodes
             // Assert
             Assert.AreEqual("a{5}", result);
         }
+
+        [TestMethod]
+        public void CopyingQuantifierNNodeShouldCopyOriginalNAndN()
+        {
+            // Arrange
+            var childNode = new CharacterNode('a');
+            var target = new QuantifierNNode("5", childNode);
+
+            // Act
+            // ReplaceNode returns a copy of the current node.
+            var result = target.ReplaceNode(childNode, new CharacterNode('b'));
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(QuantifierNNode));
+            var quantifierNNode = (QuantifierNNode)result;
+            Assert.AreEqual(target.OriginalN, quantifierNNode.OriginalN);
+            Assert.AreEqual(target.N, quantifierNNode.N);
+        }
     }
 }

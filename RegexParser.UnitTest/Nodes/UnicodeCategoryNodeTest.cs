@@ -32,5 +32,22 @@ namespace RegexParser.UnitTest.Nodes
             // Assert
             Assert.AreEqual(@"\P{IsBasicLatin}", result);
         }
+
+        [TestMethod]
+        public void CopyingUnicodeCategoryNodeShouldCopyOriginalCategoryAndNegated()
+        {
+            // Arrange
+            var target = new UnicodeCategoryNode("IsBasicLatin", true);
+
+            // Act
+            // RemoveNode returns a copy of the current node.
+            var result = target.RemoveNode(new CharacterNode('x'));
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(UnicodeCategoryNode));
+            var unicodeCategoryNode = (UnicodeCategoryNode)result;
+            Assert.AreEqual(target.Category, unicodeCategoryNode.Category);
+            Assert.AreEqual(target.Negated, unicodeCategoryNode.Negated);
+        }
     }
 }

@@ -8,24 +8,8 @@ namespace RegexParser.UnitTest.Nodes.GroupNodes
     [TestClass]
     public class CaptureGroupNodeTest
     {
-
         [TestMethod]
-        public void ToStringShouldReturnChildNodesToStringBetweenInCaptureGroup()
-        {
-
-            // Arrange
-            var childNodes = new List<RegexNode> { new CharacterNode('a'), new CharacterNode('b'), new CharacterNode('c') };
-            var target = new CaptureGroupNode(new List<RegexNode> { new ConcatenationNode(childNodes) });
-
-            // Act
-            var result = target.ToString();
-
-            // Assert
-            Assert.AreEqual("(abc)", result);
-        }
-
-        [TestMethod]
-        public void EmptyNodeToStringShouldReturnEmptyParentheses()
+        public void ToStringOnEmptyNodeShouldReturnEmptyCaptureGroup()
         {
 
             // Arrange
@@ -36,6 +20,34 @@ namespace RegexParser.UnitTest.Nodes.GroupNodes
 
             // Assert
             Assert.AreEqual("()", result);
+        }
+
+        [TestMethod]
+        public void ToStringOnCaptureGroupNodeWithChildNodeCaptureGroupWithChildNode()
+        {
+            // Arrange
+            var childNode = new CharacterNode('a');
+            var target = new CaptureGroupNode(childNode);
+
+            // Act
+            var result = target.ToString();
+
+            // Assert
+            Assert.AreEqual("(a)", result);
+        }
+
+        [TestMethod]
+        public void ToStringOnCaptureGroupNodeMulitpleWithChildNodesCaptureGroupWithChildNodes()
+        {
+            // Arrange
+            var childNodes = new List<RegexNode> { new CharacterNode('a'), new CharacterNode('b'), new CharacterNode('c') };
+            var target = new CaptureGroupNode(childNodes);
+
+            // Act
+            var result = target.ToString();
+
+            // Assert
+            Assert.AreEqual("(abc)", result);
         }
     }
 }

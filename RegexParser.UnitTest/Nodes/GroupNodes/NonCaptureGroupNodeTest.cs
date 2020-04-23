@@ -8,24 +8,8 @@ namespace RegexParser.UnitTest.Nodes.GroupNodes
     [TestClass]
     public class NonCaptureGroupNodeTest
     {
-
         [TestMethod]
-        public void ToStringShouldReturnChildNodesToStringInNonCaptureGroup()
-        {
-
-            // Arrange
-            var childNodes = new List<RegexNode> { new CharacterNode('a'), new CharacterNode('b'), new CharacterNode('c') };
-            var target = new NonCaptureGroupNode(new List<RegexNode> { new ConcatenationNode(childNodes) });
-
-            // Act
-            var result = target.ToString();
-
-            // Assert
-            Assert.AreEqual("(?:abc)", result);
-        }
-
-        [TestMethod]
-        public void EmptyNodeToStringShouldReturnEmptyCapturingGroup()
+        public void ToStringOnEmptyNonCaptureGroupNodeShouldReturnEmptyNonCaptureGroup()
         {
 
             // Arrange
@@ -36,6 +20,36 @@ namespace RegexParser.UnitTest.Nodes.GroupNodes
 
             // Assert
             Assert.AreEqual("(?:)", result);
+        }
+
+        [TestMethod]
+        public void ToStringOnNonCaptureGroupNodeWithChildNodeShouldReturnEmptyNonCaptureGroupWithChildNode()
+        {
+
+            // Arrange
+            var childNode = new CharacterNode('a');
+            var target = new NonCaptureGroupNode(childNode);
+
+            // Act
+            var result = target.ToString();
+
+            // Assert
+            Assert.AreEqual("(?:a)", result);
+        }
+
+        [TestMethod]
+        public void ToStringOnNonCaptureGroupNodeWithMultipleChildNodesShouldReturnEmptyNonCaptureGroupWithChildNodes()
+        {
+
+            // Arrange
+            var childNodes = new List<RegexNode> { new CharacterNode('a'), new CharacterNode('b'), new CharacterNode('c') };
+            var target = new NonCaptureGroupNode(childNodes);
+
+            // Act
+            var result = target.ToString();
+
+            // Assert
+            Assert.AreEqual("(?:abc)", result);
         }
     }
 }

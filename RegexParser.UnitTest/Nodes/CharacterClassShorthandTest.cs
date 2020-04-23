@@ -18,5 +18,21 @@ namespace RegexParser.UnitTest.Nodes
             // Assert
             Assert.AreEqual(@"\d", result);
         }
+
+        [TestMethod]
+        public void CopyingCharacterClassShorthandNodeShouldCopyShorthand()
+        {
+            // Arrange
+            var target = new CharacterClassShorthandNode('d');
+
+            // Act
+            // RemoveNode returns a copy of the current node.
+            var result = target.RemoveNode(new CharacterNode('a'));
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(CharacterClassShorthandNode));
+            var characterClassShorthandNode = (CharacterClassShorthandNode)result;
+            Assert.AreEqual(target.Shorthand, characterClassShorthandNode.Shorthand);
+        }
     }
 }

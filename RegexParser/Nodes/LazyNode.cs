@@ -4,7 +4,7 @@ namespace RegexParser.Nodes
 {
     public class LazyNode : RegexNode
     {
-        internal LazyNode()
+        private LazyNode()
         {
         }
 

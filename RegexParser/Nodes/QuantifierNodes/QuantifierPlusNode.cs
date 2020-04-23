@@ -4,12 +4,12 @@ namespace RegexParser.Nodes.QuantifierNodes
 {
     public class QuantifierPlusNode : QuantifierNode
     {
-        public QuantifierPlusNode(RegexNode childNode)
-            : base(childNode)
+        private QuantifierPlusNode()
         {
         }
 
-        internal QuantifierPlusNode()
+        public QuantifierPlusNode(RegexNode childNode)
+            : base(childNode)
         {
         }
 

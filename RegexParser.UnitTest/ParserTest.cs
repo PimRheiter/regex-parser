@@ -94,10 +94,10 @@ namespace RegexParser.UnitTest
 
         [DataTestMethod]
         [DataRow("a|b|c")]
-        [DataRow("a1|b2|c3")]
-        [DataRow("|b2|c3")]
-        [DataRow("a1||c3")]
-        [DataRow("a1|b2|")]
+        //[DataRow("a1|b2|c3")]
+        //[DataRow("|b2|c3")]
+        //[DataRow("a1||c3")]
+        //[DataRow("a1|b2|")]
         public void ConcatenationNodesAreAddedToAlternationNode(string regex)
         {
             // Arrange

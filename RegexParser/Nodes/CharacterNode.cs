@@ -2,21 +2,21 @@
 {
     public class CharacterNode : RegexNode
     {
-        public char Ch { get; }
+        public char Character { get; }
 
         public CharacterNode(char ch)
         {
-            Ch = ch;
+            Character = ch;
         }
 
         public override string ToString()
         {
-            return Ch.ToString();
+            return Character.ToString();
         }
 
         protected override RegexNode CopyInstance()
         {
-            return new CharacterNode(Ch);
+            return new CharacterNode(Character);
         }
     }
 }

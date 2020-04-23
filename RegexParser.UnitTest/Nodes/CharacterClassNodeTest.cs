@@ -95,5 +95,41 @@ namespace RegexParser.UnitTest.Nodes
             // Assert
             Assert.AreEqual("[^abc-[a]]", result.ToString());
         }
+
+        [TestMethod]
+        public void CopyingCharacterClassNodeShouldCopyNegationAndSubtraction()
+        {
+            // Arrange
+            var subtraction = new CharacterClassNode(false);
+            var target = new CharacterClassNode(subtraction, true);
+
+            // Act
+            // AddNode returns a copy of the current node.
+            var result = target.AddNode(new CharacterNode('a'));
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(CharacterClassNode));
+            var characterClassNode = (CharacterClassNode)result;
+            Assert.AreEqual(target.Negated, characterClassNode.Negated);
+            Assert.AreEqual(target.Subtraction.ToString(), characterClassNode.Subtraction.ToString());
+        }
+
+        [TestMethod]
+        public void CopyingCharacterClassShouldNotHaveReferencesToOriginalSubtraction()
+        {
+            // Arrange
+            var subtraction = new CharacterClassNode(false);
+            var target = new CharacterClassNode(subtraction, true);
+
+            // Act
+            // AddNode returns a copy of the current node.
+            var result = target.AddNode(new CharacterNode('a'));
+
+            // Assert
+            Assert.AreNotEqual(target, result);
+            Assert.IsInstanceOfType(result, typeof(CharacterClassNode));
+            var characterClassNode = (CharacterClassNode)result;
+            Assert.AreNotEqual(target.Subtraction, characterClassNode.Subtraction);
+        }
     }
 }
