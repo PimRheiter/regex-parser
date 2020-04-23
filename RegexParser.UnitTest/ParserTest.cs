@@ -149,7 +149,7 @@ namespace RegexParser.UnitTest
         [DataRow(@"\b")]
         [DataRow(@"\B")]
         [DataRow(@"\G")]
-        public void ParsingBackslashAnchorShouldRetunRightAnchor(string anchor)
+        public void ParsingBackslashAnchorShouldReturnAnchorNode(string anchor)
         {
             // Arrange
             var target = new Parser(anchor);
@@ -161,6 +161,48 @@ namespace RegexParser.UnitTest
             Assert.AreEqual(1, result.ChildNodes.Count());
             Assert.IsInstanceOfType(result.ChildNodes.First(), typeof(AnchorNode));
             Assert.AreEqual(anchor, result.ChildNodes.First().ToString());
+        }
+
+        [TestMethod]
+        public void ParsingCaretShouldReturnStartOfLineNode()
+        {
+            // Arrange
+            var target = new Parser("^");
+
+            // Act
+            RegexNode result = target.Parse();
+
+            // Assert
+            Assert.AreEqual(1, result.ChildNodes.Count());
+            Assert.IsInstanceOfType(result.ChildNodes.First(), typeof(StartOfLineNode));
+        }
+
+        [TestMethod]
+        public void ParsingDollarShouldReturnEndOfLineNode()
+        {
+            // Arrange
+            var target = new Parser("$");
+
+            // Act
+            RegexNode result = target.Parse();
+
+            // Assert
+            Assert.AreEqual(1, result.ChildNodes.Count());
+            Assert.IsInstanceOfType(result.ChildNodes.First(), typeof(EndOfLineNode));
+        }
+
+        [TestMethod]
+        public void ParsingDotShouldReturnAnyCharacterNode()
+        {
+            // Arrange
+            var target = new Parser(".");
+
+            // Act
+            RegexNode result = target.Parse();
+
+            // Assert
+            Assert.AreEqual(1, result.ChildNodes.Count());
+            Assert.IsInstanceOfType(result.ChildNodes.First(), typeof(AnyCharacterNode));
         }
 
         [DataTestMethod]
@@ -299,6 +341,119 @@ namespace RegexParser.UnitTest
             Assert.AreEqual(1, result.ChildNodes.Count());
             Assert.IsInstanceOfType(result.ChildNodes.First(), typeof(EscapeNode));
             Assert.AreEqual(control, ((EscapeNode)result.ChildNodes.First()).Escape);
+        }
+
+        [DataTestMethod]
+        [DataRow(1)]
+        [DataRow(10)]
+        public void ParsingBackslashDigitShouldReturnBackreferenceNodeWithGroupNumber(int groupNumber)
+        {
+            // Arrange
+            var target = new Parser($@"()\{groupNumber}");
+
+            // Act
+            RegexNode result = target.Parse();
+
+            // Assert
+            Assert.IsInstanceOfType(result.ChildNodes.Last(), typeof(BackreferenceNode));
+            var backreference = (BackreferenceNode)result.ChildNodes.Last();
+            Assert.AreEqual(groupNumber, backreference.GroupNumber);
+        }
+
+        [DataTestMethod]
+        [DataRow("name")]
+        [DataRow("1")]
+        public void ParsingBackslashLowercaseKNameBetweenAngledBracketsShouldReturnNamedReferenceNodeWithNameAndUseQuotesIsFalseAndUseKIsTrue(string name)
+        {
+            // Arrange
+            var target = new Parser($@"(?<name>)\k<{name}>");
+
+            // Act
+            RegexNode result = target.Parse();
+
+            // Assert
+            Assert.IsInstanceOfType(result.ChildNodes.Last(), typeof(NamedReferenceNode));
+            var namedReference = (NamedReferenceNode)result.ChildNodes.Last();
+            Assert.AreEqual(name, namedReference.Name);
+            Assert.AreEqual(false, namedReference.UseQuotes);
+            Assert.AreEqual(true, namedReference.UseK);
+        }
+
+        [DataTestMethod]
+        [DataRow("name")]
+        [DataRow("1")]
+        public void ParsingBackslashLowercaseKNameBetweenSingleQuotesShouldReturnNamedReferenceNodeWithNameAndUseQuotesIsTrueAndUseKIsTrue(string name)
+        {
+            // Arrange
+            var target = new Parser($@"(?<name>)\k'{name}'");
+
+            // Act
+            RegexNode result = target.Parse();
+
+            // Assert
+            Assert.IsInstanceOfType(result.ChildNodes.Last(), typeof(NamedReferenceNode));
+            var namedReference = (NamedReferenceNode)result.ChildNodes.Last();
+            Assert.AreEqual(name, namedReference.Name);
+            Assert.AreEqual(true, namedReference.UseQuotes);
+            Assert.AreEqual(true, namedReference.UseK);
+        }
+
+        [DataTestMethod]
+        [DataRow("name")]
+        [DataRow("1")]
+        public void ParsingBackslashNameBetweenAngledBracketsShouldReturnNamedReferenceNodeWithNameAndUseQuotesIsFalseAndUseKIsFalse(string name)
+        {
+            // Arrange
+            var target = new Parser($@"(?<name>)\<{name}>");
+
+            // Act
+            RegexNode result = target.Parse();
+
+            // Assert
+            Assert.IsInstanceOfType(result.ChildNodes.Last(), typeof(NamedReferenceNode));
+            var namedReference = (NamedReferenceNode)result.ChildNodes.Last();
+            Assert.AreEqual(name, namedReference.Name);
+            Assert.AreEqual(false, namedReference.UseQuotes);
+            Assert.AreEqual(false, namedReference.UseK);
+        }
+
+        [DataTestMethod]
+        [DataRow("name")]
+        [DataRow("1")]
+        public void ParsingBackslashNameBetweenSingleQuotesShouldReturnNamedReferenceNodeWithNameAndUseQuotesIsTrueAndUseKIsFalse(string name)
+        {
+            // Arrange
+            var target = new Parser($@"(?<name>)\'{name}'");
+
+            // Act
+            RegexNode result = target.Parse();
+
+            // Assert
+            Assert.IsInstanceOfType(result.ChildNodes.Last(), typeof(NamedReferenceNode));
+            var namedReference = (NamedReferenceNode)result.ChildNodes.Last();
+            Assert.AreEqual(name, namedReference.Name);
+            Assert.AreEqual(true, namedReference.UseQuotes);
+            Assert.AreEqual(false, namedReference.UseK);
+        }
+
+        [DataTestMethod]
+        [DataRow(".")]
+        [DataRow("$")]
+        [DataRow("^")]
+        [DataRow("|")]
+        [DataRow("\\")]
+        public void ParsingBackslashMetacharacterShouldReturnEscapeNodeWithEscape(string metacharacter)
+        {
+            // Arrange
+            var target = new Parser($@"\{metacharacter}");
+
+            // Act
+            RegexNode result = target.Parse();
+
+            // Assert
+            Assert.IsInstanceOfType(result.ChildNodes.Last(), typeof(EscapeNode));
+            var escapeNode = (EscapeNode)result.ChildNodes.Last();
+            Assert.AreEqual(metacharacter, escapeNode.Escape);
         }
     }
 }

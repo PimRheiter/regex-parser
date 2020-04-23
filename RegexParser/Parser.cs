@@ -1,4 +1,5 @@
 ﻿using RegexParser.Nodes;
+using RegexParser.Nodes.AnchorNodes;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,6 +9,7 @@ namespace RegexParser
 {
     public class Parser
     {
+        private static readonly int[] _wordCharCategories = { 0, 1, 2, 3, 4, 5, 8, 18 };
         private int _currentPosition;
         private readonly List<RegexNode> _alternation = new List<RegexNode>();
         private readonly List<RegexNode> _concatenation = new List<RegexNode>();
@@ -46,7 +48,16 @@ namespace RegexParser
                             AddAlternate();
                             break;
                         case '\\':
-                            AddNode(ScanBackslash());
+                            AddNode(ParseBackslash());
+                            break;
+                        case '^':
+                            AddNode(new StartOfLineNode());
+                            break;
+                        case '$':
+                            AddNode(new EndOfLineNode());
+                            break;
+                        case '.':
+                            AddNode(new AnyCharacterNode());
                             break;
                         default:
                             throw new RegexParseException("Something went wrong while parsing.");
@@ -82,7 +93,7 @@ namespace RegexParser
             }
         }
 
-        private RegexNode ScanBackslash()
+        private RegexNode ParseBackslash()
         {
             if (CharsRight() == 0)
             {
@@ -90,6 +101,7 @@ namespace RegexParser
             }
 
             char ch = RightChar();
+
             switch (ch)
             {
                 // Anchors
@@ -126,7 +138,83 @@ namespace RegexParser
 
         private RegexNode ScanBasicBackslash()
         {
-            return ParseCharacterEscape();
+            if (CharsRight() == 0)
+            {
+                throw new RegexParseException("Illegal escape at end position.");
+            }
+
+            char ch = RightChar();
+
+            // Parse backreference \1
+            // TODO: parse octal escape character
+            if (ch >= '1' && ch <= '9')
+            {
+                int groupNumber = ScanDecimal();
+                return new BackreferenceNode(groupNumber);
+            }
+
+            switch (ch)
+            {
+                // Named reference \k<name> or \k'name'
+                case 'k':
+                    bool useQuotes = CharsRight() > 1 && RightChar(1) == '\'';
+                    MoveRight();
+                    return new NamedReferenceNode(ScanGroupName(), useQuotes, true);
+
+                // Named reference \<name> is deprecated, but can still be used
+                case '<':
+                    return new NamedReferenceNode(ScanGroupName(), false, false);
+
+                // Named reference \'name' is deprecated, but can still be used
+                case '\'':
+                    return new NamedReferenceNode(ScanGroupName(), true, false);
+
+                // Character escape
+                default:
+                    return ParseCharacterEscape();
+            }
+        }
+
+        private string ScanGroupName()
+        {
+            if (CharsRight() < 3)
+            {
+                throw new RegexParseException("Incomplete group name.");
+            }
+
+            char ch = RightCharMoveRight();
+            if (ch != '<' && ch != '\'')
+            {
+                throw new RegexParseException("Incomplete group name.");
+            }
+
+            int startPosition = _currentPosition;
+            char closeChar = ch == '<' ? '>' : '\'';
+
+            while (CharsRight() > 0 && IsWordChar(ch = RightChar()))
+            {
+                MoveRight();
+            }
+
+            if (ch != closeChar)
+            {
+                throw new RegexParseException("Incomplete group name.");
+            }
+
+            string groupName = _regex.Substring(startPosition, _currentPosition - startPosition);
+            MoveRight();
+            return groupName;
+        }
+
+        private int ScanDecimal()
+        {
+            int i = 0;
+            char ch;
+            while(CharsRight() > 0 && (ch = RightCharMoveRight()) >= '0' && ch <= '9')
+            {
+                i = i * 10 + ch - '0';
+            }
+            return i;
         }
 
         private RegexNode ParseCharacterEscape()
@@ -157,7 +245,13 @@ namespace RegexParser
                 case 'v':
                     return new EscapeNode(ch.ToString());
                 default:
-                    // TODO: throw exception on all other word characters
+                    // Other word character should not be escaped
+                    if (IsWordChar(ch))
+                    {
+                        throw new RegexParseException("Unrecognized escape sequence");
+                    }
+
+                    // Escape metacharacter
                     return new EscapeNode(ch.ToString());
             }
         }
@@ -203,6 +297,11 @@ namespace RegexParser
                 (ch >= 'a' && ch <= 'f');
         }
 
+        private bool IsWordChar(char ch)
+        {
+            return _wordCharCategories.Contains((int)char.GetUnicodeCategory(ch));
+        }
+
         private RegexNode ParseAnchorNode(char ch)
         {
             return RegexNode.FromCode(ch);
@@ -246,7 +345,7 @@ namespace RegexParser
 
         private static bool IsSpecial(char ch)
         {
-            return @"\|".Contains(ch);
+            return @".\$^|".Contains(ch);
         }
 
         /// <summary>
@@ -271,6 +370,14 @@ namespace RegexParser
         private char RightChar()
         {
             return _regex[_currentPosition];
+        }
+
+        /// <summary>
+        /// Returns the character i characters right of the current parsing position.
+        /// </summary>
+        private char RightChar(int i)
+        {
+            return _regex[_currentPosition + i];
         }
 
         /// <summary>
