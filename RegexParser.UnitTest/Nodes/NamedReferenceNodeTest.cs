@@ -7,7 +7,7 @@ namespace RegexParser.UnitTest.Nodes
     public class NamedReferenceNodeTest
     {
         [TestMethod]
-        public void NamedReferenceWithUseQuotesTrueToStringShouldReturnBackslashLowerCaseKNameBetweenSingleQuotes()
+        public void NamedReferenceWithUseQuotesTrueToStringShouldReturnBackslashLowercaseKNameBetweenSingleQuotes()
         {
             // Arrange
             var target = new NamedReferenceNode("name", true);
@@ -19,9 +19,8 @@ namespace RegexParser.UnitTest.Nodes
             Assert.AreEqual(@"\k'name'", result);
         }
 
-
         [TestMethod]
-        public void NamedReferenceWithUseQuotesFalseToStringShouldReturnBackslashLowerCaseKNameBetweenBrackets()
+        public void NamedReferenceWithUseQuotesFalseToStringShouldReturnBackslashLowercaseKNameBetweenBrackets()
         {
             // Arrange
             var target = new NamedReferenceNode("name", false);
@@ -34,10 +33,24 @@ namespace RegexParser.UnitTest.Nodes
         }
 
         [TestMethod]
-        public void CopyingNamedReferenceNodeShouldCopyOriginalNameAndUseQuotes()
+        public void NamedReferenceWithUseKFalseToStringShouldReturnBackslashNameBetweenBrackets()
         {
             // Arrange
-            var target = new NamedReferenceNode("name", true);
+            var target = new NamedReferenceNode("name", false, false);
+
+            // Act
+            string result = target.ToString();
+
+            // Assert
+            Assert.AreEqual(@"\<name>", result);
+        }
+
+
+        [TestMethod]
+        public void CopyingNamedReferenceNodeShouldCopyOriginalNameUseQuotesAndUseK()
+        {
+            // Arrange
+            var target = new NamedReferenceNode("name", true, true);
 
             // Act
             // RemoveNode returns a copy of the current node.
@@ -48,6 +61,7 @@ namespace RegexParser.UnitTest.Nodes
             var namedReferenceNode = (NamedReferenceNode)result;
             Assert.AreEqual(target.Name, namedReferenceNode.Name);
             Assert.AreEqual(target.UseQuotes, namedReferenceNode.UseQuotes);
+            Assert.AreEqual(target.UseK, namedReferenceNode.UseK);
         }
     }
 }
