@@ -1,5 +1,6 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using RegexParser.Nodes;
+using Shouldly;
 
 namespace RegexParser.UnitTest.Nodes
 {
@@ -16,7 +17,7 @@ namespace RegexParser.UnitTest.Nodes
             var result = target.ToString();
 
             // Assert
-            Assert.AreEqual("a", result);
+            result.ShouldBe("a");
         }
 
         [TestMethod]
@@ -30,9 +31,8 @@ namespace RegexParser.UnitTest.Nodes
             var result = target.RemoveNode(new CharacterNode('x'));
 
             // Assert
-            Assert.IsInstanceOfType(result, typeof(CharacterNode));
-            var characterNode = (CharacterNode)result;
-            Assert.AreEqual(target.Character, characterNode.Character);
+            CharacterNode characterNode = result.ShouldBeOfType<CharacterNode>();
+            characterNode.Character.ShouldBe(target.Character);
         }
     }
 }

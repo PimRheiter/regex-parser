@@ -1,6 +1,7 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using RegexParser.Nodes;
 using RegexParser.Nodes.GroupNodes;
+using Shouldly;
 using System.Collections.Generic;
 
 namespace RegexParser.UnitTest.Nodes.GroupNodes
@@ -19,7 +20,7 @@ namespace RegexParser.UnitTest.Nodes.GroupNodes
             var result = target.ToString();
 
             // Assert
-            Assert.AreEqual("(?=)", result);
+            result.ShouldBe("(?=)");
         }
 
         [TestMethod]
@@ -33,7 +34,7 @@ namespace RegexParser.UnitTest.Nodes.GroupNodes
             var result = target.ToString();
 
             // Assert
-            Assert.AreEqual("(?<=)", result);
+            result.ShouldBe("(?<=)");
         }
 
         [TestMethod]
@@ -47,7 +48,7 @@ namespace RegexParser.UnitTest.Nodes.GroupNodes
             var result = target.ToString();
 
             // Assert
-            Assert.AreEqual("(?!)", result);
+            result.ShouldBe("(?!)");
         }
 
         [TestMethod]
@@ -61,7 +62,7 @@ namespace RegexParser.UnitTest.Nodes.GroupNodes
             var result = target.ToString();
 
             // Assert
-            Assert.AreEqual("(?<!)", result);
+            result.ShouldBe("(?<!)");
         }
 
         [TestMethod]
@@ -76,7 +77,7 @@ namespace RegexParser.UnitTest.Nodes.GroupNodes
             var result = target.ToString();
 
             // Assert
-            Assert.AreEqual("(?=a)", result);
+            result.ShouldBe("(?=a)");
         }
 
         [TestMethod]
@@ -91,7 +92,7 @@ namespace RegexParser.UnitTest.Nodes.GroupNodes
             var result = target.ToString();
 
             // Assert
-            Assert.AreEqual("(?=abc)", result);
+            result.ShouldBe("(?=abc)");
         }
 
         [TestMethod]
@@ -105,10 +106,9 @@ namespace RegexParser.UnitTest.Nodes.GroupNodes
             var result = target.AddNode(new CharacterNode('a'));
 
             // Assert
-            Assert.IsInstanceOfType(result, typeof(LookaroundGroupNode));
-            var lookaroundGroupNode = (LookaroundGroupNode)result;
-            Assert.AreEqual(target.Lookahead, lookaroundGroupNode.Lookahead);
-            Assert.AreEqual(target.Possitive, lookaroundGroupNode.Possitive);
+            LookaroundGroupNode lookaroundGroupNode = result.ShouldBeOfType<LookaroundGroupNode>();
+            lookaroundGroupNode.Lookahead.ShouldBe(target.Lookahead);
+            lookaroundGroupNode.Possitive.ShouldBe(target.Possitive);
         }
     }
 }

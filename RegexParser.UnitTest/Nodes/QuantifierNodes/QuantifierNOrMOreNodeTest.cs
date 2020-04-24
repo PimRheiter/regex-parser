@@ -1,6 +1,7 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using RegexParser.Nodes;
 using RegexParser.Nodes.QuantifierNodes;
+using Shouldly;
 
 namespace RegexParser.UnitTest.Nodes.QuantifierNodes
 {
@@ -18,7 +19,7 @@ namespace RegexParser.UnitTest.Nodes.QuantifierNodes
             var result = target.ToString();
 
             // Assert
-            Assert.AreEqual("a{05,}", result);
+            result.ShouldBe("a{05,}");
         }
 
 
@@ -33,7 +34,7 @@ namespace RegexParser.UnitTest.Nodes.QuantifierNodes
             var result = target.ToString();
 
             // Assert
-            Assert.AreEqual("a{5,}", result);
+            result.ShouldBe("a{5,}");
         }
 
         [TestMethod]
@@ -48,10 +49,9 @@ namespace RegexParser.UnitTest.Nodes.QuantifierNodes
             var result = target.ReplaceNode(childNode, new CharacterNode('b'));
 
             // Assert
-            Assert.IsInstanceOfType(result, typeof(QuantifierNOrMoreNode));
-            var quantifierNOrMoreNode = (QuantifierNOrMoreNode)result;
-            Assert.AreEqual(target.OriginalN, quantifierNOrMoreNode.OriginalN);
-            Assert.AreEqual(target.N, quantifierNOrMoreNode.N);
+            QuantifierNOrMoreNode quantifierNorMoreNode = result.ShouldBeOfType<QuantifierNOrMoreNode>();
+            quantifierNorMoreNode.OriginalN.ShouldBe(target.OriginalN);
+            quantifierNorMoreNode.N.ShouldBe(target.N);
         }
     }
 }

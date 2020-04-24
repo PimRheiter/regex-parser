@@ -1,6 +1,7 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using RegexParser.Nodes;
 using RegexParser.Nodes.GroupNodes;
+using Shouldly;
 using System.Collections.Generic;
 
 namespace RegexParser.UnitTest.Nodes.GroupNodes
@@ -19,7 +20,7 @@ namespace RegexParser.UnitTest.Nodes.GroupNodes
             var result = target.ToString();
 
             // Assert
-            Assert.AreEqual("()", result);
+            result.ShouldBe("()");
         }
 
         [TestMethod]
@@ -33,7 +34,7 @@ namespace RegexParser.UnitTest.Nodes.GroupNodes
             var result = target.ToString();
 
             // Assert
-            Assert.AreEqual("(a)", result);
+            result.ShouldBe("(a)");
         }
 
         [TestMethod]
@@ -47,7 +48,7 @@ namespace RegexParser.UnitTest.Nodes.GroupNodes
             var result = target.ToString();
 
             // Assert
-            Assert.AreEqual("(abc)", result);
+            result.ShouldBe("(abc)");
         }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using RegexParser.Nodes;
+using Shouldly;
 
 namespace RegexParser.UnitTest.Nodes
 {
@@ -17,7 +18,7 @@ namespace RegexParser.UnitTest.Nodes
             var result = target.ToString();
 
             // Assert
-            Assert.AreEqual(@"\p{IsBasicLatin}", result);
+            result.ShouldBe(@"\p{IsBasicLatin}");
         }
 
         [TestMethod]
@@ -30,7 +31,7 @@ namespace RegexParser.UnitTest.Nodes
             var result = target.ToString();
 
             // Assert
-            Assert.AreEqual(@"\P{IsBasicLatin}", result);
+            result.ShouldBe(@"\P{IsBasicLatin}");
         }
 
         [TestMethod]
@@ -44,10 +45,9 @@ namespace RegexParser.UnitTest.Nodes
             var result = target.RemoveNode(new CharacterNode('x'));
 
             // Assert
-            Assert.IsInstanceOfType(result, typeof(UnicodeCategoryNode));
-            var unicodeCategoryNode = (UnicodeCategoryNode)result;
-            Assert.AreEqual(target.Category, unicodeCategoryNode.Category);
-            Assert.AreEqual(target.Negated, unicodeCategoryNode.Negated);
+            UnicodeCategoryNode unicodeCategoryNode = result.ShouldBeOfType<UnicodeCategoryNode>();
+            unicodeCategoryNode.Category.ShouldBe(target.Category);
+            unicodeCategoryNode.Negated.ShouldBe(target.Negated);
         }
     }
 }

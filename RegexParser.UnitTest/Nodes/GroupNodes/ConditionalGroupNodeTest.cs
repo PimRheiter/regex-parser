@@ -1,6 +1,7 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using RegexParser.Nodes;
 using RegexParser.Nodes.GroupNodes;
+using Shouldly;
 
 namespace RegexParser.UnitTest.Nodes.GroupNodes
 {
@@ -20,7 +21,7 @@ namespace RegexParser.UnitTest.Nodes.GroupNodes
             var result = target.ToString();
 
             // Assert
-            Assert.AreEqual("(?(c)y|n)", result);
+            result.ShouldBe("(?(c)y|n)", result);
         }
 
         [TestMethod]
@@ -37,11 +38,10 @@ namespace RegexParser.UnitTest.Nodes.GroupNodes
             var result = target.AddNode(new CharacterNode('a'));
 
             // Assert
-            Assert.IsInstanceOfType(result, typeof(ConditionalGroupNode));
-            var conditionalGroupNode = (ConditionalGroupNode)result;
-            Assert.AreEqual(target.Condition.ToString(), conditionalGroupNode.Condition.ToString());
-            Assert.AreEqual(target.Yes.ToString(), conditionalGroupNode.Yes.ToString());
-            Assert.AreEqual(target.No.ToString(), conditionalGroupNode.No.ToString());
+            ConditionalGroupNode conditionalGroupNode = result.ShouldBeOfType<ConditionalGroupNode>();
+            conditionalGroupNode.Condition.ToString().ShouldBe(target.Condition.ToString());
+            conditionalGroupNode.Yes.ToString().ShouldBe(target.Yes.ToString());
+            conditionalGroupNode.No.ToString().ShouldBe(target.No.ToString());
         }
 
         [TestMethod]
@@ -58,12 +58,11 @@ namespace RegexParser.UnitTest.Nodes.GroupNodes
             var result = target.AddNode(new CharacterNode('a'));
 
             // Assert
-            Assert.AreNotEqual(target, result);
-            Assert.IsInstanceOfType(result, typeof(ConditionalGroupNode));
-            var conditionalGroupNode = (ConditionalGroupNode)result;
-            Assert.AreNotEqual(target.Condition, conditionalGroupNode.Condition);
-            Assert.AreNotEqual(target.Yes, conditionalGroupNode.Yes);
-            Assert.AreNotEqual(target.No, conditionalGroupNode.No);
+            result.ShouldNotBe(target);
+            ConditionalGroupNode conditionalGroupNode = result.ShouldBeOfType<ConditionalGroupNode>();
+            conditionalGroupNode.Condition.ShouldNotBe(target.Condition);
+            conditionalGroupNode.Yes.ShouldNotBe(target.Yes);
+            conditionalGroupNode.No.ShouldNotBe(target.No);
         }
     }
 }

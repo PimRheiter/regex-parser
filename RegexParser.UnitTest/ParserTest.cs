@@ -1,6 +1,7 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using RegexParser.Nodes;
 using RegexParser.Nodes.AnchorNodes;
+using Shouldly;
 using System;
 using System.Linq;
 
@@ -43,7 +44,7 @@ namespace RegexParser.UnitTest
             var result = target.Parse();
 
             // Assert
-            Assert.AreEqual(regex, result.ToString());
+            result.ToString().ShouldBe(regex);
         }
 
         [TestMethod]
@@ -56,7 +57,7 @@ namespace RegexParser.UnitTest
             Action act = () => new Parser(invalidRegex);
 
             // Assert
-            Assert.ThrowsException<RegexParseException>(act);
+            act.ShouldThrow<RegexParseException>();
         }
 
         [TestMethod]
@@ -70,8 +71,8 @@ namespace RegexParser.UnitTest
             RegexNode result = target.Parse();
 
             // Assert
-            Assert.AreEqual(0, result.ChildNodes.Count());
-            Assert.IsInstanceOfType(result, typeof(ConcatenationNode));
+            result.ShouldBeOfType<ConcatenationNode>();
+            result.ChildNodes.ShouldBeEmpty();
         }
 
         [TestMethod]
@@ -85,19 +86,19 @@ namespace RegexParser.UnitTest
             RegexNode result = target.Parse();
 
             // Assert
-            Assert.IsInstanceOfType(result, typeof(ConcatenationNode));
-            Assert.AreEqual(3, result.ChildNodes.Count());
-            Assert.IsInstanceOfType(result.ChildNodes.First(), typeof(CharacterNode));
-            Assert.IsInstanceOfType(result.ChildNodes.ElementAt(1), typeof(CharacterNode));
-            Assert.IsInstanceOfType(result.ChildNodes.ElementAt(2), typeof(CharacterNode));
+            result.ShouldBeOfType<ConcatenationNode>();
+            result.ChildNodes.Count().ShouldBe(3);
+            result.ChildNodes.First().ShouldBeOfType<CharacterNode>();
+            result.ChildNodes.ElementAt(1).ShouldBeOfType<CharacterNode>();
+            result.ChildNodes.ElementAt(2).ShouldBeOfType<CharacterNode>();
         }
 
         [DataTestMethod]
         [DataRow("a|b|c")]
-        //[DataRow("a1|b2|c3")]
-        //[DataRow("|b2|c3")]
-        //[DataRow("a1||c3")]
-        //[DataRow("a1|b2|")]
+        [DataRow("a1|b2|c3")]
+        [DataRow("|b2|c3")]
+        [DataRow("a1||c3")]
+        [DataRow("a1|b2|")]
         public void ConcatenationNodesAreAddedToAlternationNode(string regex)
         {
             // Arrange
@@ -107,11 +108,11 @@ namespace RegexParser.UnitTest
             RegexNode result = target.Parse();
 
             // Assert
-            Assert.IsInstanceOfType(result, typeof(AlternationNode));
-            Assert.AreEqual(3, result.ChildNodes.Count());
-            Assert.IsInstanceOfType(result.ChildNodes.First(), typeof(ConcatenationNode));
-            Assert.IsInstanceOfType(result.ChildNodes.ElementAt(1), typeof(ConcatenationNode));
-            Assert.IsInstanceOfType(result.ChildNodes.ElementAt(2), typeof(ConcatenationNode));
+            result.ShouldBeOfType<AlternationNode>();
+            result.ChildNodes.Count().ShouldBe(3);
+            result.ChildNodes.First().ShouldBeOfType<ConcatenationNode>();
+            result.ChildNodes.ElementAt(1).ShouldBeOfType<ConcatenationNode>();
+            result.ChildNodes.ElementAt(2).ShouldBeOfType<ConcatenationNode>();
         }
 
         [DataTestMethod]
@@ -127,7 +128,7 @@ namespace RegexParser.UnitTest
         [DataRow("+")]
         [DataRow("?")]
         [DataRow("\\")]
-        public void ParsingBackslashMetaCharacterShouldRetunEscapCharacterWithEscapedCharacter(string metaCharacter)
+        public void ParsingBackslashMetaCharacterShouldRetunEscapCharacterWithEscapedMetaCharacter(string metaCharacter)
         {
             // Arrange
             var regex = $@"\{metaCharacter}";
@@ -137,30 +138,93 @@ namespace RegexParser.UnitTest
             RegexNode result = target.Parse();
 
             // Assert
-            Assert.AreEqual(1, result.ChildNodes.Count());
-            Assert.IsInstanceOfType(result.ChildNodes.First(), typeof(EscapeNode));
-            Assert.AreEqual(metaCharacter, ((EscapeNode)result.ChildNodes.First()).Escape);
+            result.ChildNodes.ShouldHaveSingleItem();
+            EscapeNode escapeNode = result.ChildNodes.First().ShouldBeOfType<EscapeNode>();
+            escapeNode.Escape.ShouldBe(metaCharacter);
         }
 
-        [DataTestMethod]
-        [DataRow(@"\A")]
-        [DataRow(@"\Z")]
-        [DataRow(@"\z")]
-        [DataRow(@"\b")]
-        [DataRow(@"\B")]
-        [DataRow(@"\G")]
-        public void ParsingBackslashAnchorShouldReturnAnchorNode(string anchor)
+        [TestMethod]
+        public void ParsingBackslashUppercaseAShouldReturnStartOfStringNode()
         {
             // Arrange
-            var target = new Parser(anchor);
+            var target = new Parser(@"\A");
 
             // Act
             RegexNode result = target.Parse();
 
             // Assert
-            Assert.AreEqual(1, result.ChildNodes.Count());
-            Assert.IsInstanceOfType(result.ChildNodes.First(), typeof(AnchorNode));
-            Assert.AreEqual(anchor, result.ChildNodes.First().ToString());
+            result.ChildNodes.ShouldHaveSingleItem();
+            result.ChildNodes.First().ShouldBeOfType<StartOfStringNode>();
+        }
+
+        [TestMethod]
+        public void ParsingBackslashUppercaseZShouldReturnEndOfStringZNode()
+        {
+            // Arrange
+            var target = new Parser(@"\Z");
+
+            // Act
+            RegexNode result = target.Parse();
+
+            // Assert
+            result.ChildNodes.ShouldHaveSingleItem();
+            result.ChildNodes.First().ShouldBeOfType<EndOfStringZNode>();
+        }
+
+        [TestMethod]
+        public void ParsingBackslashLowercaseZShouldReturnEndOfStringNode()
+        {
+            // Arrange
+            var target = new Parser(@"\z");
+
+            // Act
+            RegexNode result = target.Parse();
+
+            // Assert
+            result.ChildNodes.ShouldHaveSingleItem();
+            result.ChildNodes.First().ShouldBeOfType<EndOfStringNode>();
+        }
+
+        [TestMethod]
+        public void ParsingBackslashLowercaseBShouldReturnWordBoundaryNode()
+        {
+            // Arrange
+            var target = new Parser(@"\b");
+
+            // Act
+            RegexNode result = target.Parse();
+
+            // Assert
+            result.ChildNodes.ShouldHaveSingleItem();
+            result.ChildNodes.First().ShouldBeOfType<WordBoundaryNode>();
+        }
+
+        [TestMethod]
+        public void ParsingBackslashUppercaseBShouldReturnNonWordBoundaryNode()
+        {
+            // Arrange
+            var target = new Parser(@"\B");
+
+            // Act
+            RegexNode result = target.Parse();
+
+            // Assert
+            result.ChildNodes.ShouldHaveSingleItem();
+            result.ChildNodes.First().ShouldBeOfType<NonWordBoundaryNode>();
+        }
+
+        [TestMethod]
+        public void ParsingBackslashUppercaseGShouldReturnContiguousMatchNode()
+        {
+            // Arrange
+            var target = new Parser(@"\G");
+
+            // Act
+            RegexNode result = target.Parse();
+
+            // Assert
+            result.ChildNodes.ShouldHaveSingleItem();
+            result.ChildNodes.First().ShouldBeOfType<ContiguousMatchNode>();
         }
 
         [TestMethod]
@@ -173,8 +237,8 @@ namespace RegexParser.UnitTest
             RegexNode result = target.Parse();
 
             // Assert
-            Assert.AreEqual(1, result.ChildNodes.Count());
-            Assert.IsInstanceOfType(result.ChildNodes.First(), typeof(StartOfLineNode));
+            result.ChildNodes.ShouldHaveSingleItem();
+            result.ChildNodes.First().ShouldBeOfType<StartOfLineNode>();
         }
 
         [TestMethod]
@@ -187,8 +251,8 @@ namespace RegexParser.UnitTest
             RegexNode result = target.Parse();
 
             // Assert
-            Assert.AreEqual(1, result.ChildNodes.Count());
-            Assert.IsInstanceOfType(result.ChildNodes.First(), typeof(EndOfLineNode));
+            result.ChildNodes.ShouldHaveSingleItem();
+            result.ChildNodes.First().ShouldBeOfType<EndOfLineNode>();
         }
 
         [TestMethod]
@@ -201,8 +265,8 @@ namespace RegexParser.UnitTest
             RegexNode result = target.Parse();
 
             // Assert
-            Assert.AreEqual(1, result.ChildNodes.Count());
-            Assert.IsInstanceOfType(result.ChildNodes.First(), typeof(AnyCharacterNode));
+            result.ChildNodes.ShouldHaveSingleItem();
+            result.ChildNodes.First().ShouldBeOfType<AnyCharacterNode>();
         }
 
         [DataTestMethod]
@@ -221,9 +285,9 @@ namespace RegexParser.UnitTest
             RegexNode result = target.Parse();
 
             // Assert
-            Assert.AreEqual(1, result.ChildNodes.Count());
-            Assert.IsInstanceOfType(result.ChildNodes.First(), typeof(CharacterClassShorthandNode));
-            Assert.AreEqual(shorthandCharacter, ((CharacterClassShorthandNode)result.ChildNodes.First()).Shorthand);
+            result.ChildNodes.ShouldHaveSingleItem();
+            CharacterClassShorthandNode characterClassShorthandNode = result.ChildNodes.First().ShouldBeOfType<CharacterClassShorthandNode>();
+            characterClassShorthandNode.Shorthand.ShouldBe(shorthandCharacter);
         }
 
         [TestMethod]
@@ -237,10 +301,10 @@ namespace RegexParser.UnitTest
             RegexNode result = target.Parse();
 
             // Assert
-            Assert.AreEqual(1, result.ChildNodes.Count());
-            Assert.IsInstanceOfType(result.ChildNodes.First(), typeof(UnicodeCategoryNode));
-            Assert.AreEqual(category, ((UnicodeCategoryNode)result.ChildNodes.First()).Category);
-            Assert.AreEqual(false, ((UnicodeCategoryNode)result.ChildNodes.First()).Negated);
+            result.ChildNodes.ShouldHaveSingleItem();
+            UnicodeCategoryNode unicodeCategoryNode = result.ChildNodes.First().ShouldBeOfType<UnicodeCategoryNode>();
+            unicodeCategoryNode.Category.ShouldBe(category);
+            unicodeCategoryNode.Negated.ShouldBe(false);
         }
 
         [TestMethod]
@@ -254,21 +318,21 @@ namespace RegexParser.UnitTest
             RegexNode result = target.Parse();
 
             // Assert
-            Assert.AreEqual(1, result.ChildNodes.Count());
-            Assert.IsInstanceOfType(result.ChildNodes.First(), typeof(UnicodeCategoryNode));
-            Assert.AreEqual(category, ((UnicodeCategoryNode)result.ChildNodes.First()).Category);
-            Assert.AreEqual(true, ((UnicodeCategoryNode)result.ChildNodes.First()).Negated);
+            result.ChildNodes.ShouldHaveSingleItem();
+            UnicodeCategoryNode unicodeCategoryNode = result.ChildNodes.First().ShouldBeOfType<UnicodeCategoryNode>();
+            unicodeCategoryNode.Category.ShouldBe(category);
+            unicodeCategoryNode.Negated.ShouldBe(true);
         }
 
         [DataTestMethod]
-        [DataRow('a')]
-        [DataRow('e')]
-        [DataRow('f')]
-        [DataRow('n')]
-        [DataRow('r')]
-        [DataRow('t')]
-        [DataRow('v')]
-        public void ParsingBackslashEscapeCharacterShouldReturnEscapecharacterNodeWithEscapeCharacter(char escape)
+        [DataRow("a")]
+        [DataRow("e")]
+        [DataRow("f")]
+        [DataRow("n")]
+        [DataRow("r")]
+        [DataRow("t")]
+        [DataRow("v")]
+        public void ParsingBackslashEscapeCharacterShouldReturnEscapecharacterNodeWithEscapeCharacter(string escape)
         {
             // Arrange
             var target = new Parser($@"\{escape}");
@@ -277,9 +341,9 @@ namespace RegexParser.UnitTest
             RegexNode result = target.Parse();
 
             // Assert
-            Assert.AreEqual(1, result.ChildNodes.Count());
-            Assert.IsInstanceOfType(result.ChildNodes.First(), typeof(EscapeNode));
-            Assert.AreEqual(escape.ToString(), ((EscapeNode)result.ChildNodes.First()).Escape);
+            result.ChildNodes.ShouldHaveSingleItem();
+            EscapeNode escapeNode = result.ChildNodes.First().ShouldBeOfType<EscapeNode>();
+            escapeNode.Escape.ShouldBe(escape);
         }
 
         [DataTestMethod]
@@ -289,18 +353,18 @@ namespace RegexParser.UnitTest
         [DataRow("xFF")]
         [DataRow("xfe")]
         [DataRow("xff")]
-        public void ParsingBackslashLowercaseXHexHexShouldReturnEscapecharacterNodeWithEscapeCharacter(string escape)
+        public void ParsingBackslashLowercaseXHexHexShouldReturnEscapecharacterNodeWithEscapeCharacter(string hexCharacter)
         {
             // Arrange
-            var target = new Parser($@"\{escape}");
+            var target = new Parser($@"\{hexCharacter}");
 
             // Act
             RegexNode result = target.Parse();
 
             // Assert
-            Assert.AreEqual(1, result.ChildNodes.Count());
-            Assert.IsInstanceOfType(result.ChildNodes.First(), typeof(EscapeNode));
-            Assert.AreEqual(escape, ((EscapeNode)result.ChildNodes.First()).Escape);
+            result.ChildNodes.ShouldHaveSingleItem();
+            EscapeNode escapeNode = result.ChildNodes.First().ShouldBeOfType<EscapeNode>();
+            escapeNode.Escape.ShouldBe(hexCharacter);
         }
 
         [DataTestMethod]
@@ -310,18 +374,18 @@ namespace RegexParser.UnitTest
         [DataRow("uFFFF")]
         [DataRow("ufffe")]
         [DataRow("uffff")]
-        public void ParsingBackslashLowercaseUHexHexHexHexShouldReturnEscapecharacterNodeWithEscapeCharacter(string escape)
+        public void ParsingBackslashLowercaseUHexHexHexHexShouldReturnEscapecharacterNodeWithEscapeCharacter(string unicodeCharacter)
         {
             // Arrange
-            var target = new Parser($@"\{escape}");
+            var target = new Parser($@"\{unicodeCharacter}");
 
             // Act
             RegexNode result = target.Parse();
 
             // Assert
-            Assert.AreEqual(1, result.ChildNodes.Count());
-            Assert.IsInstanceOfType(result.ChildNodes.First(), typeof(EscapeNode));
-            Assert.AreEqual(escape, ((EscapeNode)result.ChildNodes.First()).Escape);
+            result.ChildNodes.ShouldHaveSingleItem();
+            EscapeNode escapeNode = result.ChildNodes.First().ShouldBeOfType<EscapeNode>();
+            escapeNode.Escape.ShouldBe(unicodeCharacter);
         }
 
         [DataTestMethod]
@@ -329,18 +393,18 @@ namespace RegexParser.UnitTest
         [DataRow("cZ")]
         [DataRow("ca")]
         [DataRow("cz")]
-        public void ParsingBackslashLowercaseCAlphaShouldReturnEscapecharacterNodeWithEscapeCharacter(string control)
+        public void ParsingBackslashLowercaseCAlphaShouldReturnEscapecharacterNodeWithEscapeCharacter(string controlCharacter)
         {
             // Arrange
-            var target = new Parser($@"\{control}");
+            var target = new Parser($@"\{controlCharacter}");
 
             // Act
             RegexNode result = target.Parse();
 
             // Assert
-            Assert.AreEqual(1, result.ChildNodes.Count());
-            Assert.IsInstanceOfType(result.ChildNodes.First(), typeof(EscapeNode));
-            Assert.AreEqual(control, ((EscapeNode)result.ChildNodes.First()).Escape);
+            result.ChildNodes.ShouldHaveSingleItem();
+            EscapeNode escapeNode = result.ChildNodes.First().ShouldBeOfType<EscapeNode>();
+            escapeNode.Escape.ShouldBe(controlCharacter);
         }
 
         [DataTestMethod]
@@ -355,9 +419,8 @@ namespace RegexParser.UnitTest
             RegexNode result = target.Parse();
 
             // Assert
-            Assert.IsInstanceOfType(result.ChildNodes.Last(), typeof(BackreferenceNode));
-            var backreference = (BackreferenceNode)result.ChildNodes.Last();
-            Assert.AreEqual(groupNumber, backreference.GroupNumber);
+            BackreferenceNode backreferenceNode = result.ChildNodes.Last().ShouldBeOfType<BackreferenceNode>();
+            backreferenceNode.GroupNumber.ShouldBe(groupNumber);
         }
 
         [DataTestMethod]
@@ -372,11 +435,10 @@ namespace RegexParser.UnitTest
             RegexNode result = target.Parse();
 
             // Assert
-            Assert.IsInstanceOfType(result.ChildNodes.Last(), typeof(NamedReferenceNode));
-            var namedReference = (NamedReferenceNode)result.ChildNodes.Last();
-            Assert.AreEqual(name, namedReference.Name);
-            Assert.AreEqual(false, namedReference.UseQuotes);
-            Assert.AreEqual(true, namedReference.UseK);
+            NamedReferenceNode namedReferenceNode = result.ChildNodes.Last().ShouldBeOfType<NamedReferenceNode>();
+            namedReferenceNode.Name.ShouldBe(name);
+            namedReferenceNode.UseQuotes.ShouldBe(false);
+            namedReferenceNode.UseK.ShouldBe(true);
         }
 
         [DataTestMethod]
@@ -391,11 +453,10 @@ namespace RegexParser.UnitTest
             RegexNode result = target.Parse();
 
             // Assert
-            Assert.IsInstanceOfType(result.ChildNodes.Last(), typeof(NamedReferenceNode));
-            var namedReference = (NamedReferenceNode)result.ChildNodes.Last();
-            Assert.AreEqual(name, namedReference.Name);
-            Assert.AreEqual(true, namedReference.UseQuotes);
-            Assert.AreEqual(true, namedReference.UseK);
+            NamedReferenceNode namedReferenceNode = result.ChildNodes.Last().ShouldBeOfType<NamedReferenceNode>();
+            namedReferenceNode.Name.ShouldBe(name);
+            namedReferenceNode.UseQuotes.ShouldBe(true);
+            namedReferenceNode.UseK.ShouldBe(true);
         }
 
         [DataTestMethod]
@@ -410,11 +471,10 @@ namespace RegexParser.UnitTest
             RegexNode result = target.Parse();
 
             // Assert
-            Assert.IsInstanceOfType(result.ChildNodes.Last(), typeof(NamedReferenceNode));
-            var namedReference = (NamedReferenceNode)result.ChildNodes.Last();
-            Assert.AreEqual(name, namedReference.Name);
-            Assert.AreEqual(false, namedReference.UseQuotes);
-            Assert.AreEqual(false, namedReference.UseK);
+            NamedReferenceNode namedReferenceNode = result.ChildNodes.Last().ShouldBeOfType<NamedReferenceNode>();
+            namedReferenceNode.Name.ShouldBe(name);
+            namedReferenceNode.UseQuotes.ShouldBe(false);
+            namedReferenceNode.UseK.ShouldBe(false);
         }
 
         [DataTestMethod]
@@ -429,31 +489,10 @@ namespace RegexParser.UnitTest
             RegexNode result = target.Parse();
 
             // Assert
-            Assert.IsInstanceOfType(result.ChildNodes.Last(), typeof(NamedReferenceNode));
-            var namedReference = (NamedReferenceNode)result.ChildNodes.Last();
-            Assert.AreEqual(name, namedReference.Name);
-            Assert.AreEqual(true, namedReference.UseQuotes);
-            Assert.AreEqual(false, namedReference.UseK);
-        }
-
-        [DataTestMethod]
-        [DataRow(".")]
-        [DataRow("$")]
-        [DataRow("^")]
-        [DataRow("|")]
-        [DataRow("\\")]
-        public void ParsingBackslashMetacharacterShouldReturnEscapeNodeWithEscape(string metacharacter)
-        {
-            // Arrange
-            var target = new Parser($@"\{metacharacter}");
-
-            // Act
-            RegexNode result = target.Parse();
-
-            // Assert
-            Assert.IsInstanceOfType(result.ChildNodes.Last(), typeof(EscapeNode));
-            var escapeNode = (EscapeNode)result.ChildNodes.Last();
-            Assert.AreEqual(metacharacter, escapeNode.Escape);
+            NamedReferenceNode namedReferenceNode = result.ChildNodes.Last().ShouldBeOfType<NamedReferenceNode>();
+            namedReferenceNode.Name.ShouldBe(name);
+            namedReferenceNode.UseQuotes.ShouldBe(true);
+            namedReferenceNode.UseK.ShouldBe(false);
         }
     }
 }

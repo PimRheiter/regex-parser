@@ -1,6 +1,7 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using RegexParser.Nodes;
 using RegexParser.Nodes.QuantifierNodes;
+using Shouldly;
 
 namespace RegexParser.UnitTest.Nodes
 {
@@ -19,7 +20,7 @@ namespace RegexParser.UnitTest.Nodes
             var result = target.ToString();
 
             // Assert
-            Assert.AreEqual("a*?", result);
+            result.ShouldBe("a*?");
         }
     }
 }

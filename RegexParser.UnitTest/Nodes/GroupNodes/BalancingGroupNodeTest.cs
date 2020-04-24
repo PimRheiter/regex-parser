@@ -1,6 +1,7 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using RegexParser.Nodes;
 using RegexParser.Nodes.GroupNodes;
+using Shouldly;
 using System.Collections.Generic;
 
 namespace RegexParser.UnitTest.Nodes.GroupNodes
@@ -18,7 +19,7 @@ namespace RegexParser.UnitTest.Nodes.GroupNodes
             var result = target.ToString();
 
             // Assert
-            Assert.AreEqual("(?<currentGroup-balancedGroup>)", result);
+            result.ShouldBe("(?<currentGroup-balancedGroup>)");
         }
 
         [TestMethod]
@@ -31,7 +32,7 @@ namespace RegexParser.UnitTest.Nodes.GroupNodes
             var result = target.ToString();
 
             // Assert
-            Assert.AreEqual("(?'currentGroup-balancedGroup')", result);
+            result.ShouldBe("(?'currentGroup-balancedGroup')");
         }
 
         [TestMethod]
@@ -45,7 +46,7 @@ namespace RegexParser.UnitTest.Nodes.GroupNodes
             var result = target.ToString();
 
             // Assert
-            Assert.AreEqual("(?<currentGroup-balancedGroup>a)", result);
+            result.ShouldBe("(?<currentGroup-balancedGroup>a)");
         }
 
         [TestMethod]
@@ -59,7 +60,7 @@ namespace RegexParser.UnitTest.Nodes.GroupNodes
             var result = target.ToString();
 
             // Assert
-            Assert.AreEqual("(?<currentGroup-balancedGroup>abc)", result);
+            result.ShouldBe("(?<currentGroup-balancedGroup>abc)");
         }
 
         [TestMethod]
@@ -73,11 +74,10 @@ namespace RegexParser.UnitTest.Nodes.GroupNodes
             var result = target.AddNode(new CharacterNode('a'));
 
             // Assert
-            Assert.IsInstanceOfType(result, typeof(BalancingGroupNode));
-            var balancingGroupNode = (BalancingGroupNode)result;
-            Assert.AreEqual(target.BalancedGroupName, balancingGroupNode.BalancedGroupName);
-            Assert.AreEqual(target.Name, balancingGroupNode.Name);
-            Assert.AreEqual(target.UseQuotes, balancingGroupNode.UseQuotes);
+            BalancingGroupNode balancingGroupNode = result.ShouldBeOfType<BalancingGroupNode>();
+            balancingGroupNode.BalancedGroupName.ShouldBe(target.BalancedGroupName);
+            balancingGroupNode.Name.ShouldBe(target.Name);
+            balancingGroupNode.UseQuotes.ShouldBe(target.UseQuotes);
         }
     }
 }

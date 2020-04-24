@@ -2,6 +2,7 @@
 using Moq;
 using RegexParser.Nodes;
 using RegexParser.Nodes.QuantifierNodes;
+using Shouldly;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -17,7 +18,7 @@ namespace RegexParser.UnitTest.Nodes
             var target = new Mock<RegexNode>().Object;
 
             // Assert
-            Assert.AreEqual(0, target.ChildNodes.Count());
+            target.ChildNodes.ShouldBeEmpty();
         }
 
         [TestMethod]
@@ -30,9 +31,9 @@ namespace RegexParser.UnitTest.Nodes
             var target = new Mock<RegexNode>(childNodes).Object;
 
             // Assert
-            Assert.AreEqual(2, target.ChildNodes.Count());
-            Assert.AreEqual("a", target.ChildNodes.First().ToString());
-            Assert.AreEqual("b", target.ChildNodes.ElementAt(1).ToString());
+            target.ChildNodes.Count().ShouldBe(2);
+            target.ChildNodes.First().ToString().ShouldBe("a");
+            target.ChildNodes.ElementAt(1).ToString().ShouldBe("b");
         }
 
         [TestMethod]
@@ -45,9 +46,9 @@ namespace RegexParser.UnitTest.Nodes
             var target = new Mock<RegexNode>(childNodes).Object;
 
             // Assert
-            Assert.AreEqual(2, target.ChildNodes.Count());
-            Assert.AreEqual(target, target.ChildNodes.First().Parent);
-            Assert.AreEqual(target, target.ChildNodes.ElementAt(1).Parent);
+            target.ChildNodes.Count().ShouldBe(2);
+            target.ChildNodes.First().Parent.ShouldBe(target);
+            target.ChildNodes.ElementAt(1).Parent.ShouldBe(target);
         }
 
         [TestMethod]
@@ -61,8 +62,8 @@ namespace RegexParser.UnitTest.Nodes
             RegexNode result = target.AddNode(newNode);
 
             // Assert
-            Assert.AreEqual(3, result.ChildNodes.Count());
-            Assert.AreEqual(newNode, result.ChildNodes.Last());
+            result.ChildNodes.Count().ShouldBe(3);
+            result.ChildNodes.Last().ShouldBe(newNode);
         }
 
         [TestMethod]
@@ -78,9 +79,9 @@ namespace RegexParser.UnitTest.Nodes
             RegexNode result = target.AddNode(newNode);
 
             // Assert
-            Assert.AreEqual(2, result.ChildNodes.Count());
-            Assert.AreEqual(3, result.ChildNodes.First().ChildNodes.Count());
-            Assert.AreEqual(2, result.ChildNodes.First().ChildNodes.First().ChildNodes.Count());
+            result.ChildNodes.Count().ShouldBe(2);
+            result.ChildNodes.First().ChildNodes.Count().ShouldBe(3);
+            result.ChildNodes.First().ChildNodes.First().ChildNodes.Count().ShouldBe(2);
         }
 
         [TestMethod]
@@ -97,9 +98,9 @@ namespace RegexParser.UnitTest.Nodes
             RegexNode result = target.AddNode(newNode);
 
             // Assert
-            Assert.AreNotEqual(target, result);
-            Assert.IsFalse(result.ChildNodes.Contains(charNodeA));
-            Assert.IsFalse(result.ChildNodes.Contains(charNodeB));
+            result.ShouldNotBe(target);
+            result.ChildNodes.ShouldNotContain(charNodeA);
+            result.ChildNodes.ShouldNotContain(charNodeB);
         }
 
         [TestMethod]
@@ -116,10 +117,10 @@ namespace RegexParser.UnitTest.Nodes
             RegexNode result = target.AddNode(newNode);
 
             // Assert
-            Assert.AreEqual(1, result.ChildNodes.Count());
-            Assert.AreEqual(1, result.ChildNodes.First().ChildNodes.Count());
-            Assert.AreEqual(3, result.ChildNodes.First().ChildNodes.First().ChildNodes.Count());
-            Assert.AreEqual(newNode, result.ChildNodes.First().ChildNodes.First().ChildNodes.Last());
+            result.ChildNodes.ShouldHaveSingleItem();
+            result.ChildNodes.First().ChildNodes.ShouldHaveSingleItem();
+            result.ChildNodes.First().ChildNodes.First().ChildNodes.Count().ShouldBe(3);
+            result.ChildNodes.First().ChildNodes.First().ChildNodes.Last().ShouldBe(newNode);
         }
 
         [TestMethod]
@@ -136,8 +137,8 @@ namespace RegexParser.UnitTest.Nodes
             RegexNode result = target.AddNode(newNode, false);
 
             // Assert
-            Assert.AreEqual(3, result.ChildNodes.Count());
-            Assert.AreEqual(newNode, result.ChildNodes.Last());
+            result.ChildNodes.Count().ShouldBe(3);
+            result.ChildNodes.Last().ShouldBe(newNode);
         }
 
         [TestMethod]
@@ -154,8 +155,8 @@ namespace RegexParser.UnitTest.Nodes
             RegexNode result = target.ReplaceNode(charNodeA, newNode);
 
             // Assert
-            Assert.AreEqual(2, result.ChildNodes.Count());
-            Assert.AreEqual(newNode, result.ChildNodes.First());
+            result.ChildNodes.Count().ShouldBe(2);
+            result.ChildNodes.First().ShouldBe(newNode);
         }
 
         [TestMethod]
@@ -172,9 +173,9 @@ namespace RegexParser.UnitTest.Nodes
             RegexNode result = target.ReplaceNode(charNodeA, newNode);
 
             // Assert
-            Assert.AreNotEqual(target, result);
-            Assert.IsFalse(result.ChildNodes.Contains(charNodeA));
-            Assert.IsFalse(result.ChildNodes.Contains(charNodeB));
+            result.ShouldNotBe(target);
+            result.ChildNodes.ShouldNotContain(charNodeA);
+            result.ChildNodes.ShouldNotContain(charNodeB);
         }
 
         [TestMethod]
@@ -193,10 +194,10 @@ namespace RegexParser.UnitTest.Nodes
             RegexNode result = target.ReplaceNode(charNodeA, newNode);
 
             // Assert
-            Assert.AreEqual(1, result.ChildNodes.Count());
-            Assert.AreEqual(1, result.ChildNodes.First().ChildNodes.Count());
-            Assert.AreEqual(2, result.ChildNodes.First().ChildNodes.First().ChildNodes.Count());
-            Assert.AreEqual(newNode, result.ChildNodes.First().ChildNodes.First().ChildNodes.First());
+            result.ChildNodes.ShouldHaveSingleItem();
+            result.ChildNodes.First().ChildNodes.ShouldHaveSingleItem();
+            result.ChildNodes.First().ChildNodes.First().ChildNodes.Count().ShouldBe(2);
+            result.ChildNodes.First().ChildNodes.First().ChildNodes.First().ShouldBe(newNode);
         }
 
         [TestMethod]
@@ -215,8 +216,8 @@ namespace RegexParser.UnitTest.Nodes
             RegexNode result = target.ReplaceNode(charNodeA, newNode, false);
 
             // Assert
-            Assert.AreEqual(2, result.ChildNodes.Count());
-            Assert.AreEqual(newNode, result.ChildNodes.First());
+            result.ChildNodes.Count().ShouldBe(2);
+            result.ChildNodes.First().ShouldBe(newNode);
         }
 
         [TestMethod]
@@ -232,8 +233,8 @@ namespace RegexParser.UnitTest.Nodes
             RegexNode result = target.RemoveNode(charNodeA);
 
             // Assert
-            Assert.AreEqual(1, result.ChildNodes.Count());
-            Assert.AreEqual("b", result.ChildNodes.First().ToString());
+            result.ChildNodes.ShouldHaveSingleItem();
+            result.ChildNodes.First().ToString().ShouldBe("b");
         }
 
         [TestMethod]
@@ -249,9 +250,9 @@ namespace RegexParser.UnitTest.Nodes
             RegexNode result = target.RemoveNode(charNodeA);
 
             // Assert
-            Assert.AreNotEqual(target, result);
-            Assert.IsFalse(result.ChildNodes.Contains(charNodeA));
-            Assert.IsFalse(result.ChildNodes.Contains(charNodeB));
+            result.ShouldNotBe(target);
+            result.ChildNodes.ShouldNotContain(charNodeA);
+            result.ChildNodes.ShouldNotContain(charNodeB);
         }
 
         [TestMethod]
@@ -269,10 +270,10 @@ namespace RegexParser.UnitTest.Nodes
             RegexNode result = target.RemoveNode(charNodeA);
 
             // Assert
-            Assert.AreEqual(1, result.ChildNodes.Count());
-            Assert.AreEqual(1, result.ChildNodes.First().ChildNodes.Count());
-            Assert.AreEqual(1, result.ChildNodes.First().ChildNodes.First().ChildNodes.Count());
-            Assert.AreEqual("b", result.ChildNodes.First().ChildNodes.First().ChildNodes.First().ToString());
+            result.ChildNodes.ShouldHaveSingleItem();
+            result.ChildNodes.First().ChildNodes.ShouldHaveSingleItem();
+            result.ChildNodes.First().ChildNodes.First().ChildNodes.ShouldHaveSingleItem();
+            result.ChildNodes.First().ChildNodes.First().ChildNodes.First().ToString().ShouldBe("b");
         }
 
         [TestMethod]
@@ -290,8 +291,8 @@ namespace RegexParser.UnitTest.Nodes
             RegexNode result = target.RemoveNode(charNodeA, false);
 
             // Assert
-            Assert.AreEqual(1, result.ChildNodes.Count());
-            Assert.AreEqual("b", result.ChildNodes.First().ToString());
+            result.ChildNodes.ShouldHaveSingleItem();
+            result.ChildNodes.First().ToString().ShouldBe("b");
         }
 
         [TestMethod]
@@ -312,13 +313,13 @@ namespace RegexParser.UnitTest.Nodes
             IEnumerable<RegexNode> result = target.GetDescendantNodes();
 
             // Assert
-            Assert.AreEqual(6, result.Count());
-            Assert.AreEqual(charNodeA, result.First());
-            Assert.AreEqual(quantifierPlus, result.ElementAt(1));
-            Assert.AreEqual(charNodeB, result.ElementAt(2));
-            Assert.AreEqual(charNodeC, result.ElementAt(3));
-            Assert.AreEqual(quantifierStar, result.ElementAt(4));
-            Assert.AreEqual(concatenationNode, result.Last());
+            result.Count().ShouldBe(6);
+            result.First().ShouldBe(charNodeA);
+            result.ElementAt(1).ShouldBe(quantifierPlus);
+            result.ElementAt(2).ShouldBe(charNodeB);
+            result.ElementAt(3).ShouldBe(charNodeC);
+            result.ElementAt(4).ShouldBe(quantifierStar);
+            result.Last().ShouldBe(concatenationNode);
         }
 
         [TestMethod]
@@ -331,7 +332,7 @@ namespace RegexParser.UnitTest.Nodes
             IEnumerable<RegexNode> result = target.GetDescendantNodes();
 
             // Assert
-            Assert.AreEqual(0, result.Count());
+            result.ShouldBeEmpty();
         }
     }
 }

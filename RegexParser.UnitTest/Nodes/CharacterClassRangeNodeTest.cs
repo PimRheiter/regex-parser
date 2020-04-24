@@ -1,5 +1,6 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using RegexParser.Nodes;
+using Shouldly;
 
 namespace RegexParser.UnitTest.Nodes
 {
@@ -18,7 +19,7 @@ namespace RegexParser.UnitTest.Nodes
             var result = target.ToString();
 
             // Assert
-            Assert.AreEqual("a-z", result);
+            result.ShouldBe("a-z");
         }
 
         [TestMethod]
@@ -34,10 +35,9 @@ namespace RegexParser.UnitTest.Nodes
             var result = target.RemoveNode(new CharacterNode('x'));
 
             // Assert
-            Assert.IsInstanceOfType(result, typeof(CharacterClassRangeNode));
-            var characterClassRangeNode = (CharacterClassRangeNode)result;
-            Assert.AreEqual(target.Start.ToString(), characterClassRangeNode.Start.ToString());
-            Assert.AreEqual(target.End.ToString(), characterClassRangeNode.End.ToString());
+            CharacterClassRangeNode characterClassRangeNode = result.ShouldBeOfType<CharacterClassRangeNode>();
+            characterClassRangeNode.Start.ToString().ShouldBe(target.Start.ToString());
+            characterClassRangeNode.End.ToString().ShouldBe(target.End.ToString());
         }
 
         [TestMethod]
@@ -53,11 +53,10 @@ namespace RegexParser.UnitTest.Nodes
             var result = target.AddNode(new CharacterNode('a'));
 
             // Assert
-            Assert.AreNotEqual(target, result);
-            Assert.IsInstanceOfType(result, typeof(CharacterClassRangeNode));
-            var characterClassRangeNode = (CharacterClassRangeNode)result;
-            Assert.AreNotEqual(target.Start, characterClassRangeNode.Start);
-            Assert.AreNotEqual(target.End, characterClassRangeNode.End);
+            result.ShouldNotBe(target);
+            CharacterClassRangeNode characterClassRangeNode = result.ShouldBeOfType<CharacterClassRangeNode>();
+            characterClassRangeNode.Start.ShouldNotBe(target.Start);
+            characterClassRangeNode.End.ShouldNotBe(target.End);
         }
     }
 }

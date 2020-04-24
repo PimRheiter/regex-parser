@@ -1,6 +1,7 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using RegexParser.Nodes;
 using RegexParser.Nodes.GroupNodes;
+using Shouldly;
 using System.Collections.Generic;
 
 namespace RegexParser.UnitTest.Nodes.GroupNodes
@@ -19,7 +20,7 @@ namespace RegexParser.UnitTest.Nodes.GroupNodes
             var result = target.ToString();
 
             // Assert
-            Assert.AreEqual("(?<name>)", result);
+            result.ShouldBe("(?<name>)");
         }
 
         [TestMethod]
@@ -33,7 +34,7 @@ namespace RegexParser.UnitTest.Nodes.GroupNodes
             var result = target.ToString();
 
             // Assert
-            Assert.AreEqual("(?'name')", result);
+            result.ShouldBe("(?'name')");
         }
 
         [TestMethod]
@@ -48,7 +49,7 @@ namespace RegexParser.UnitTest.Nodes.GroupNodes
             var result = target.ToString();
 
             // Assert
-            Assert.AreEqual("(?<name>a)", result);
+            result.ShouldBe("(?<name>a)");
         }
 
         [TestMethod]
@@ -63,7 +64,7 @@ namespace RegexParser.UnitTest.Nodes.GroupNodes
             var result = target.ToString();
 
             // Assert
-            Assert.AreEqual("(?<name>abc)", result);
+            result.ShouldBe("(?<name>abc)");
         }
 
         [TestMethod]
@@ -77,10 +78,9 @@ namespace RegexParser.UnitTest.Nodes.GroupNodes
             var result = target.AddNode(new CharacterNode('a'));
 
             // Assert
-            Assert.IsInstanceOfType(result, typeof(NamedGroupNode));
-            var namedGroupNode = (NamedGroupNode)result;
-            Assert.AreEqual(target.Name, namedGroupNode.Name);
-            Assert.AreEqual(target.UseQuotes, namedGroupNode.UseQuotes);
+            NamedGroupNode namedGroupNode = result.ShouldBeOfType<NamedGroupNode>();
+            namedGroupNode.Name.ShouldBe(target.Name);
+            namedGroupNode.UseQuotes.ShouldBe(target.UseQuotes);
         }
     }
 }

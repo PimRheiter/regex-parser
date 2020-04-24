@@ -1,6 +1,7 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using RegexParser.Nodes;
 using RegexParser.Nodes.GroupNodes;
+using Shouldly;
 using System.Collections.Generic;
 
 namespace RegexParser.UnitTest.Nodes.GroupNodes
@@ -20,7 +21,7 @@ namespace RegexParser.UnitTest.Nodes.GroupNodes
             var result = target.ToString();
 
             // Assert
-            Assert.AreEqual("(?imsnx-imsnx)", result);
+            result.ShouldBe("(?imsnx-imsnx)");
         }
 
         [TestMethod]
@@ -35,7 +36,7 @@ namespace RegexParser.UnitTest.Nodes.GroupNodes
             var result = target.ToString();
 
             // Assert
-            Assert.AreEqual("(?imsnx-imsnx:a)", result);
+            result.ShouldBe("(?imsnx-imsnx:a)");
         }
 
         [TestMethod]
@@ -50,7 +51,7 @@ namespace RegexParser.UnitTest.Nodes.GroupNodes
             var result = target.ToString();
 
             // Assert
-            Assert.AreEqual("(?imsnx-imsnx:abc)", result);
+            result.ShouldBe("(?imsnx-imsnx:abc)");
         }
 
         [TestMethod]
@@ -64,9 +65,8 @@ namespace RegexParser.UnitTest.Nodes.GroupNodes
             var result = target.AddNode(new CharacterNode('a'));
 
             // Assert
-            Assert.IsInstanceOfType(result, typeof(ModeModifierGroupNode));
-            var modeModifierGroupNode = (ModeModifierGroupNode)result;
-            Assert.AreEqual(target.Modifiers, modeModifierGroupNode.Modifiers);
+            ModeModifierGroupNode modeModifierGroupNode = result.ShouldBeOfType<ModeModifierGroupNode>();
+            modeModifierGroupNode.Modifiers.ShouldBe(target.Modifiers);
         }
     }
 }

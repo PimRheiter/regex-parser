@@ -1,5 +1,6 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using RegexParser.Nodes;
+using Shouldly;
 using System.Collections.Generic;
 
 namespace RegexParser.UnitTest.Nodes
@@ -17,7 +18,7 @@ namespace RegexParser.UnitTest.Nodes
             var result = target.ToString();
 
             // Assert
-            Assert.AreEqual("[]", result.ToString());
+            result.ShouldBe("[]");
         }
 
         [TestMethod]
@@ -32,7 +33,7 @@ namespace RegexParser.UnitTest.Nodes
             var result = target.ToString();
 
             // Assert
-            Assert.AreEqual("[-[a]]", result.ToString());
+            result.ShouldBe("[-[a]]");
         }
 
         [TestMethod]
@@ -47,7 +48,7 @@ namespace RegexParser.UnitTest.Nodes
             var result = target.ToString();
 
             // Assert
-            Assert.AreEqual("[^-[a]]", result.ToString());
+            result.ShouldBe("[^-[a]]");
         }
 
         [TestMethod]
@@ -61,7 +62,7 @@ namespace RegexParser.UnitTest.Nodes
             var result = target.ToString();
 
             // Assert
-            Assert.AreEqual("[abc]", result.ToString());
+            result.ShouldBe("[abc]");
         }
 
         [TestMethod]
@@ -77,7 +78,7 @@ namespace RegexParser.UnitTest.Nodes
             var result = target.ToString();
 
             // Assert
-            Assert.AreEqual("[abc-[a]]", result.ToString());
+            result.ShouldBe("[abc-[a]]");
         }
 
         [TestMethod]
@@ -93,7 +94,7 @@ namespace RegexParser.UnitTest.Nodes
             var result = target.ToString();
 
             // Assert
-            Assert.AreEqual("[^abc-[a]]", result.ToString());
+            result.ShouldBe("[^abc-[a]]");
         }
 
         [TestMethod]
@@ -108,10 +109,9 @@ namespace RegexParser.UnitTest.Nodes
             var result = target.AddNode(new CharacterNode('a'));
 
             // Assert
-            Assert.IsInstanceOfType(result, typeof(CharacterClassNode));
-            var characterClassNode = (CharacterClassNode)result;
-            Assert.AreEqual(target.Negated, characterClassNode.Negated);
-            Assert.AreEqual(target.Subtraction.ToString(), characterClassNode.Subtraction.ToString());
+            CharacterClassNode characterClassNode = result.ShouldBeOfType<CharacterClassNode>();
+            characterClassNode.Negated.ShouldBe(target.Negated);
+            characterClassNode.Subtraction.ToString().ShouldBe(target.Subtraction.ToString());
         }
 
         [TestMethod]
@@ -126,10 +126,9 @@ namespace RegexParser.UnitTest.Nodes
             var result = target.AddNode(new CharacterNode('a'));
 
             // Assert
-            Assert.AreNotEqual(target, result);
-            Assert.IsInstanceOfType(result, typeof(CharacterClassNode));
-            var characterClassNode = (CharacterClassNode)result;
-            Assert.AreNotEqual(target.Subtraction, characterClassNode.Subtraction);
+            result.ShouldNotBe(target);
+            CharacterClassNode characterClassNode = result.ShouldBeOfType<CharacterClassNode>();
+            characterClassNode.Subtraction.ShouldNotBe(target.Subtraction);
         }
     }
 }

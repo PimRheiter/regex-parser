@@ -1,5 +1,6 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using RegexParser.Nodes;
+using Shouldly;
 
 namespace RegexParser.UnitTest.Nodes
 {
@@ -16,7 +17,7 @@ namespace RegexParser.UnitTest.Nodes
             string result = target.ToString();
 
             // Assert
-            Assert.AreEqual(@"\k'name'", result);
+            result.ShouldBe(@"\k'name'");
         }
 
         [TestMethod]
@@ -29,7 +30,7 @@ namespace RegexParser.UnitTest.Nodes
             string result = target.ToString();
 
             // Assert
-            Assert.AreEqual(@"\k<name>", result);
+            result.ShouldBe(@"\k<name>");
         }
 
         [TestMethod]
@@ -42,7 +43,7 @@ namespace RegexParser.UnitTest.Nodes
             string result = target.ToString();
 
             // Assert
-            Assert.AreEqual(@"\<name>", result);
+            result.ShouldBe(@"\<name>");
         }
 
 
@@ -57,11 +58,10 @@ namespace RegexParser.UnitTest.Nodes
             var result = target.RemoveNode(new CharacterNode('x'));
 
             // Assert
-            Assert.IsInstanceOfType(result, typeof(NamedReferenceNode));
-            var namedReferenceNode = (NamedReferenceNode)result;
-            Assert.AreEqual(target.Name, namedReferenceNode.Name);
-            Assert.AreEqual(target.UseQuotes, namedReferenceNode.UseQuotes);
-            Assert.AreEqual(target.UseK, namedReferenceNode.UseK);
+            NamedReferenceNode namedReferenceNode = result.ShouldBeOfType<NamedReferenceNode>();
+            namedReferenceNode.Name.ShouldBe(target.Name);
+            namedReferenceNode.UseQuotes.ShouldBe(target.UseQuotes);
+            namedReferenceNode.UseK.ShouldBe(target.UseK);
         }
     }
 }

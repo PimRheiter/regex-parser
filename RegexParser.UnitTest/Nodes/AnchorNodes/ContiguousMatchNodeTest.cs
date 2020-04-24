@@ -1,5 +1,6 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using RegexParser.Nodes.AnchorNodes;
+using Shouldly;
 
 namespace RegexParser.UnitTest.Nodes.AnchorNodes
 {
@@ -17,7 +18,7 @@ namespace RegexParser.UnitTest.Nodes.AnchorNodes
             var result = target.ToString();
 
             // Assert
-            Assert.AreEqual(@"\G", result);
+            result.ShouldBe(@"\G");
         }
     }
 }
