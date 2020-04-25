@@ -1,23 +1,23 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using RegexParser.Nodes.AnchorNodes;
+using RegexParser.Nodes;
 using Shouldly;
 
-namespace RegexParser.UnitTest.Nodes.AnchorNodes
+namespace RegexParser.UnitTest.Nodes
 {
     [TestClass]
-    public class StartOfLineNodeTest
+    public class EmptyNodeTest
     {
         [TestMethod]
-        public void ToStringShouldReturnCaret()
+        public void ToStringShouldReturnEmptyString()
         {
             // Arrange
-            var target = new StartOfLineNode();
+            var target = new EmptyNode();
 
             // Act
             var result = target.ToString();
 
             // Assert
-            result.ShouldBe("^");
+            result.ShouldBe("");
         }
     }
 }

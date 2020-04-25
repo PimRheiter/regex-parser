@@ -7,7 +7,6 @@ namespace RegexParser.UnitTest.Nodes.AnchorNodes
     [TestClass]
     public class EndOfLineNodeTest
     {
-
         [TestMethod]
         public void ToStringShouldReturnDollarSign()
         {

@@ -7,7 +7,6 @@ namespace RegexParser.UnitTest.Nodes.AnchorNodes
     [TestClass]
     public class StartOfStringNodeTest
     {
-
         [TestMethod]
         public void ToStringShouldReturnBackslashUppercaseA()
         {
