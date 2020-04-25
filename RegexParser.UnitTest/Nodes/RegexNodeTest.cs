@@ -117,10 +117,10 @@ namespace RegexParser.UnitTest.Nodes
             RegexNode result = target.AddNode(newNode);
 
             // Assert
-            result.ChildNodes.ShouldHaveSingleItem();
-            result.ChildNodes.First().ChildNodes.ShouldHaveSingleItem();
-            result.ChildNodes.First().ChildNodes.First().ChildNodes.Count().ShouldBe(3);
-            result.ChildNodes.First().ChildNodes.First().ChildNodes.Last().ShouldBe(newNode);
+            var copiedTargetParent = result.ChildNodes.ShouldHaveSingleItem();
+            var modifiedTarget = copiedTargetParent.ChildNodes.ShouldHaveSingleItem();
+            modifiedTarget.ChildNodes.Count().ShouldBe(3);
+            modifiedTarget.ChildNodes.Last().ShouldBe(newNode);
         }
 
         [TestMethod]
@@ -194,10 +194,10 @@ namespace RegexParser.UnitTest.Nodes
             RegexNode result = target.ReplaceNode(charNodeA, newNode);
 
             // Assert
-            result.ChildNodes.ShouldHaveSingleItem();
-            result.ChildNodes.First().ChildNodes.ShouldHaveSingleItem();
-            result.ChildNodes.First().ChildNodes.First().ChildNodes.Count().ShouldBe(2);
-            result.ChildNodes.First().ChildNodes.First().ChildNodes.First().ShouldBe(newNode);
+            var copiedTargetParent = result.ChildNodes.ShouldHaveSingleItem();
+            var modifierTarget = copiedTargetParent.ChildNodes.ShouldHaveSingleItem();
+            modifierTarget.ChildNodes.Count().ShouldBe(2);
+            modifierTarget.ChildNodes.First().ShouldBe(newNode);
         }
 
         [TestMethod]
@@ -233,8 +233,8 @@ namespace RegexParser.UnitTest.Nodes
             RegexNode result = target.RemoveNode(charNodeA);
 
             // Assert
-            result.ChildNodes.ShouldHaveSingleItem();
-            result.ChildNodes.First().ToString().ShouldBe("b");
+            var childNode = result.ChildNodes.ShouldHaveSingleItem();
+            childNode.ToString().ShouldBe("b");
         }
 
         [TestMethod]
@@ -270,10 +270,10 @@ namespace RegexParser.UnitTest.Nodes
             RegexNode result = target.RemoveNode(charNodeA);
 
             // Assert
-            result.ChildNodes.ShouldHaveSingleItem();
-            result.ChildNodes.First().ChildNodes.ShouldHaveSingleItem();
-            result.ChildNodes.First().ChildNodes.First().ChildNodes.ShouldHaveSingleItem();
-            result.ChildNodes.First().ChildNodes.First().ChildNodes.First().ToString().ShouldBe("b");
+            var copiedTargetParentNode = result.ChildNodes.ShouldHaveSingleItem();
+            var modifiedNode = copiedTargetParentNode.ChildNodes.ShouldHaveSingleItem();
+            modifiedNode.ChildNodes.ShouldHaveSingleItem();
+            modifiedNode.ChildNodes.First().ToString().ShouldBe("b");
         }
 
         [TestMethod]
@@ -291,8 +291,8 @@ namespace RegexParser.UnitTest.Nodes
             RegexNode result = target.RemoveNode(charNodeA, false);
 
             // Assert
-            result.ChildNodes.ShouldHaveSingleItem();
-            result.ChildNodes.First().ToString().ShouldBe("b");
+            var childNode = result.ChildNodes.ShouldHaveSingleItem();
+            childNode.ToString().ShouldBe("b");
         }
 
         [TestMethod]
