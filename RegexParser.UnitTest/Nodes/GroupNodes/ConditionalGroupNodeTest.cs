@@ -2,6 +2,7 @@
 using RegexParser.Nodes;
 using RegexParser.Nodes.GroupNodes;
 using Shouldly;
+using System.Collections.Generic;
 
 namespace RegexParser.UnitTest.Nodes.GroupNodes
 {
@@ -9,60 +10,21 @@ namespace RegexParser.UnitTest.Nodes.GroupNodes
     public class ConditionalGroupNodeTest
     {
         [TestMethod]
-        public void ToStringShouldReturnConditionalGroupWithConditionAndYesAndNoStatements()
+        public void ToStringShouldReturnConditionalGroupWithConditionAndThenAndElseStatements()
         {
             // Arrange
-            var condition = new CharacterNode('c');
-            var yes = new CharacterNode('y');
-            var no = new CharacterNode('n');
-            var target = new ConditionalGroupNode(condition, yes, no);
+            var thenBranch = new CharacterNode('t');
+            var elseBranch = new CharacterNode('e');
+            var branches = new AlternationNode(new List<RegexNode> { thenBranch, elseBranch });
+            var condition = new CaptureGroupNode(new CharacterNode('c'));
+            var childNodes = new List<RegexNode> { condition, branches };
+            var target = new ConditionalGroupNode(childNodes);
 
             // Act
             var result = target.ToString();
 
             // Assert
-            result.ShouldBe("(?(c)y|n)", result);
-        }
-
-        [TestMethod]
-        public void CopyingConditionalGroupNodeShouldCopyConditionYesAndNo()
-        {
-            // Arrange
-            var condition = new CharacterNode('c');
-            var yes = new CharacterNode('y');
-            var no = new CharacterNode('n');
-            var target = new ConditionalGroupNode(condition, yes, no);
-
-            // Act
-            // AddNode returns a copy of the current node.
-            var result = target.AddNode(new CharacterNode('a'));
-
-            // Assert
-            ConditionalGroupNode conditionalGroupNode = result.ShouldBeOfType<ConditionalGroupNode>();
-            conditionalGroupNode.Condition.ToString().ShouldBe(target.Condition.ToString());
-            conditionalGroupNode.Yes.ToString().ShouldBe(target.Yes.ToString());
-            conditionalGroupNode.No.ToString().ShouldBe(target.No.ToString());
-        }
-
-        [TestMethod]
-        public void CopyingConditionalGroupNodeShouldNotHaveReferencesToOriginalConditionYesAndNo()
-        {
-            // Arrange
-            var condition = new CharacterNode('c');
-            var yes = new CharacterNode('y');
-            var no = new CharacterNode('n');
-            var target = new ConditionalGroupNode(condition, yes, no);
-
-            // Act
-            // AddNode returns a copy of the current node.
-            var result = target.AddNode(new CharacterNode('a'));
-
-            // Assert
-            result.ShouldNotBe(target);
-            ConditionalGroupNode conditionalGroupNode = result.ShouldBeOfType<ConditionalGroupNode>();
-            conditionalGroupNode.Condition.ShouldNotBe(target.Condition);
-            conditionalGroupNode.Yes.ShouldNotBe(target.Yes);
-            conditionalGroupNode.No.ShouldNotBe(target.No);
+            result.ShouldBe("(?(c)t|e)", result);
         }
     }
 }

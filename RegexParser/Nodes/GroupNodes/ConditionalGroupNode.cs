@@ -1,26 +1,32 @@
-﻿namespace RegexParser.Nodes.GroupNodes
+﻿using System.Collections.Generic;
+
+namespace RegexParser.Nodes.GroupNodes
 {
+    /// <summary>
+    /// RegexNode representing a conditional group "(?(condition)then|else)".
+    /// A ConditionalGroupNode should have exactly two children.
+    /// The first child is the condition and should be a GroupNode.
+    /// The second child is should be an AlternationNode with exactly two children.
+    /// The first alternate is the "then" branch.
+    /// The second alternate is the "else" branch.
+    /// </summary>
     public class ConditionalGroupNode : GroupNode
     {
-        public RegexNode Condition { get; }
-        public RegexNode Yes { get; }
-        public RegexNode No { get; }
+        public ConditionalGroupNode() { }
 
-        public ConditionalGroupNode(RegexNode condition, RegexNode yes, RegexNode no)
+        public ConditionalGroupNode(RegexNode childNode)
+            : base(childNode)
         {
-            Condition = condition;
-            Yes = yes;
-            No = no;
         }
 
-        protected override RegexNode CopyInstance()
+        public ConditionalGroupNode(IEnumerable<RegexNode> childNodes)
+            : base(childNodes)
         {
-            return new ConditionalGroupNode(Condition.Copy(true), Yes.Copy(true), No.Copy(true));
         }
 
         public override string ToString()
         {
-            return $"(?({Condition}){Yes}|{No})";
+            return $"(?{string.Concat(ChildNodes)})";
         }
     }
 }
