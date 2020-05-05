@@ -1,5 +1,4 @@
-﻿using RegexParser.Nodes.AnchorNodes;
-using System;
+﻿using System;
 using System.Collections.Generic;
 
 namespace RegexParser.Nodes
@@ -7,9 +6,9 @@ namespace RegexParser.Nodes
     public abstract class RegexNode
     {
         private readonly List<RegexNode> _childNodes = new List<RegexNode>();
+        private RegexNode _parent;
 
         public IEnumerable<RegexNode> ChildNodes => _childNodes;
-        public RegexNode Parent { get; private set; }
 
         protected RegexNode() { }
 
@@ -20,7 +19,10 @@ namespace RegexParser.Nodes
 
         protected RegexNode(IEnumerable<RegexNode> childNodes)
         {
-            AddRange(childNodes);
+            foreach (RegexNode childNode in childNodes)
+            {
+                Add(childNode);
+            }
         }
 
         public IEnumerable<RegexNode> GetDescendantNodes()
@@ -39,24 +41,10 @@ namespace RegexParser.Nodes
         /// Sets the current RegexNode as the parent of the new RegexNode and the new node to it's child nodes.
         /// </summary>
         /// <returns>The current RegexNode</returns>
-        private RegexNode Add(RegexNode newNode)
+        private void Add(RegexNode newNode)
         {
-            newNode.Parent = this;
+            newNode._parent = this;
             _childNodes.Add(newNode);
-            return this;
-        }
-
-        /// <summary>
-        /// Sets the current RegexNode as the parent of each new RegexNode and the new nodes to it's child nodes.
-        /// </summary>
-        /// <returns>The current RegexNode</returns>
-        private RegexNode AddRange(IEnumerable<RegexNode> newNodes)
-        {
-            foreach (RegexNode newNode in newNodes)
-            {
-                Add(newNode);
-            }
-            return this;
         }
 
         /// <summary>
@@ -90,14 +78,13 @@ namespace RegexParser.Nodes
         /// </summary>
         /// <param name="childNodes">childNodes to copy and add</param>
         /// <returns>The current RegexNode</returns>
-        private RegexNode CopyChildNodes(IEnumerable<RegexNode> childNodes)
+        private void CopyChildNodes(IEnumerable<RegexNode> childNodes)
         {
             foreach (RegexNode childNode in childNodes)
             {
                 RegexNode childCopy = childNode.Copy(true);
                 Add(childCopy);
             }
-            return this;
         }
 
         /// <summary>
@@ -117,9 +104,9 @@ namespace RegexParser.Nodes
 
             copy.Add(newNode);
 
-            if (returnRoot && Parent != null)
+            if (returnRoot && _parent != null)
             {
-                return Parent.ReplaceNode(this, copy);
+                return _parent.ReplaceNode(this, copy);
             }
 
             return copy;
@@ -139,9 +126,9 @@ namespace RegexParser.Nodes
             {
                 copy.Add(childNode == oldNode ? newNode : childNode.ReplaceNode(oldNode, newNode, false));
             }
-            if (returnRoot && Parent != null)
+            if (returnRoot && _parent != null)
             {
-                return Parent.ReplaceNode(this, copy);
+                return _parent.ReplaceNode(this, copy);
             }
             return copy;
         }
@@ -162,40 +149,11 @@ namespace RegexParser.Nodes
                     copy.Add(childNode.RemoveNode(oldNode, false));
                 }
             }
-            if (returnRoot && Parent != null)
+            if (returnRoot && _parent != null)
             {
-                return Parent.ReplaceNode(this, copy);
+                return _parent.ReplaceNode(this, copy);
             }
             return copy;
-        }
-
-        public abstract override string ToString();
-
-        /// <summary>
-        /// Create an new instance of an AnchorNode based on a character:
-        /// 'A' creates a new StartOfStringNode instance
-        /// 'Z' creates a new EndOfStringZNode instance
-        /// 'z' creates a new EndOfStringNode instance
-        /// 'b' creates a new WordBoundaryNode instance
-        /// 'B' creates a new NonWordBoundaryNode instance
-        /// 'G' creates a new ContiguousMatchNode instance
-        /// </summary>
-        /// <param name="ch"></param>
-        /// <returns></returns>
-        internal static RegexNode FromCode(char ch)
-        {
-            return ch switch
-            {
-                '^' => new StartOfLineNode(),
-                '$' => new EndOfLineNode(),
-                'A' => new StartOfStringNode(),
-                'Z' => new EndOfStringZNode(),
-                'z' => new EndOfStringNode(),
-                'b' => new WordBoundaryNode(),
-                'B' => new NonWordBoundaryNode(),
-                'G' => new ContiguousMatchNode(),
-                _ => throw new RegexParseException($"Invalid code for AnchorNode: {ch}")
-            };
         }
     }
 }

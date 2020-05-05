@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Runtime.Serialization;
 
-namespace RegexParser
+namespace RegexParser.Exceptions
 {
     [Serializable]
     public class RegexParseException : Exception

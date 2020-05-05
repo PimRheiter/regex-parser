@@ -37,21 +37,6 @@ namespace RegexParser.UnitTest.Nodes
         }
 
         [TestMethod]
-        public void ConstructorWithChildNodesShouldReturnSetNewRegexNodeAsParentOfChildNodes()
-        {
-            // Arrange
-            var childNodes = new List<RegexNode> { new CharacterNode('a'), new CharacterNode('b') };
-
-            // Act
-            var target = new Mock<RegexNode>(childNodes).Object;
-
-            // Assert
-            target.ChildNodes.Count().ShouldBe(2);
-            target.ChildNodes.First().Parent.ShouldBe(target);
-            target.ChildNodes.ElementAt(1).Parent.ShouldBe(target);
-        }
-
-        [TestMethod]
         public void AddNodeShouldCopyNodeAndAddNewRegexNode()
         {
             // Arrange

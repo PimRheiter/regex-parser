@@ -1,4 +1,5 @@
-﻿using RegexParser.Nodes;
+﻿using RegexParser.Exceptions;
+using RegexParser.Nodes;
 using RegexParser.Nodes.AnchorNodes;
 using RegexParser.Nodes.GroupNodes;
 using System;
@@ -9,14 +10,13 @@ using System.Text.RegularExpressions;
 
 namespace RegexParser
 {
-    public class Parser
+    public class Parser : IParser
     {
-        private readonly string _pattern;
         private int _currentPosition;
         private readonly List<RegexNode> _alternates = new List<RegexNode>();
         private readonly List<RegexNode> _concatenation = new List<RegexNode>();
         private readonly Stack<GroupUnit> _groupStack = new Stack<GroupUnit>();
-        private GroupUnit _group = null;
+        private GroupUnit _group;
         private readonly UnicodeCategory[] _wordCharCategories = {
             UnicodeCategory.UppercaseLetter,
             UnicodeCategory.LowercaseLetter,
@@ -28,11 +28,12 @@ namespace RegexParser
             UnicodeCategory.DecimalDigitNumber,
             UnicodeCategory.ConnectorPunctuation
         };
+        public string Pattern { get; }
 
         public Parser(string pattern)
         {
             IsValidRegex(pattern);
-            _pattern = pattern;
+            Pattern = pattern;
         }
 
         private void IsValidRegex(string pattern)
@@ -50,7 +51,7 @@ namespace RegexParser
         /// <summary>
         /// Builds a tree of RegexNodes from a regular expression.
         /// </summary>
-        public RegexNode Parse()
+        public RegexTree Parse()
         {
             while (CharsRight() > 0)
             {
@@ -61,53 +62,70 @@ namespace RegexParser
                     char ch = RightCharMoveRight();
                     switch (ch)
                     {
+                        // Start of a group
                         case '(':
                             StartGroup();
                             break;
+
+                        // End of a group
                         case ')':
                             var closedGroup = CloseGroup();
+
                             // Otherwise the closed group went directly to a ConditionalGroupNode
                             if (closedGroup != null)
                             {
                                 AddNode(closedGroup);
                             }
                             break;
+
+                        // End of an alternate
                         case '|':
                             AddAlternate();
                             break;
+
+                        // An escaped character
                         case '\\':
                             AddNode(ParseBackslash());
                             break;
+
+                        // A StartOfLine anchor "^"
                         case '^':
                             AddNode(new StartOfLineNode());
                             break;
+
+                        //  An EndOfLine Anchor
                         case '$':
                             AddNode(new EndOfLineNode());
                             break;
+
+                        // Any character "."
                         case '.':
                             AddNode(new AnyCharacterNode());
                             break;
+                        
+                        // An unregocnized character
                         default:
                             throw new RegexParseException("Something went wrong while parsing.");
                     }
                 }
             }
 
+            // A group was started with "(", but never closed with ")".
             if (_groupStack.Any())
             {
                 throw new RegexParseException("Unclosed parentheses");
             }
 
-            return CreateOuterNode();
+            RegexNode root = CreateOuterNode();
+            return new RegexTree(root);
         }
 
         /// <summary>
         /// Create an outer node for the current group.
         /// The outer node will be an AlternationNode if the current group has alternates.
-        /// Otherwise the outer node will be a ConcatenationNode if the current group has concatenation.
+        /// Otherwise the outer node will be a ConcatenationNode if the current group has concatenation items.
         /// Otherwise the outer node will be a EmptyNode.
         /// </summary>
-        /// <returns></returns>
         private RegexNode CreateOuterNode()
         {
             
@@ -220,10 +238,13 @@ namespace RegexParser
                         _group = new GroupUnit(new LookaroundGroupNode(lookahead, ch == '='));
                         break;
 
-                    // Named capturing group "(?'name'...)"
+                    // Named capturing group "(?'name'...)" or balancing group "(?'name-balancedGroupName'...)"
+                    // TODO: don't allow named group in condition of conditional group
                     case '\'':
-                        _group = new GroupUnit(new NamedGroupNode(ScanGroupName(), ch == '\''));
+                        MoveRight();
+                        _group = StartNamedGroup(ch);
                         break;
+
 
                     // Named capturing group "(?<name>...)" or possitive lookbehind "(?<=...)" or negative lookbehind "(?<!...)"
                     case '<':
@@ -241,16 +262,93 @@ namespace RegexParser
                             }
                         }
 
-                        // Named capturing group "(?<name>...)"
-                        _group = new GroupUnit(new NamedGroupNode(ScanGroupName(), ch == '\''));
+                        // Named capturing group "(?<name>...)" or balancing group "(?<name-balancedGroupName>...)"
+                        // TODO: don't allow named group in condition of conditional group
+                        MoveRight();
+                        _group = StartNamedGroup('>');
                         break;
 
-                    // Invalid grouping construct
+                    
                     default:
+                        string options = ScanOptions();
+
+                        // Mode modifier group "(?imnsx-imnsx)" or "(?imnsx-imnsx:...)"
+                        if (!string.IsNullOrEmpty(options))
+                        {
+                            _group = new GroupUnit(new ModeModifierGroupNode(options));
+                            break;
+                        }
+
+                        // Invalid grouping construct
                         throw new RegexParseException("Unrecognized grouping construct.");
                 }
             }
             _groupStack.Push(_group);
+        }
+
+        private GroupUnit StartNamedGroup(char closeChar)
+        {
+            var useQuotes = closeChar == '\'';
+            string groupName = ScanGroupName(closeChar, true);
+
+            // Group name was closed. It is a named capturing group "(?<name>...)" or "(?'name'...)".
+            if (LeftChar() == closeChar)
+            {
+                return new GroupUnit(new NamedGroupNode(groupName, useQuotes));
+            }
+
+            // Group name was not closed. It is a balancing group "(?'-balancedGroupName'...)" or "(?'name-balancedGroupName'...)".
+            // Don't allow balancing a second time.
+            string balancedGroupName = ScanGroupName(closeChar, false);
+
+            // Unnamed balancing group "(?<-balancedGroupName>...)" or "(?'-balancedGroupName'...)"
+            if (string.IsNullOrEmpty(groupName))
+            {
+                return new GroupUnit(new BalancingGroupNode(balancedGroupName, useQuotes));
+            }
+
+            // Named balancing group "(?<name-balancedGroupName>...)" or "(?'name-balancedGroupName'...)"
+            return new GroupUnit(new BalancingGroupNode(balancedGroupName, groupName, useQuotes));
+        }
+
+        private string ScanOptions()
+        {
+            // Mode modifiers in the condition of a conditional group are not allowed.
+            if (_group?.Node.GetType() == typeof(ConditionalGroupNode))
+            {
+                throw new RegexParseException("Unrecognized grouping construct.");
+            }
+
+            var options = "";
+            while (CharsRight() > 0)
+            {
+                char ch = RightChar();
+
+                switch (ch)
+                {
+                    case '-':
+                    case '+':
+                    case 'i':
+                    case 'm':
+                    case 'n':
+                    case 's':
+                    case 'x':
+                        MoveRight();
+                        options += ch;
+                        break;
+                    case ':':
+                        MoveRight();
+                        return options;
+                    case ')':
+                        return options;
+                    default:
+                        // TODO: better error
+                        throw new RegexParseException("Invalid options.");
+                }
+            }
+
+            // TODO: better error
+            throw new RegexParseException("No options");
         }
 
         /// <summary>
@@ -269,12 +367,15 @@ namespace RegexParser
             _group = _groupStack.FirstOrDefault();
 
 
-            // The first group "(...)" inside a ConditionGroupNode goes directly to the ConditionGroupNode
-            if (_group?.Node.GetType() == typeof(ConditionalGroupNode) && _group.Node.ChildNodes.Count() == 0)
+            // The first group "(...)" inside a conditional group goes directly to the condition group as it's condition.
+            // TODO: "(...)" shouldn't be a capture group, but a reference node "(1)" without "\" or a named reference "(name)" without "<>" if this is the name of a named group or a lookahead without "?=" otherwise
+            if (_group?.Node.GetType() == typeof(ConditionalGroupNode) && !_group.Node.ChildNodes.Any())
             {
                 _group.Node = _group.Node.AddNode(currentGroupNode);
                 return null;
             }
+
+            // TODO: throw an exception if the current group is a ConditionalGroupNode and the outerNode is not an AlternationNode.
 
             return currentGroupNode;
         }
@@ -328,11 +429,11 @@ namespace RegexParser
 
                 // Character escape
                 default:
-                    return ScanBasicBackslash();
+                    return ParseBasicBackslash();
             }
         }
 
-        private RegexNode ScanBasicBackslash()
+        private RegexNode ParseBasicBackslash()
         {
             if (CharsRight() == 0)
             {
@@ -341,7 +442,7 @@ namespace RegexParser
 
             char ch = RightChar();
 
-            // Parse backreference \1
+            // Parse backreference "\1"
             // TODO: parse octal escape character
             if (ch >= '1' && ch <= '9')
             {
@@ -349,9 +450,12 @@ namespace RegexParser
                 return new BackreferenceNode(groupNumber);
             }
 
+            bool useQuotes;
+            char closeChar;
+
             switch (ch)
             {
-                // Named reference \k<name> or \k'name'
+                // Named reference "\k<name>" or "\k'name'"
                 case 'k':
                     MoveRight();
 
@@ -360,13 +464,17 @@ namespace RegexParser
                         throw new RegexParseException("Malformed \\k<...> named backreference.");
                     }
 
-                    var useQuotes = RightChar() == '\'';
-                    return new NamedReferenceNode(ScanGroupName(), useQuotes, true);
+                    useQuotes = RightCharMoveRight() == '\'';
+                    closeChar = useQuotes ? '\'' : '>';
+                    return new NamedReferenceNode(ScanGroupName(closeChar, false), useQuotes, true);
 
-                // Named reference \<name> and \'name' are deprecated, but can still be used
+                // Named reference "\<name>" and "\'name'" are deprecated, but can still be used
                 case '<':
                 case '\'':
-                    return new NamedReferenceNode(ScanGroupName(), ch == '\'', false);
+                    MoveRight();
+                    useQuotes = ch == '\'';
+                    closeChar = useQuotes ? '\'' : '>';
+                    return new NamedReferenceNode(ScanGroupName(closeChar, false), ch == '\'', false);
 
                 // Character escape
                 default:
@@ -374,35 +482,45 @@ namespace RegexParser
             }
         }
 
-        private string ScanGroupName()
+        /// <summary>
+        /// Scan a group name in response to a '<' or '\''.
+        /// </summary>
+        /// <param name="closeChar">Character that closes the group name. Should be '>' or '\''.</param>
+        /// <param name="allowBalancing">Allow a '-' to close the group name in case of a balancing group.</param>
+        /// <returns>Group name</returns>
+        private string ScanGroupName(char closeChar, bool allowBalancing)
         {
-            if (CharsRight() < 3)
-            {
-                throw new RegexParseException("Incomplete group name.");
-            }
-
-            char ch = RightCharMoveRight();
-            if (ch != '<' && ch != '\'')
+            if (CharsRight() < 2)
             {
                 throw new RegexParseException("Incomplete group name.");
             }
 
             int startPosition = _currentPosition;
-            char closeChar = ch == '<' ? '>' : '\'';
+            char ch = RightChar();
 
-            while (CharsRight() > 0 && IsWordChar(ch = RightChar()))
+            while (CharsRight() > 0 && IsWordChar(ch))
             {
                 MoveRight();
+                ch = RightChar();
             }
 
-            if (ch != closeChar)
+            if (ch == closeChar)
             {
-                throw new RegexParseException("Incomplete group name.");
+                string groupName = Pattern.Substring(startPosition, _currentPosition - startPosition);
+                MoveRight();
+                return groupName;
             }
 
-            string groupName = _pattern.Substring(startPosition, _currentPosition - startPosition);
-            MoveRight();
-            return groupName;
+            // Balancing group "(?<name-balancedGroupName>)" or "(?<-balancedGroupName>)"
+            // Don't allow balancing a second time
+            if (ch == '-' && allowBalancing)
+            {
+                string groupName = Pattern.Substring(startPosition, _currentPosition - startPosition);
+                MoveRight();
+                return groupName;
+            }
+
+            throw new RegexParseException("Incomplete group name.");
         }
 
         private int ScanDecimal()
@@ -485,7 +603,7 @@ namespace RegexParser
                         throw new RegexParseException("Insufficient hexadecimal digits.");
                     }
                 }
-                return _pattern.Substring(startPosition, _currentPosition - startPosition);
+                return Pattern.Substring(startPosition, _currentPosition - startPosition);
             }
 
             throw new RegexParseException("Insufficient hexadecimal digits.");
@@ -505,7 +623,7 @@ namespace RegexParser
 
         private RegexNode ParseAnchorNode(char ch)
         {
-            return RegexNode.FromCode(ch);
+            return AnchorNode.FromCode(ch);
         }
 
         private RegexNode ParseCharacterClassShorthandNode(char ch)
@@ -532,7 +650,7 @@ namespace RegexParser
                 throw new RegexParseException($"Incomplete unicode category or block at position {_currentPosition}");
             }
 
-            string categoryName = _pattern.Substring(startPosition, _currentPosition - startPosition);
+            string categoryName = Pattern.Substring(startPosition, _currentPosition - startPosition);
             MoveRight();
             return new UnicodeCategoryNode(categoryName, negated);
 
@@ -548,7 +666,7 @@ namespace RegexParser
         /// </summary>
         private int CharsRight()
         {
-            return _pattern.Length - _currentPosition;
+            return Pattern.Length - _currentPosition;
         }
 
         /// <summary>
@@ -560,19 +678,19 @@ namespace RegexParser
         }
 
         /// <summary>
-        /// Moves the current parsing position i the the right.
-        /// </summary>
-        private void MoveRight(int i)
-        {
-            _currentPosition += i;
-        }
-
-        /// <summary>
         /// Returns the character right of the current parsing position.
         /// </summary>
         private char RightChar()
         {
-            return _pattern[_currentPosition];
+            return Pattern[_currentPosition];
+        }
+
+        /// <summary>
+        /// Returns the character left of the current parsing position.
+        /// </summary>
+        private char LeftChar()
+        {
+            return Pattern[_currentPosition - 1];
         }
 
         /// <summary>
@@ -580,7 +698,7 @@ namespace RegexParser
         /// </summary>
         private char RightChar(int i)
         {
-            return _pattern[_currentPosition + i];
+            return Pattern[_currentPosition + i];
         }
 
         /// <summary>
@@ -588,7 +706,7 @@ namespace RegexParser
         /// </summary>
         private char RightCharMoveRight()
         {
-            return _pattern[_currentPosition++];
+            return Pattern[_currentPosition++];
         }
     }
 }

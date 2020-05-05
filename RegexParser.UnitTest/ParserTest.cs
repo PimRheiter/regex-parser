@@ -1,4 +1,5 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+using RegexParser.Exceptions;
 using RegexParser.Nodes;
 using RegexParser.Nodes.AnchorNodes;
 using RegexParser.Nodes.GroupNodes;
@@ -63,10 +64,11 @@ namespace RegexParser.UnitTest
             var target = new Parser(pattern);
 
             // Act
-            var result = target.Parse();
+            RegexTree result = target.Parse();
 
             // Assert
-            result.ToString().ShouldBe(pattern);
+            RegexNode root = result.Root;
+            root.ToString().ShouldBe(pattern);
         }
 
         [TestMethod]
@@ -86,10 +88,11 @@ namespace RegexParser.UnitTest
             var target = new Parser("");
 
             // Act
-            RegexNode result = target.Parse();
+            RegexTree result = target.Parse();
 
             // Assert
-            result.ShouldBeOfType<EmptyNode>();
+            RegexNode root = result.Root;
+            root.ShouldBeOfType<EmptyNode>();
         }
 
         [TestMethod]
@@ -99,14 +102,15 @@ namespace RegexParser.UnitTest
             var target = new Parser("abc");
 
             // Act
-            RegexNode result = target.Parse();
+            RegexTree result = target.Parse();
 
             // Assert
-            result.ShouldBeOfType<ConcatenationNode>();
-            result.ChildNodes.Count().ShouldBe(3);
-            result.ChildNodes.First().ShouldBeOfType<CharacterNode>();
-            result.ChildNodes.ElementAt(1).ShouldBeOfType<CharacterNode>();
-            result.ChildNodes.ElementAt(2).ShouldBeOfType<CharacterNode>();
+            RegexNode root = result.Root;
+            root.ShouldBeOfType<ConcatenationNode>();
+            root.ChildNodes.Count().ShouldBe(3);
+            root.ChildNodes.First().ShouldBeOfType<CharacterNode>();
+            root.ChildNodes.ElementAt(1).ShouldBeOfType<CharacterNode>();
+            root.ChildNodes.ElementAt(2).ShouldBeOfType<CharacterNode>();
         }
 
         [DataTestMethod]
@@ -118,14 +122,15 @@ namespace RegexParser.UnitTest
             var target = new Parser(pattern);
 
             // Act
-            RegexNode result = target.Parse();
+            RegexTree result = target.Parse();
 
             // Assert
-            result.ShouldBeOfType<AlternationNode>();
-            result.ChildNodes.Count().ShouldBe(3);
-            result.ChildNodes.First().ShouldBeOfType<ConcatenationNode>();
-            result.ChildNodes.ElementAt(1).ShouldBeOfType<ConcatenationNode>();
-            result.ChildNodes.ElementAt(2).ShouldBeOfType<ConcatenationNode>();
+            RegexNode root = result.Root;
+            root.ShouldBeOfType<AlternationNode>();
+            root.ChildNodes.Count().ShouldBe(3);
+            root.ChildNodes.First().ShouldBeOfType<ConcatenationNode>();
+            root.ChildNodes.ElementAt(1).ShouldBeOfType<ConcatenationNode>();
+            root.ChildNodes.ElementAt(2).ShouldBeOfType<ConcatenationNode>();
         }
 
         [DataTestMethod]
@@ -135,12 +140,13 @@ namespace RegexParser.UnitTest
             var target = new Parser("|b|c");
 
             // Act
-            RegexNode result = target.Parse();
+            RegexTree result = target.Parse();
 
             // Assert
-            result.ShouldBeOfType<AlternationNode>();
-            result.ChildNodes.Count().ShouldBe(3);
-            result.ChildNodes.First().ShouldBeOfType<EmptyNode>();
+            RegexNode root = result.Root;
+            root. ShouldBeOfType<AlternationNode>();
+            root. ChildNodes.Count().ShouldBe(3);
+            root. ChildNodes.First().ShouldBeOfType<EmptyNode>();
         }
 
         [DataTestMethod]
@@ -150,12 +156,13 @@ namespace RegexParser.UnitTest
             var target = new Parser("a||c");
 
             // Act
-            RegexNode result = target.Parse();
+            RegexTree result = target.Parse();
 
             // Assert
-            result.ShouldBeOfType<AlternationNode>();
-            result.ChildNodes.Count().ShouldBe(3);
-            result.ChildNodes.ElementAt(1).ShouldBeOfType<EmptyNode>();
+            RegexNode root = result.Root;
+            root.ShouldBeOfType<AlternationNode>();
+            root.ChildNodes.Count().ShouldBe(3);
+            root.ChildNodes.ElementAt(1).ShouldBeOfType<EmptyNode>();
         }
 
         [DataTestMethod]
@@ -165,12 +172,13 @@ namespace RegexParser.UnitTest
             var target = new Parser("a|b|");
 
             // Act
-            RegexNode result = target.Parse();
+            RegexTree result = target.Parse();
 
             // Assert
-            result.ShouldBeOfType<AlternationNode>();
-            result.ChildNodes.Count().ShouldBe(3);
-            result.ChildNodes.ElementAt(2).ShouldBeOfType<EmptyNode>();
+            RegexNode root = result.Root;
+            root.ShouldBeOfType<AlternationNode>();
+            root.ChildNodes.Count().ShouldBe(3);
+            root.ChildNodes.ElementAt(2).ShouldBeOfType<EmptyNode>();
         }
 
         [DataTestMethod]
@@ -192,10 +200,11 @@ namespace RegexParser.UnitTest
             var target = new Parser($@"\{metaCharacter}");
 
             // Act
-            RegexNode result = target.Parse();
+            RegexTree result = target.Parse();
 
             // Assert
-            var childNode = result.ChildNodes.ShouldHaveSingleItem();
+            RegexNode root = result.Root;
+            var childNode = root.ChildNodes.ShouldHaveSingleItem();
             var escapeNode = childNode.ShouldBeOfType<EscapeNode>();
             escapeNode.Escape.ShouldBe(metaCharacter);
         }
@@ -207,10 +216,11 @@ namespace RegexParser.UnitTest
             var target = new Parser(@"\A");
 
             // Act
-            RegexNode result = target.Parse();
+            RegexTree result = target.Parse();
 
             // Assert
-            var childNode = result.ChildNodes.ShouldHaveSingleItem();
+            RegexNode root = result.Root;
+            var childNode = root.ChildNodes.ShouldHaveSingleItem();
             childNode.ShouldBeOfType<StartOfStringNode>();
         }
 
@@ -221,10 +231,11 @@ namespace RegexParser.UnitTest
             var target = new Parser(@"\Z");
 
             // Act
-            RegexNode result = target.Parse();
+            RegexTree result = target.Parse();
 
             // Assert
-            var childNode = result.ChildNodes.ShouldHaveSingleItem();
+            RegexNode root = result.Root;
+            var childNode = root.ChildNodes.ShouldHaveSingleItem();
             childNode.ShouldBeOfType<EndOfStringZNode>();
         }
 
@@ -235,10 +246,11 @@ namespace RegexParser.UnitTest
             var target = new Parser(@"\z");
 
             // Act
-            RegexNode result = target.Parse();
+            RegexTree result = target.Parse();
 
             // Assert
-            var childNode = result.ChildNodes.ShouldHaveSingleItem();
+            RegexNode root = result.Root;
+            var childNode = root.ChildNodes.ShouldHaveSingleItem();
             childNode.ShouldBeOfType<EndOfStringNode>();
         }
 
@@ -249,10 +261,11 @@ namespace RegexParser.UnitTest
             var target = new Parser(@"\b");
 
             // Act
-            RegexNode result = target.Parse();
+            RegexTree result = target.Parse();
 
             // Assert
-            var childNode = result.ChildNodes.ShouldHaveSingleItem();
+            RegexNode root = result.Root;
+            var childNode = root.ChildNodes.ShouldHaveSingleItem();
             childNode.ShouldBeOfType<WordBoundaryNode>();
         }
 
@@ -263,10 +276,11 @@ namespace RegexParser.UnitTest
             var target = new Parser(@"\B");
 
             // Act
-            RegexNode result = target.Parse();
+            RegexTree result = target.Parse();
 
             // Assert
-            var childNode = result.ChildNodes.ShouldHaveSingleItem();
+            RegexNode root = result.Root;
+            var childNode = root.ChildNodes.ShouldHaveSingleItem();
             childNode.ShouldBeOfType<NonWordBoundaryNode>();
         }
 
@@ -277,10 +291,11 @@ namespace RegexParser.UnitTest
             var target = new Parser(@"\G");
 
             // Act
-            RegexNode result = target.Parse();
+            RegexTree result = target.Parse();
 
             // Assert
-            var childNode = result.ChildNodes.ShouldHaveSingleItem();
+            RegexNode root = result.Root;
+            var childNode = root.ChildNodes.ShouldHaveSingleItem();
             childNode.ShouldBeOfType<ContiguousMatchNode>();
         }
 
@@ -291,10 +306,11 @@ namespace RegexParser.UnitTest
             var target = new Parser("^");
 
             // Act
-            RegexNode result = target.Parse();
+            RegexTree result = target.Parse();
 
             // Assert
-            var childNode = result.ChildNodes.ShouldHaveSingleItem();
+            RegexNode root = result.Root;
+            var childNode = root.ChildNodes.ShouldHaveSingleItem();
             childNode.ShouldBeOfType<StartOfLineNode>();
         }
 
@@ -305,10 +321,11 @@ namespace RegexParser.UnitTest
             var target = new Parser("$");
 
             // Act
-            RegexNode result = target.Parse();
+            RegexTree result = target.Parse();
 
             // Assert
-            var childNode = result.ChildNodes.ShouldHaveSingleItem();
+            RegexNode root = result.Root;
+            var childNode = root.ChildNodes.ShouldHaveSingleItem();
             childNode.ShouldBeOfType<EndOfLineNode>();
         }
 
@@ -319,10 +336,11 @@ namespace RegexParser.UnitTest
             var target = new Parser(".");
 
             // Act
-            RegexNode result = target.Parse();
+            RegexTree result = target.Parse();
 
             // Assert
-            var childNode = result.ChildNodes.ShouldHaveSingleItem();
+            RegexNode root = result.Root;
+            var childNode = root.ChildNodes.ShouldHaveSingleItem();
             childNode.ShouldBeOfType<AnyCharacterNode>();
         }
 
@@ -339,10 +357,11 @@ namespace RegexParser.UnitTest
             var target = new Parser($@"\{shorthandCharacter}");
 
             // Act
-            RegexNode result = target.Parse();
+            RegexTree result = target.Parse();
 
             // Assert
-            var childNode = result.ChildNodes.ShouldHaveSingleItem();
+            RegexNode root = result.Root;
+            var childNode = root.ChildNodes.ShouldHaveSingleItem();
             CharacterClassShorthandNode characterClassShorthandNode = childNode.ShouldBeOfType<CharacterClassShorthandNode>();
             characterClassShorthandNode.Shorthand.ShouldBe(shorthandCharacter);
         }
@@ -355,10 +374,11 @@ namespace RegexParser.UnitTest
             var target = new Parser($@"\p{{{category}}}");
 
             // Act
-            RegexNode result = target.Parse();
+            RegexTree result = target.Parse();
 
             // Assert
-            var childNode = result.ChildNodes.ShouldHaveSingleItem();
+            RegexNode root = result.Root;
+            var childNode = root.ChildNodes.ShouldHaveSingleItem();
             UnicodeCategoryNode unicodeCategoryNode = childNode.ShouldBeOfType<UnicodeCategoryNode>();
             unicodeCategoryNode.Category.ShouldBe(category);
             unicodeCategoryNode.Negated.ShouldBe(false);
@@ -372,10 +392,11 @@ namespace RegexParser.UnitTest
             var target = new Parser($@"\P{{{category}}}");
 
             // Act
-            RegexNode result = target.Parse();
+            RegexTree result = target.Parse();
 
             // Assert
-            var childNode = result.ChildNodes.ShouldHaveSingleItem();
+            RegexNode root = result.Root;
+            var childNode = root.ChildNodes.ShouldHaveSingleItem();
             UnicodeCategoryNode unicodeCategoryNode = childNode.ShouldBeOfType<UnicodeCategoryNode>();
             unicodeCategoryNode.Category.ShouldBe(category);
             unicodeCategoryNode.Negated.ShouldBe(true);
@@ -395,10 +416,11 @@ namespace RegexParser.UnitTest
             var target = new Parser($@"\{escape}");
 
             // Act
-            RegexNode result = target.Parse();
+            RegexTree result = target.Parse();
 
             // Assert
-            var childNode = result.ChildNodes.ShouldHaveSingleItem();
+            RegexNode root = result.Root;
+            var childNode = root.ChildNodes.ShouldHaveSingleItem();
             EscapeNode escapeNode = childNode.ShouldBeOfType<EscapeNode>();
             escapeNode.Escape.ShouldBe(escape);
         }
@@ -416,10 +438,11 @@ namespace RegexParser.UnitTest
             var target = new Parser($@"\{hexCharacter}");
 
             // Act
-            RegexNode result = target.Parse();
+            RegexTree result = target.Parse();
 
             // Assert
-            var childNode = result.ChildNodes.ShouldHaveSingleItem();
+            RegexNode root = result.Root;
+            var childNode = root.ChildNodes.ShouldHaveSingleItem();
             EscapeNode escapeNode = childNode.ShouldBeOfType<EscapeNode>();
             escapeNode.Escape.ShouldBe(hexCharacter);
         }
@@ -437,10 +460,11 @@ namespace RegexParser.UnitTest
             var target = new Parser($@"\{unicodeCharacter}");
 
             // Act
-            RegexNode result = target.Parse();
+            RegexTree result = target.Parse();
 
             // Assert
-            var childNode = result.ChildNodes.ShouldHaveSingleItem();
+            RegexNode root = result.Root;
+            var childNode = root.ChildNodes.ShouldHaveSingleItem();
             EscapeNode escapeNode = childNode.ShouldBeOfType<EscapeNode>();
             escapeNode.Escape.ShouldBe(unicodeCharacter);
         }
@@ -456,10 +480,11 @@ namespace RegexParser.UnitTest
             var target = new Parser($@"\{controlCharacter}");
 
             // Act
-            RegexNode result = target.Parse();
+            RegexTree result = target.Parse();
 
             // Assert
-            var childNode = result.ChildNodes.ShouldHaveSingleItem();
+            RegexNode root = result.Root;
+            var childNode = root.ChildNodes.ShouldHaveSingleItem();
             EscapeNode escapeNode = childNode.ShouldBeOfType<EscapeNode>();
             escapeNode.Escape.ShouldBe(controlCharacter);
         }
@@ -473,10 +498,11 @@ namespace RegexParser.UnitTest
             var target = new Parser($@"()\{groupNumber}");
 
             // Act
-            RegexNode result = target.Parse();
+            RegexTree result = target.Parse();
 
             // Assert
-            BackreferenceNode backreferenceNode = result.ChildNodes.Last().ShouldBeOfType<BackreferenceNode>();
+            RegexNode root = result.Root;
+            BackreferenceNode backreferenceNode = root.ChildNodes.Last().ShouldBeOfType<BackreferenceNode>();
             backreferenceNode.GroupNumber.ShouldBe(groupNumber);
         }
 
@@ -489,10 +515,11 @@ namespace RegexParser.UnitTest
             var target = new Parser($@"(?<name>)\k<{name}>");
 
             // Act
-            RegexNode result = target.Parse();
+            RegexTree result = target.Parse();
 
             // Assert
-            NamedReferenceNode namedReferenceNode = result.ChildNodes.Last().ShouldBeOfType<NamedReferenceNode>();
+            RegexNode root = result.Root;
+            NamedReferenceNode namedReferenceNode = root.ChildNodes.Last().ShouldBeOfType<NamedReferenceNode>();
             namedReferenceNode.Name.ShouldBe(name);
             namedReferenceNode.UseQuotes.ShouldBe(false);
             namedReferenceNode.UseK.ShouldBe(true);
@@ -507,10 +534,11 @@ namespace RegexParser.UnitTest
             var target = new Parser($@"(?<name>)\k'{name}'");
 
             // Act
-            RegexNode result = target.Parse();
+            RegexTree result = target.Parse();
 
             // Assert
-            NamedReferenceNode namedReferenceNode = result.ChildNodes.Last().ShouldBeOfType<NamedReferenceNode>();
+            RegexNode root = result.Root;
+            NamedReferenceNode namedReferenceNode = root.ChildNodes.Last().ShouldBeOfType<NamedReferenceNode>();
             namedReferenceNode.Name.ShouldBe(name);
             namedReferenceNode.UseQuotes.ShouldBe(true);
             namedReferenceNode.UseK.ShouldBe(true);
@@ -525,10 +553,11 @@ namespace RegexParser.UnitTest
             var target = new Parser($@"(?<name>)\<{name}>");
 
             // Act
-            RegexNode result = target.Parse();
+            RegexTree result = target.Parse();
 
             // Assert
-            NamedReferenceNode namedReferenceNode = result.ChildNodes.Last().ShouldBeOfType<NamedReferenceNode>();
+            RegexNode root = result.Root;
+            NamedReferenceNode namedReferenceNode = root.ChildNodes.Last().ShouldBeOfType<NamedReferenceNode>();
             namedReferenceNode.Name.ShouldBe(name);
             namedReferenceNode.UseQuotes.ShouldBe(false);
             namedReferenceNode.UseK.ShouldBe(false);
@@ -543,10 +572,11 @@ namespace RegexParser.UnitTest
             var target = new Parser($@"(?<name>)\'{name}'");
 
             // Act
-            RegexNode result = target.Parse();
+            RegexTree result = target.Parse();
 
             // Assert
-            NamedReferenceNode namedReferenceNode = result.ChildNodes.Last().ShouldBeOfType<NamedReferenceNode>();
+            RegexNode root = result.Root;
+            NamedReferenceNode namedReferenceNode = root.ChildNodes.Last().ShouldBeOfType<NamedReferenceNode>();
             namedReferenceNode.Name.ShouldBe(name);
             namedReferenceNode.UseQuotes.ShouldBe(true);
             namedReferenceNode.UseK.ShouldBe(false);
@@ -559,10 +589,11 @@ namespace RegexParser.UnitTest
             var target = new Parser("()");
 
             // Act
-            RegexNode result = target.Parse();
+            RegexTree result = target.Parse();
 
             // Assert
-            var childNode = result.ChildNodes.ShouldHaveSingleItem();
+            RegexNode root = result.Root;
+            var childNode = root.ChildNodes.ShouldHaveSingleItem();
             CaptureGroupNode captureGroupNode = childNode.ShouldBeOfType<CaptureGroupNode>();
             var groupChildNode = captureGroupNode.ChildNodes.ShouldHaveSingleItem();
             groupChildNode.ShouldBeOfType<EmptyNode>();
@@ -575,10 +606,11 @@ namespace RegexParser.UnitTest
             var target = new Parser("(abc)");
 
             // Act
-            RegexNode result = target.Parse();
+            RegexTree result = target.Parse();
 
             // Assert
-            var childNode = result.ChildNodes.ShouldHaveSingleItem();
+            RegexNode root = result.Root;
+            var childNode = root.ChildNodes.ShouldHaveSingleItem();
             childNode.ShouldBeOfType<CaptureGroupNode>();
             var captureGroupchildNode = childNode.ChildNodes.ShouldHaveSingleItem();
             ConcatenationNode concatenationNode = captureGroupchildNode.ShouldBeOfType<ConcatenationNode>();
@@ -595,10 +627,11 @@ namespace RegexParser.UnitTest
             var target = new Parser("(a|b|c)");
 
             // Act
-            RegexNode result = target.Parse();
+            RegexTree result = target.Parse();
 
             // Assert
-            var childNode = result.ChildNodes.ShouldHaveSingleItem();
+            RegexNode root = result.Root;
+            var childNode = root.ChildNodes.ShouldHaveSingleItem();
             childNode.ShouldBeOfType<CaptureGroupNode>();
             var captureGroupchildNode = childNode.ChildNodes.ShouldHaveSingleItem();
             AlternationNode alternationNode = captureGroupchildNode.ShouldBeOfType<AlternationNode>();
@@ -621,19 +654,20 @@ namespace RegexParser.UnitTest
             var target = new Parser("(a)b(c)");
 
             // Act
-            RegexNode result = target.Parse();
+            RegexTree result = target.Parse();
 
             // Assert
-            result.ChildNodes.Count().ShouldBe(3);
-            CaptureGroupNode captureGroupNode = result.ChildNodes.First().ShouldBeOfType<CaptureGroupNode>();
+            RegexNode root = result.Root;
+            root.ChildNodes.Count().ShouldBe(3);
+            CaptureGroupNode captureGroupNode = root.ChildNodes.First().ShouldBeOfType<CaptureGroupNode>();
             var captureGroupChildNode = captureGroupNode.ChildNodes.ShouldHaveSingleItem();
             ConcatenationNode concatenationNode = captureGroupChildNode.ShouldBeOfType<ConcatenationNode>();
             var concatentationChildNode = concatenationNode.ChildNodes.ShouldHaveSingleItem();
             concatentationChildNode.ShouldBeOfType<CharacterNode>();
 
-            result.ChildNodes.ElementAt(1).ShouldBeOfType<CharacterNode>();
+            root.ChildNodes.ElementAt(1).ShouldBeOfType<CharacterNode>();
 
-            captureGroupNode = result.ChildNodes.Last().ShouldBeOfType<CaptureGroupNode>();
+            captureGroupNode = root.ChildNodes.Last().ShouldBeOfType<CaptureGroupNode>();
             captureGroupChildNode = captureGroupNode.ChildNodes.ShouldHaveSingleItem();
             concatenationNode = captureGroupChildNode.ShouldBeOfType<ConcatenationNode>();
             concatentationChildNode = concatenationNode.ChildNodes.ShouldHaveSingleItem();
@@ -647,10 +681,11 @@ namespace RegexParser.UnitTest
             var target = new Parser("(a(b)c)");
 
             // Act
-            RegexNode result = target.Parse();
+            RegexTree result = target.Parse();
 
             // Assert
-            var childNode = result.ChildNodes.ShouldHaveSingleItem();
+            RegexNode root = result.Root;
+            var childNode = root.ChildNodes.ShouldHaveSingleItem();
             CaptureGroupNode captureGroupNode = childNode.ShouldBeOfType<CaptureGroupNode>();
             var captureGroupChild = captureGroupNode.ChildNodes.ShouldHaveSingleItem();
             captureGroupChild.ShouldBeOfType<ConcatenationNode>();
@@ -672,10 +707,11 @@ namespace RegexParser.UnitTest
             var target = new Parser("(?<name>)");
 
             // Act
-            RegexNode result = target.Parse();
+            RegexTree result = target.Parse();
 
             // Assert
-            var childNode = result.ChildNodes.ShouldHaveSingleItem();
+            RegexNode root = result.Root;
+            var childNode = root.ChildNodes.ShouldHaveSingleItem();
             NamedGroupNode namedGroupNode = childNode.ShouldBeOfType<NamedGroupNode>();
             namedGroupNode.Name.ShouldBe("name");
             namedGroupNode.UseQuotes.ShouldBeFalse();
@@ -690,10 +726,11 @@ namespace RegexParser.UnitTest
             var target = new Parser("(?'name')");
 
             // Act
-            RegexNode result = target.Parse();
+            RegexTree result = target.Parse();
 
             // Assert
-            var childNode = result.ChildNodes.ShouldHaveSingleItem();
+            RegexNode root = result.Root;
+            var childNode = root.ChildNodes.ShouldHaveSingleItem();
             NamedGroupNode namedGroupNode = childNode.ShouldBeOfType<NamedGroupNode>();
             namedGroupNode.Name.ShouldBe("name");
             namedGroupNode.UseQuotes.ShouldBeTrue();
@@ -708,10 +745,11 @@ namespace RegexParser.UnitTest
             var target = new Parser("(?<name>abc)");
 
             // Act
-            RegexNode result = target.Parse();
+            RegexTree result = target.Parse();
 
             // Assert
-            var childNode = result.ChildNodes.ShouldHaveSingleItem();
+            RegexNode root = result.Root;
+            var childNode = root.ChildNodes.ShouldHaveSingleItem();
             childNode.ShouldBeOfType<NamedGroupNode>();
             var groupChildNode = childNode.ChildNodes.ShouldHaveSingleItem();
             ConcatenationNode concatenationNode = groupChildNode.ShouldBeOfType<ConcatenationNode>();
@@ -728,10 +766,11 @@ namespace RegexParser.UnitTest
             var target = new Parser("(?:)");
 
             // Act
-            RegexNode result = target.Parse();
+            RegexTree result = target.Parse();
 
             // Assert
-            var childNode = result.ChildNodes.ShouldHaveSingleItem();
+            RegexNode root = result.Root;
+            var childNode = root.ChildNodes.ShouldHaveSingleItem();
             childNode.ShouldBeOfType<NonCaptureGroupNode>();
             var groupChildNode = childNode.ChildNodes.ShouldHaveSingleItem();
             groupChildNode.ShouldBeOfType<EmptyNode>();
@@ -744,10 +783,11 @@ namespace RegexParser.UnitTest
             var target = new Parser("(?:abc)");
 
             // Act
-            RegexNode result = target.Parse();
+            RegexTree result = target.Parse();
 
             // Assert
-            var childNode = result.ChildNodes.ShouldHaveSingleItem();
+            RegexNode root = result.Root;
+            var childNode = root.ChildNodes.ShouldHaveSingleItem();
             childNode.ShouldBeOfType<NonCaptureGroupNode>();
             var groupChildNode = childNode.ChildNodes.ShouldHaveSingleItem();
             ConcatenationNode concatenationNode = groupChildNode.ShouldBeOfType<ConcatenationNode>();
@@ -764,10 +804,11 @@ namespace RegexParser.UnitTest
             var target = new Parser("(?>)");
 
             // Act
-            RegexNode result = target.Parse();
+            RegexTree result = target.Parse();
 
             // Assert
-            var childNode = result.ChildNodes.ShouldHaveSingleItem();
+            RegexNode root = result.Root;
+            var childNode = root.ChildNodes.ShouldHaveSingleItem();
             childNode.ShouldBeOfType<AtomicGroupNode>();
             var groupChildNode = childNode.ChildNodes.ShouldHaveSingleItem();
             groupChildNode.ShouldBeOfType<EmptyNode>();
@@ -780,10 +821,11 @@ namespace RegexParser.UnitTest
             var target = new Parser("(?>abc)");
 
             // Act
-            RegexNode result = target.Parse();
+            RegexTree result = target.Parse();
 
             // Assert
-            var childNode = result.ChildNodes.ShouldHaveSingleItem();
+            RegexNode root = result.Root;
+            var childNode = root.ChildNodes.ShouldHaveSingleItem();
             childNode.ShouldBeOfType<AtomicGroupNode>();
             var groupChildNode = childNode.ChildNodes.ShouldHaveSingleItem();
             ConcatenationNode concatenationNode = groupChildNode.ShouldBeOfType<ConcatenationNode>();
@@ -800,10 +842,11 @@ namespace RegexParser.UnitTest
             var target = new Parser("(?=)");
 
             // Act
-            RegexNode result = target.Parse();
+            RegexTree result = target.Parse();
 
             // Assert
-            var childNode = result.ChildNodes.ShouldHaveSingleItem();
+            RegexNode root = result.Root;
+            var childNode = root.ChildNodes.ShouldHaveSingleItem();
             LookaroundGroupNode lookaroundGroupNode = childNode.ShouldBeOfType<LookaroundGroupNode>();
             lookaroundGroupNode.Lookahead.ShouldBeTrue();
             lookaroundGroupNode.Possitive.ShouldBeTrue();
@@ -818,10 +861,11 @@ namespace RegexParser.UnitTest
             var target = new Parser("(?=abc)");
 
             // Act
-            RegexNode result = target.Parse();
+            RegexTree result = target.Parse();
 
             // Assert
-            var childNode = result.ChildNodes.ShouldHaveSingleItem();
+            RegexNode root = result.Root;
+            var childNode = root.ChildNodes.ShouldHaveSingleItem();
             LookaroundGroupNode lookaroundGroupNode = childNode.ShouldBeOfType<LookaroundGroupNode>();
             lookaroundGroupNode.Lookahead.ShouldBeTrue();
             lookaroundGroupNode.Possitive.ShouldBeTrue();
@@ -840,10 +884,11 @@ namespace RegexParser.UnitTest
             var target = new Parser("(?!)");
 
             // Act
-            RegexNode result = target.Parse();
+            RegexTree result = target.Parse();
 
             // Assert
-            var childNode = result.ChildNodes.ShouldHaveSingleItem();
+            RegexNode root = result.Root;
+            var childNode = root.ChildNodes.ShouldHaveSingleItem();
             LookaroundGroupNode lookaroundGroupNode = childNode.ShouldBeOfType<LookaroundGroupNode>();
             lookaroundGroupNode.Lookahead.ShouldBeTrue();
             lookaroundGroupNode.Possitive.ShouldBeFalse();
@@ -858,10 +903,11 @@ namespace RegexParser.UnitTest
             var target = new Parser("(?!abc)");
 
             // Act
-            RegexNode result = target.Parse();
+            RegexTree result = target.Parse();
 
             // Assert
-            var childNode = result.ChildNodes.ShouldHaveSingleItem();
+            RegexNode root = result.Root;
+            var childNode = root.ChildNodes.ShouldHaveSingleItem();
             LookaroundGroupNode lookaroundGroupNode = childNode.ShouldBeOfType<LookaroundGroupNode>();
             lookaroundGroupNode.Lookahead.ShouldBeTrue();
             lookaroundGroupNode.Possitive.ShouldBeFalse();
@@ -880,10 +926,11 @@ namespace RegexParser.UnitTest
             var target = new Parser("(?<=)");
 
             // Act
-            RegexNode result = target.Parse();
+            RegexTree result = target.Parse();
 
             // Assert
-            var childNode = result.ChildNodes.ShouldHaveSingleItem();
+            RegexNode root = result.Root;
+            var childNode = root.ChildNodes.ShouldHaveSingleItem();
             LookaroundGroupNode lookaroundGroupNode = childNode.ShouldBeOfType<LookaroundGroupNode>();
             lookaroundGroupNode.Lookahead.ShouldBeFalse();
             lookaroundGroupNode.Possitive.ShouldBeTrue();
@@ -898,10 +945,11 @@ namespace RegexParser.UnitTest
             var target = new Parser("(?<=abc)");
 
             // Act
-            RegexNode result = target.Parse();
+            RegexTree result = target.Parse();
 
             // Assert
-            var childNode = result.ChildNodes.ShouldHaveSingleItem();
+            RegexNode root = result.Root;
+            var childNode = root.ChildNodes.ShouldHaveSingleItem();
             LookaroundGroupNode lookaroundGroupNode = childNode.ShouldBeOfType<LookaroundGroupNode>();
             lookaroundGroupNode.Lookahead.ShouldBeFalse();
             lookaroundGroupNode.Possitive.ShouldBeTrue();
@@ -920,10 +968,11 @@ namespace RegexParser.UnitTest
             var target = new Parser("(?<!)");
 
             // Act
-            RegexNode result = target.Parse();
+            RegexTree result = target.Parse();
 
             // Assert
-            var childNode = result.ChildNodes.ShouldHaveSingleItem();
+            RegexNode root = result.Root;
+            var childNode = root.ChildNodes.ShouldHaveSingleItem();
             LookaroundGroupNode lookaroundGroupNode = childNode.ShouldBeOfType<LookaroundGroupNode>();
             lookaroundGroupNode.Lookahead.ShouldBeFalse();
             lookaroundGroupNode.Possitive.ShouldBeFalse();
@@ -938,10 +987,11 @@ namespace RegexParser.UnitTest
             var target = new Parser("(?<!abc)");
 
             // Act
-            RegexNode result = target.Parse();
+            RegexTree result = target.Parse();
 
             // Assert
-            var childNode = result.ChildNodes.ShouldHaveSingleItem();
+            RegexNode root = result.Root;
+            var childNode = root.ChildNodes.ShouldHaveSingleItem();
             LookaroundGroupNode lookaroundGroupNode = childNode.ShouldBeOfType<LookaroundGroupNode>();
             lookaroundGroupNode.Lookahead.ShouldBeFalse();
             lookaroundGroupNode.Possitive.ShouldBeFalse();
@@ -963,7 +1013,8 @@ namespace RegexParser.UnitTest
             var result = target.Parse();
 
             // Assert
-            var childNode = result.ChildNodes.ShouldHaveSingleItem();
+            RegexNode root = result.Root;
+            var childNode = root.ChildNodes.ShouldHaveSingleItem();
             ConditionalGroupNode conditionalGroupNode = childNode.ShouldBeOfType<ConditionalGroupNode>();
             conditionalGroupNode.ChildNodes.Count().ShouldBe(2);
 
@@ -975,6 +1026,148 @@ namespace RegexParser.UnitTest
             alternation.ChildNodes.Count().ShouldBe(2);
             alternation.ChildNodes.First().ToString().ShouldBe("then");
             alternation.ChildNodes.Last().ToString().ShouldBe("else");
+        }
+
+        [TestMethod]
+        public void ParsingModeModifierGroupWithoutSubexpressionShouldReturnModeModifierGroupNodeWithModesAndEmotyNodeAsChildNode()
+        {
+            // Arrange
+            var target = new Parser("(?imnsx-imnsx+imnsx)");
+
+            // Act
+            var result = target.Parse();
+
+            // Assert
+            RegexNode root = result.Root;
+            var childNode = root.ChildNodes.ShouldHaveSingleItem();
+            ModeModifierGroupNode modeModifierGroupNode = childNode.ShouldBeOfType<ModeModifierGroupNode>();
+            modeModifierGroupNode.Modifiers.ShouldBe("imnsx-imnsx+imnsx");
+            var empty = modeModifierGroupNode.ChildNodes.ShouldHaveSingleItem();
+            empty.ShouldBeOfType<EmptyNode>();
+        }
+
+        [TestMethod]
+        public void ParsingModeModifierGroupWithSubexpressionAfterColonShouldReturnModeModifierGroupNodeWithModesAndChildNode()
+        {
+            // Arrange
+            var target = new Parser("(?imnsx-imnsx+imnsx:abc)");
+
+            // Act
+            var result = target.Parse();
+
+            // Assert
+            RegexNode root = result.Root;
+            var childNode = root.ChildNodes.ShouldHaveSingleItem();
+            ModeModifierGroupNode modeModifierGroupNode = childNode.ShouldBeOfType<ModeModifierGroupNode>();
+            modeModifierGroupNode.Modifiers.ShouldBe("imnsx-imnsx+imnsx");
+            var modeModifierChildNode = modeModifierGroupNode.ChildNodes.ShouldHaveSingleItem();
+            modeModifierChildNode.ShouldBeOfType<ConcatenationNode>();
+            modeModifierChildNode.ChildNodes.Count().ShouldBe(3);
+            modeModifierChildNode.ToString().ShouldBe("abc");
+        }
+
+        [TestMethod]
+        public void UsingSameModeModifierMultipleTimesShouldBeAllowed()
+        {
+            // Arrange
+            var target = new Parser("(?iimmnnssxxxx-iimmnnssxxxx+iimmnnssxxxx)");
+
+            // Act
+            var result = target.Parse();
+
+            // Assert
+            RegexNode root = result.Root;
+            var childNode = root.ChildNodes.ShouldHaveSingleItem();
+            ModeModifierGroupNode modeModifierGroupNode = childNode.ShouldBeOfType<ModeModifierGroupNode>();
+            modeModifierGroupNode.Modifiers.ShouldBe("iimmnnssxxxx-iimmnnssxxxx+iimmnnssxxxx");
+        }
+
+        [TestMethod]
+        public void UsingMinusAndPlusMultipleTimesInModeModfierGroupShouldBeAllowed()
+        {
+            // Arrange
+            var target = new Parser("(?imn-s+x-im+-+ns-x+im)");
+
+            // Act
+            var result = target.Parse();
+
+            // Assert
+            RegexNode root = result.Root;
+            var childNode = root.ChildNodes.ShouldHaveSingleItem();
+            ModeModifierGroupNode modeModifierGroupNode = childNode.ShouldBeOfType<ModeModifierGroupNode>();
+            modeModifierGroupNode.Modifiers.ShouldBe("imn-s+x-im+-+ns-x+im");
+        }
+
+        [TestMethod]
+        public void ParsingBalancingGroupWithOneNameInAngledBracketsShouldReturnBalancingGroupWithBalancedGroupNameAndUseQuotesFalse()
+        {
+            // Arrange
+            var target = new Parser("(?<balancedGroup>)(?<-balancedGroup>)");
+
+            // Act
+            var result = target.Parse();
+
+            // Assert
+            RegexNode root = result.Root;
+            root.ChildNodes.Count().ShouldBe(2);
+            BalancingGroupNode balancingGroupNode = root.ChildNodes.ElementAt(1).ShouldBeOfType<BalancingGroupNode>();
+            balancingGroupNode.BalancedGroupName.ShouldBe("balancedGroup");
+            balancingGroupNode.Name.ShouldBeNull();
+            balancingGroupNode.UseQuotes.ShouldBeFalse();
+        }
+
+        [TestMethod]
+        public void ParsingBalancingGroupWithTwoNamesInAngledBracketsShouldReturnBalancingGroupWithNameAndBalancedGroupNameAndUseQuotesFalse()
+        {
+            // Arrange
+            var target = new Parser("(?<balancedGroup>)(?<name-balancedGroup>)");
+
+            // Act
+            var result = target.Parse();
+
+            // Assert
+            RegexNode root = result.Root;
+            root.ChildNodes.Count().ShouldBe(2);
+            BalancingGroupNode balancingGroupNode = root.ChildNodes.ElementAt(1).ShouldBeOfType<BalancingGroupNode>();
+            balancingGroupNode.BalancedGroupName.ShouldBe("balancedGroup");
+            balancingGroupNode.Name.ShouldBe("name");
+            balancingGroupNode.UseQuotes.ShouldBeFalse();
+        }
+
+        [TestMethod]
+        public void ParsingBalancingGroupWithOneNameInSingleQuotesShouldReturnBalancingGroupWithBalancedGroupNameAndUseQuotesTrue()
+        {
+            // Arrange
+            var target = new Parser("(?<balancedGroup>)(?'-balancedGroup')");
+
+            // Act
+            var result = target.Parse();
+
+            // Assert
+            RegexNode root = result.Root;
+            root.ChildNodes.Count().ShouldBe(2);
+            BalancingGroupNode balancingGroupNode = root.ChildNodes.ElementAt(1).ShouldBeOfType<BalancingGroupNode>();
+            balancingGroupNode.BalancedGroupName.ShouldBe("balancedGroup");
+            balancingGroupNode.Name.ShouldBeNull();
+            balancingGroupNode.UseQuotes.ShouldBeTrue();
+        }
+
+        [TestMethod]
+        public void ParsingBalancingGroupWithTwoNamesInSingleQuotesShouldReturnBalancingGroupWithNameAndBalancedGroupNameAndUseQuotesTrue()
+        {
+            // Arrange
+            var target = new Parser("(?<balancedGroup>)(?'name-balancedGroup')");
+
+            // Act
+            var result = target.Parse();
+
+            // Assert
+            RegexNode root = result.Root;
+            root.ChildNodes.Count().ShouldBe(2);
+            BalancingGroupNode balancingGroupNode = root.ChildNodes.ElementAt(1).ShouldBeOfType<BalancingGroupNode>();
+            balancingGroupNode.BalancedGroupName.ShouldBe("balancedGroup");
+            balancingGroupNode.Name.ShouldBe("name");
+            balancingGroupNode.UseQuotes.ShouldBeTrue();
         }
     }
 }
