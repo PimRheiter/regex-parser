@@ -239,7 +239,6 @@ namespace RegexParser
                         break;
 
                     // Named capturing group "(?'name'...)" or balancing group "(?'name-balancedGroupName'...)"
-                    // TODO: don't allow named group in condition of conditional group
                     case '\'':
                         MoveRight();
                         _group = StartNamedGroup(ch);
@@ -263,7 +262,6 @@ namespace RegexParser
                         }
 
                         // Named capturing group "(?<name>...)" or balancing group "(?<name-balancedGroupName>...)"
-                        // TODO: don't allow named group in condition of conditional group
                         MoveRight();
                         _group = StartNamedGroup('>');
                         break;
@@ -288,6 +286,12 @@ namespace RegexParser
 
         private GroupUnit StartNamedGroup(char closeChar)
         {
+            // Don't allow named group in condition of conditional group
+            if (_group?.Node.GetType() == typeof(ConditionalGroupNode) && !_group.Node.ChildNodes.Any())
+            {
+                throw new RegexParseException("Conditional group condition can't be named.");
+            }
+
             var useQuotes = closeChar == '\'';
             string groupName = ScanGroupName(closeChar, true);
 
