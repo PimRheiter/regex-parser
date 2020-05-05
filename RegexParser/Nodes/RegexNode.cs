@@ -155,5 +155,7 @@ namespace RegexParser.Nodes
             }
             return copy;
         }
+
+        public abstract override string ToString();
     }
 }
