@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Text;
 using System.Text.RegularExpressions;
 
 namespace RegexParser
@@ -323,7 +324,8 @@ namespace RegexParser
                 throw new RegexParseException("Unrecognized grouping construct.");
             }
 
-            var options = "";
+            int startPosition = _currentPosition;
+
             while (CharsRight() > 0)
             {
                 char ch = RightChar();
@@ -338,16 +340,19 @@ namespace RegexParser
                     case 's':
                     case 'x':
                         MoveRight();
-                        options += ch;
                         break;
+                    
+                    // Set options for the current group only "(?imnsx-imnsx:...)"
                     case ':':
+                        string options = Pattern.Substring(startPosition, _currentPosition - startPosition);
                         MoveRight();
                         return options;
+
+                    // Set options for the rest of the regular expression "(?imnsx-imnsx)"
                     case ')':
-                        return options;
+                        return Pattern.Substring(startPosition, _currentPosition - startPosition);
                     default:
-                        // TODO: better error
-                        throw new RegexParseException("Invalid options.");
+                        throw new RegexParseException($"'{ch}' is not a valid inline mode modifier");
                 }
             }
 
@@ -379,7 +384,11 @@ namespace RegexParser
                 return null;
             }
 
-            // TODO: throw an exception if the current group is a ConditionalGroupNode and the outerNode is not an AlternationNode.
+            // No more than two alternates allowed in a conditional group
+            if (_group?.Node.GetType() == typeof(ConditionalGroupNode) && currentGroupNode.GetType() == typeof(AlternationNode) && currentGroupNode.ChildNodes.Count() > 2)
+            {
+                throw new RegexParseException("Too many | in (?()|)");
+            }
 
             return currentGroupNode;
         }

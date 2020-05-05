@@ -1,6 +1,4 @@
-﻿using RegexParser.Nodes;
-
-namespace RegexParser
+﻿namespace RegexParser
 {
     public interface IParser
     {
