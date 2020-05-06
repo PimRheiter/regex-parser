@@ -5,8 +5,8 @@ namespace RegexParser.Nodes.CharacterClass
 {
     public class CharacterClassRangeNode : RegexNode
     {
-        public CharacterClassRangeNode(IEnumerable<RegexNode> childNodes)
-            : base(childNodes)
+        public CharacterClassRangeNode(RegexNode start, RegexNode end)
+            : base(new List<RegexNode> { start, end })
         {
         }
 

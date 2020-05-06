@@ -2,6 +2,7 @@
 using RegexParser.Exceptions;
 using RegexParser.Nodes;
 using RegexParser.Nodes.AnchorNodes;
+using RegexParser.Nodes.CharacterClass;
 using RegexParser.Nodes.GroupNodes;
 using RegexParser.Nodes.QuantifierNodes;
 using Shouldly;
@@ -13,7 +14,7 @@ namespace RegexParser.UnitTest
     [TestClass]
     public class ParserTest
     {
-        [DataTestMethod]
+        [TestMethod]
         [DataRow(@"")]
         [DataRow(@"abc")]
         [DataRow(@"a|b|c")]
@@ -122,7 +123,7 @@ namespace RegexParser.UnitTest
             root.ChildNodes.ElementAt(2).ShouldBeOfType<CharacterNode>();
         }
 
-        [DataTestMethod]
+        [TestMethod]
         [DataRow("a|b|c")]
         [DataRow("a1|b2|c3")]
         public void ConcatenationNodesAreAddedToAlternationNode(string pattern)
@@ -142,7 +143,7 @@ namespace RegexParser.UnitTest
             root.ChildNodes.ElementAt(2).ShouldBeOfType<ConcatenationNode>();
         }
 
-        [DataTestMethod]
+        [TestMethod]
         public void EmptyFirstAlternateInAlternationShouldBeEmptyNode()
         {
             // Arrange
@@ -158,7 +159,7 @@ namespace RegexParser.UnitTest
             root. ChildNodes.First().ShouldBeOfType<EmptyNode>();
         }
 
-        [DataTestMethod]
+        [TestMethod]
         public void EmptyMiddleAlternateInAlternationShouldBeEmptyNode()
         {
             // Arrange
@@ -174,7 +175,7 @@ namespace RegexParser.UnitTest
             root.ChildNodes.ElementAt(1).ShouldBeOfType<EmptyNode>();
         }
 
-        [DataTestMethod]
+        [TestMethod]
         public void EmptyLastAlternateInAlternationShouldBeEmptyNode()
         {
             // Arrange
@@ -190,7 +191,7 @@ namespace RegexParser.UnitTest
             root.ChildNodes.ElementAt(2).ShouldBeOfType<EmptyNode>();
         }
 
-        [DataTestMethod]
+        [TestMethod]
         [DataRow(".")]
         [DataRow("$")]
         [DataRow("^")]
@@ -214,7 +215,7 @@ namespace RegexParser.UnitTest
             // Assert
             RegexNode root = result.Root;
             var childNode = root.ChildNodes.ShouldHaveSingleItem();
-            var escapeNode = childNode.ShouldBeOfType<EscapeNode>();
+            var escapeNode = childNode.ShouldBeOfType<EscapeCharacterNode>();
             escapeNode.Escape.ShouldBe(metaCharacter);
         }
 
@@ -353,7 +354,7 @@ namespace RegexParser.UnitTest
             childNode.ShouldBeOfType<AnyCharacterNode>();
         }
 
-        [DataTestMethod]
+        [TestMethod]
         [DataRow('w')]
         [DataRow('W')]
         [DataRow('s')]
@@ -411,7 +412,7 @@ namespace RegexParser.UnitTest
             unicodeCategoryNode.Negated.ShouldBe(true);
         }
 
-        [DataTestMethod]
+        [TestMethod]
         [DataRow("a")]
         [DataRow("e")]
         [DataRow("f")]
@@ -430,11 +431,11 @@ namespace RegexParser.UnitTest
             // Assert
             RegexNode root = result.Root;
             var childNode = root.ChildNodes.ShouldHaveSingleItem();
-            EscapeNode escapeNode = childNode.ShouldBeOfType<EscapeNode>();
+            EscapeCharacterNode escapeNode = childNode.ShouldBeOfType<EscapeCharacterNode>();
             escapeNode.Escape.ShouldBe(escape);
         }
 
-        [DataTestMethod]
+        [TestMethod]
         [DataRow("x00")]
         [DataRow("x01")]
         [DataRow("xFE")]
@@ -452,11 +453,11 @@ namespace RegexParser.UnitTest
             // Assert
             RegexNode root = result.Root;
             var childNode = root.ChildNodes.ShouldHaveSingleItem();
-            EscapeNode escapeNode = childNode.ShouldBeOfType<EscapeNode>();
+            EscapeCharacterNode escapeNode = childNode.ShouldBeOfType<EscapeCharacterNode>();
             escapeNode.Escape.ShouldBe(hexCharacter);
         }
 
-        [DataTestMethod]
+        [TestMethod]
         [DataRow("u0000")]
         [DataRow("u0001")]
         [DataRow("uFFFE")]
@@ -474,14 +475,18 @@ namespace RegexParser.UnitTest
             // Assert
             RegexNode root = result.Root;
             var childNode = root.ChildNodes.ShouldHaveSingleItem();
-            EscapeNode escapeNode = childNode.ShouldBeOfType<EscapeNode>();
+            EscapeCharacterNode escapeNode = childNode.ShouldBeOfType<EscapeCharacterNode>();
             escapeNode.Escape.ShouldBe(unicodeCharacter);
         }
 
-        [DataTestMethod]
+        [TestMethod]
         [DataRow("cA")]
+        [DataRow("cB")]
+        [DataRow("cX")]
         [DataRow("cZ")]
         [DataRow("ca")]
+        [DataRow("cb")]
+        [DataRow("cx")]
         [DataRow("cz")]
         public void ParsingBackslashLowercaseCAlphaShouldReturnEscapecharacterNodeWithEscapeCharacter(string controlCharacter)
         {
@@ -494,11 +499,11 @@ namespace RegexParser.UnitTest
             // Assert
             RegexNode root = result.Root;
             var childNode = root.ChildNodes.ShouldHaveSingleItem();
-            EscapeNode escapeNode = childNode.ShouldBeOfType<EscapeNode>();
+            EscapeCharacterNode escapeNode = childNode.ShouldBeOfType<EscapeCharacterNode>();
             escapeNode.Escape.ShouldBe(controlCharacter);
         }
 
-        [DataTestMethod]
+        [TestMethod]
         [DataRow(1)]
         [DataRow(10)]
         public void ParsingBackslashDigitShouldReturnBackreferenceNodeWithGroupNumber(int groupNumber)
@@ -515,7 +520,7 @@ namespace RegexParser.UnitTest
             backreferenceNode.GroupNumber.ShouldBe(groupNumber);
         }
 
-        [DataTestMethod]
+        [TestMethod]
         [DataRow("name")]
         [DataRow("1")]
         public void ParsingBackslashLowercaseKNameBetweenAngledBracketsShouldReturnNamedReferenceNodeWithNameAndUseQuotesIsFalseAndUseKIsTrue(string name)
@@ -534,7 +539,7 @@ namespace RegexParser.UnitTest
             namedReferenceNode.UseK.ShouldBe(true);
         }
 
-        [DataTestMethod]
+        [TestMethod]
         [DataRow("name")]
         [DataRow("1")]
         public void ParsingBackslashLowercaseKNameBetweenSingleQuotesShouldReturnNamedReferenceNodeWithNameAndUseQuotesIsTrueAndUseKIsTrue(string name)
@@ -553,7 +558,7 @@ namespace RegexParser.UnitTest
             namedReferenceNode.UseK.ShouldBe(true);
         }
 
-        [DataTestMethod]
+        [TestMethod]
         [DataRow("name")]
         [DataRow("1")]
         public void ParsingBackslashNameBetweenAngledBracketsShouldReturnNamedReferenceNodeWithNameAndUseQuotesIsFalseAndUseKIsFalse(string name)
@@ -572,7 +577,7 @@ namespace RegexParser.UnitTest
             namedReferenceNode.UseK.ShouldBe(false);
         }
 
-        [DataTestMethod]
+        [TestMethod]
         [DataRow("name")]
         [DataRow("1")]
         public void ParsingBackslashNameBetweenSingleQuotesShouldReturnNamedReferenceNodeWithNameAndUseQuotesIsTrueAndUseKIsFalse(string name)
@@ -1425,7 +1430,7 @@ namespace RegexParser.UnitTest
             quantifierNode.OriginalM.ShouldBe("010");
         }
 
-        [DataTestMethod]
+        [TestMethod]
         [DataRow("{")]
         [DataRow("{a")]
         [DataRow("{1")]
@@ -1447,6 +1452,507 @@ namespace RegexParser.UnitTest
             root.ChildNodes.ShouldNotBeEmpty();
             var characterNode = root.ChildNodes.First().ShouldBeOfType<CharacterNode>();
             characterNode.ToString().ShouldBe("{");
+        }
+
+        [TestMethod]
+        public void ParsingCharactersBetweenSquareBracketsNotStartingWithCaretShouldReturnCharacterClassWithNegationFalseAndCharactersInCharacterSet()
+        {
+            // Arrange
+            var target = new Parser("[abc]");
+
+            // Act
+            var result = target.Parse();
+
+            // Assert
+            RegexNode root = result.Root;
+            var childNode = root.ChildNodes.ShouldHaveSingleItem();
+            var characterClassNode = childNode.ShouldBeOfType<CharacterClassNode>();
+            characterClassNode.Negated.ShouldBeFalse();
+            var characterSet = characterClassNode.ChildNodes.ShouldHaveSingleItem();
+            characterSet.ShouldBeOfType<CharacterClassCharacterSetNode>();
+            characterSet.ChildNodes.Count().ShouldBe(3);
+            var characterNode = characterSet.ChildNodes.First().ShouldBeOfType<CharacterNode>();
+            characterNode.ToString().ShouldBe("a");
+        }
+
+        [TestMethod]
+        public void ParsingCharactersBetweenSquareBracketsStartingWithCaretShouldReturnCharacterClassWithNegationTrue()
+        {
+            // Arrange
+            var target = new Parser("[^abc]");
+
+            // Act
+            var result = target.Parse();
+
+            // Assert
+            RegexNode root = result.Root;
+            var childNode = root.ChildNodes.ShouldHaveSingleItem();
+            var characterClassNode = childNode.ShouldBeOfType<CharacterClassNode>();
+            characterClassNode.Negated.ShouldBeTrue();
+            var characterSet = characterClassNode.ChildNodes.ShouldHaveSingleItem();
+            characterSet.ShouldBeOfType<CharacterClassCharacterSetNode>();
+            characterSet.ChildNodes.Count().ShouldBe(3);
+            var characterNode = characterSet.ChildNodes.First().ShouldBeOfType<CharacterNode>();
+            characterNode.ToString().ShouldBe("a");
+        }
+
+        [TestMethod]
+        public void DashAtStartOfCharacterClassShouldBeParsedAsCharacterNode()
+        {
+            // Arrange
+            var target = new Parser("[-abc]");
+
+            // Act
+            var result = target.Parse();
+
+            // Assert
+            RegexNode root = result.Root;
+            var childNode = root.ChildNodes.ShouldHaveSingleItem();
+            var characterClassNode = childNode.ShouldBeOfType<CharacterClassNode>();
+            var characterSet = characterClassNode.ChildNodes.ShouldHaveSingleItem();
+            characterSet.ShouldBeOfType<CharacterClassCharacterSetNode>();
+            characterSet.ChildNodes.Count().ShouldBe(4);
+            var characterNode = characterSet.ChildNodes.First().ShouldBeOfType<CharacterNode>();
+            characterNode.ToString().ShouldBe("-");
+        }
+
+        [TestMethod]
+        public void DashAfterStartingCaretInCharacterClassShouldBeParsedAsCharacterNode()
+        {
+            // Arrange
+            var target = new Parser("[^-abc]");
+
+            // Act
+            var result = target.Parse();
+
+            // Assert
+            RegexNode root = result.Root;
+            var childNode = root.ChildNodes.ShouldHaveSingleItem();
+            var characterClassNode = childNode.ShouldBeOfType<CharacterClassNode>();
+            characterClassNode.Negated.ShouldBeTrue();
+            var characterSet = characterClassNode.ChildNodes.ShouldHaveSingleItem();
+            characterSet.ShouldBeOfType<CharacterClassCharacterSetNode>();
+            characterSet.ChildNodes.Count().ShouldBe(4);
+            var characterNode = characterSet.ChildNodes.First().ShouldBeOfType<CharacterNode>();
+            characterNode.ToString().ShouldBe("-");
+        }
+
+        [TestMethod]
+        public void DashAtEndOfCharacterClassShouldBeParsedAsCharacterNode()
+        {
+            // Arrange
+            var target = new Parser("[abc-]");
+
+            // Act
+            var result = target.Parse();
+
+            // Assert
+            RegexNode root = result.Root;
+            var childNode = root.ChildNodes.ShouldHaveSingleItem();
+            var characterClassNode = childNode.ShouldBeOfType<CharacterClassNode>();
+            var characterSet = characterClassNode.ChildNodes.ShouldHaveSingleItem();
+            characterSet.ShouldBeOfType<CharacterClassCharacterSetNode>();
+            characterSet.ChildNodes.Count().ShouldBe(4);
+            var characterNode = characterSet.ChildNodes.Last().ShouldBeOfType<CharacterNode>();
+            characterNode.ToString().ShouldBe("-");
+        }
+
+        [TestMethod]
+        public void DashBeforeCharacterClassInsideCharacterClassShouldBeParsedAsCharacterClassSubtraction()
+        {
+            // Arrange
+            var target = new Parser("[abc-[a]]");
+
+            // Act
+            var result = target.Parse();
+
+            // Assert
+            RegexNode root = result.Root;
+            var childNode = root.ChildNodes.ShouldHaveSingleItem();
+            var characterClassNode = childNode.ShouldBeOfType<CharacterClassNode>();
+            characterClassNode.ChildNodes.Count().ShouldBe(2);
+
+            var characterSet = characterClassNode.ChildNodes.First().ShouldBeOfType<CharacterClassCharacterSetNode>();
+            characterSet.ChildNodes.Count().ShouldBe(3);
+
+            var subtraction = characterClassNode.ChildNodes.Last().ShouldBeOfType<CharacterClassNode>();
+            var subtractionCharacterSet = subtraction.ChildNodes.ShouldHaveSingleItem();
+            var subtractedCharacter = subtractionCharacterSet.ChildNodes.ShouldHaveSingleItem();
+            subtractedCharacter.ShouldBeOfType<CharacterNode>();
+            subtractedCharacter.ToString().ShouldBe("a");
+        }
+
+        [TestMethod]
+        public void CharacterClassSubtractionCanBeNested()
+        {
+            // Arrange
+            var target = new Parser("[abc-[ab-[c]]]");
+
+            // Act
+            var result = target.Parse();
+
+            // Assert
+            RegexNode root = result.Root;
+            var childNode = root.ChildNodes.ShouldHaveSingleItem();
+            var characterClassNode = childNode.ShouldBeOfType<CharacterClassNode>();
+            characterClassNode.ChildNodes.Count().ShouldBe(2);
+
+            var characterSet = characterClassNode.ChildNodes.First().ShouldBeOfType<CharacterClassCharacterSetNode>();
+            characterSet.ChildNodes.Count().ShouldBe(3);
+
+            var subtraction = characterClassNode.ChildNodes.Last().ShouldBeOfType<CharacterClassNode>();
+            subtraction.ChildNodes.Count().ShouldBe(2);
+
+            var subtractionCharacterSet = subtraction.ChildNodes.First().ShouldBeOfType<CharacterClassCharacterSetNode>();
+            subtractionCharacterSet.ChildNodes.Count().ShouldBe(2);
+
+
+            var nestedSubtraction = subtraction.ChildNodes.Last().ShouldBeOfType<CharacterClassNode>();
+            nestedSubtraction.ChildNodes.ShouldHaveSingleItem().ShouldBeOfType<CharacterClassCharacterSetNode>().ToString().ShouldBe("c");
+        }
+
+        [TestMethod]
+        [DataRow('w')]
+        [DataRow('W')]
+        [DataRow('s')]
+        [DataRow('S')]
+        [DataRow('d')]
+        [DataRow('D')]
+        public void CharacterClassShorthandIsValidInCharacterClass(char shorthand)
+        {
+            // Arrange
+            var target = new Parser($@"[\{shorthand}]");
+
+            // Act
+            var result = target.Parse();
+
+            // Assert
+            RegexNode root = result.Root;
+            var characterClassNode = root.ChildNodes.ShouldHaveSingleItem().ShouldBeOfType<CharacterClassNode>();
+            var characterSet = characterClassNode.ChildNodes.ShouldHaveSingleItem().ShouldBeOfType<CharacterClassCharacterSetNode>();
+            var shorthandNode = characterSet.ChildNodes.ShouldHaveSingleItem().ShouldBeOfType<CharacterClassShorthandNode>();
+            shorthandNode.Shorthand.ShouldBe(shorthand);
+        }
+
+        [TestMethod]
+        public void UnicodeCategoryIsValidInCharacterClass()
+        {
+            // Arrange
+            var category = "IsBasicLatin";
+            var target = new Parser($@"[\p{{{category}}}]");
+
+            // Act
+            var result = target.Parse();
+
+            // Assert
+            RegexNode root = result.Root;
+            var characterClassNode = root.ChildNodes.ShouldHaveSingleItem().ShouldBeOfType<CharacterClassNode>();
+            var characterSet = characterClassNode.ChildNodes.ShouldHaveSingleItem().ShouldBeOfType<CharacterClassCharacterSetNode>();
+            var shorthandNode = characterSet.ChildNodes.ShouldHaveSingleItem().ShouldBeOfType<UnicodeCategoryNode>();
+            shorthandNode.Category.ShouldBe(category);
+            shorthandNode.Negated.ShouldBeFalse();
+        }
+
+        [TestMethod]
+        public void NegatedUnicodeCategoryIsValidInCharacterClass()
+        {
+            // Arrange
+            var category = "IsBasicLatin";
+            var target = new Parser($@"[\P{{{category}}}]");
+
+            // Act
+            var result = target.Parse();
+
+            // Assert
+            RegexNode root = result.Root;
+            var characterClassNode = root.ChildNodes.ShouldHaveSingleItem().ShouldBeOfType<CharacterClassNode>();
+            var characterSet = characterClassNode.ChildNodes.ShouldHaveSingleItem().ShouldBeOfType<CharacterClassCharacterSetNode>();
+            var shorthandNode = characterSet.ChildNodes.ShouldHaveSingleItem().ShouldBeOfType<UnicodeCategoryNode>();
+            shorthandNode.Category.ShouldBe(category);
+            shorthandNode.Negated.ShouldBeTrue();
+        }
+
+        [TestMethod]
+        [DataRow("a")]
+        [DataRow("b")]
+        [DataRow("e")]
+        [DataRow("f")]
+        [DataRow("n")]
+        [DataRow("r")]
+        [DataRow("t")]
+        [DataRow("v")]
+        public void EscapeCharacterIsValidInCharacterClass(string escapedChar)
+        {
+            // Arrange
+            var target = new Parser($@"[\{escapedChar}]");
+
+            // Act
+            var result = target.Parse();
+
+            // Assert
+            RegexNode root = result.Root;
+            var characterClassNode = root.ChildNodes.ShouldHaveSingleItem().ShouldBeOfType<CharacterClassNode>();
+            var characterSet = characterClassNode.ChildNodes.ShouldHaveSingleItem().ShouldBeOfType<CharacterClassCharacterSetNode>();
+            var escapeChar = characterSet.ChildNodes.ShouldHaveSingleItem().ShouldBeOfType<EscapeCharacterNode>();
+            escapeChar.Escape.ShouldBe(escapedChar);
+        }
+
+        [TestMethod]
+        [DataRow(".")]
+        [DataRow("$")]
+        [DataRow("^")]
+        [DataRow("{")]
+        [DataRow("[")]
+        [DataRow("(")]
+        [DataRow("|")]
+        [DataRow(")")]
+        [DataRow("*")]
+        [DataRow("+")]
+        [DataRow("?")]
+        [DataRow("\\")]
+        public void EscapedMetacharacterIsValidInCharacterClass(string escapedChar)
+        {
+            // Arrange
+            var target = new Parser($@"[\{escapedChar}]");
+
+            // Act
+            var result = target.Parse();
+
+            // Assert
+            RegexNode root = result.Root;
+            var characterClassNode = root.ChildNodes.ShouldHaveSingleItem().ShouldBeOfType<CharacterClassNode>();
+            var characterSet = characterClassNode.ChildNodes.ShouldHaveSingleItem().ShouldBeOfType<CharacterClassCharacterSetNode>();
+            var escapeChar = characterSet.ChildNodes.ShouldHaveSingleItem().ShouldBeOfType<EscapeCharacterNode>();
+            escapeChar.Escape.ShouldBe(escapedChar);
+        }
+
+        [TestMethod]
+        [DataRow("x00")]
+        [DataRow("x01")]
+        [DataRow("xFE")]
+        [DataRow("xFF")]
+        [DataRow("xfe")]
+        [DataRow("xff")]
+        public void HexadecimalEscapeIsValidInCharacterClass(string hex)
+        {
+            // Arrange
+            var target = new Parser($@"[\{hex}]");
+
+            // Act
+            var result = target.Parse();
+
+            // Assert
+            RegexNode root = result.Root;
+            var characterClassNode = root.ChildNodes.ShouldHaveSingleItem().ShouldBeOfType<CharacterClassNode>();
+            var characterSet = characterClassNode.ChildNodes.ShouldHaveSingleItem().ShouldBeOfType<CharacterClassCharacterSetNode>();
+            var escapeChar = characterSet.ChildNodes.ShouldHaveSingleItem().ShouldBeOfType<EscapeCharacterNode>();
+            escapeChar.Escape.ShouldBe(hex);
+        }
+
+        [TestMethod]
+        [DataRow("u0000")]
+        [DataRow("u0001")]
+        [DataRow("uFFFE")]
+        [DataRow("uFFFF")]
+        [DataRow("ufffe")]
+        [DataRow("uffff")]
+        public void UnicodeEscapeIsValidInCharacterClass(string hex)
+        {
+            // Arrange
+            var target = new Parser($@"[\{hex}]");
+
+            // Act
+            var result = target.Parse();
+
+            // Assert
+            RegexNode root = result.Root;
+            var characterClassNode = root.ChildNodes.ShouldHaveSingleItem().ShouldBeOfType<CharacterClassNode>();
+            var characterSet = characterClassNode.ChildNodes.ShouldHaveSingleItem().ShouldBeOfType<CharacterClassCharacterSetNode>();
+            var escapeChar = characterSet.ChildNodes.ShouldHaveSingleItem().ShouldBeOfType<EscapeCharacterNode>();
+            escapeChar.Escape.ShouldBe(hex);
+        }
+
+        [TestMethod]
+        [DataRow("0")]
+        [DataRow("1")]
+        [DataRow("6")]
+        [DataRow("7")]
+        [DataRow("00")]
+        [DataRow("01")]
+        [DataRow("76")]
+        [DataRow("77")]
+        [DataRow("000")]
+        [DataRow("001")]
+        [DataRow("776")]
+        [DataRow("777")]
+        public void OctalEscapeIsValidInCharacterClass(string oct)
+        {
+            // Arrange
+            var target = new Parser($@"[\{oct}]");
+
+            // Act
+            var result = target.Parse();
+
+            // Assert
+            RegexNode root = result.Root;
+            var characterClassNode = root.ChildNodes.ShouldHaveSingleItem().ShouldBeOfType<CharacterClassNode>();
+            var characterSet = characterClassNode.ChildNodes.ShouldHaveSingleItem().ShouldBeOfType<CharacterClassCharacterSetNode>();
+            var escapeChar = characterSet.ChildNodes.ShouldHaveSingleItem().ShouldBeOfType<EscapeCharacterNode>();
+            escapeChar.Escape.ShouldBe(oct);
+        }
+
+        [TestMethod]
+        [DataRow("cA")]
+        [DataRow("cB")]
+        [DataRow("cX")]
+        [DataRow("cZ")]
+        [DataRow("ca")]
+        [DataRow("cb")]
+        [DataRow("cx")]
+        [DataRow("cz")]
+        public void ControlCharacterIsValidInCharacterClass(string oct)
+        {
+            // Arrange
+            var target = new Parser($@"[\{oct}]");
+
+            // Act
+            var result = target.Parse();
+
+            // Assert
+            RegexNode root = result.Root;
+            var characterClassNode = root.ChildNodes.ShouldHaveSingleItem().ShouldBeOfType<CharacterClassNode>();
+            var characterSet = characterClassNode.ChildNodes.ShouldHaveSingleItem().ShouldBeOfType<CharacterClassCharacterSetNode>();
+            var escapeChar = characterSet.ChildNodes.ShouldHaveSingleItem().ShouldBeOfType<EscapeCharacterNode>();
+            escapeChar.Escape.ShouldBe(oct);
+        }
+
+        [TestMethod]
+        public void EscapeCharacterIsValidInTheMiddleOfACharacterClass()
+        {
+            // Arrange
+            var target = new Parser($@"[a\nb]");
+
+            // Act
+            var result = target.Parse();
+
+            // Assert
+            RegexNode root = result.Root;
+            var characterClassNode = root.ChildNodes.ShouldHaveSingleItem().ShouldBeOfType<CharacterClassNode>();
+            var characterSet = characterClassNode.ChildNodes.ShouldHaveSingleItem().ShouldBeOfType<CharacterClassCharacterSetNode>();
+            characterSet.ChildNodes.Count().ShouldBe(3);
+            var escapeChar = characterSet.ChildNodes.ElementAt(1).ShouldBeOfType<EscapeCharacterNode>();
+            escapeChar.Escape.ShouldBe("n");
+        }
+
+        [TestMethod]
+        public void EscapeCharacterIsValidAtTheEndOfACharacterClass()
+        {
+            // Arrange
+            var target = new Parser($@"[a\n]");
+
+            // Act
+            var result = target.Parse();
+
+            // Assert
+            RegexNode root = result.Root;
+            var characterClassNode = root.ChildNodes.ShouldHaveSingleItem().ShouldBeOfType<CharacterClassNode>();
+            var characterSet = characterClassNode.ChildNodes.ShouldHaveSingleItem().ShouldBeOfType<CharacterClassCharacterSetNode>();
+            characterSet.ChildNodes.Count().ShouldBe(2);
+            var escapeChar = characterSet.ChildNodes.Last().ShouldBeOfType<EscapeCharacterNode>();
+            escapeChar.Escape.ShouldBe("n");
+        }
+
+        [TestMethod]
+        [DataRow("a", "z")]
+        [DataRow("a", "a")]
+        public void DashBetweenCharactersInCharacterClassShouldBeRange(string start, string end)
+        {
+            // Arrange
+            var target = new Parser($"[{start}-{end}]");
+
+            // Act
+            var result = target.Parse();
+
+            // Assert
+            RegexNode root = result.Root;
+            var characterClassNode = root.ChildNodes.ShouldHaveSingleItem().ShouldBeOfType<CharacterClassNode>();
+            var characterSet = characterClassNode.ChildNodes.ShouldHaveSingleItem().ShouldBeOfType<CharacterClassCharacterSetNode>();
+            var range = characterSet.ChildNodes.ShouldHaveSingleItem().ShouldBeOfType<CharacterClassRangeNode>();
+            range.ChildNodes.Count().ShouldBe(2);
+            range.ChildNodes.First().ShouldBeOfType<CharacterNode>().ToString().ShouldBe(start);
+            range.ChildNodes.Last().ShouldBeOfType<CharacterNode>().ToString().ShouldBe(end);
+        }
+
+        [TestMethod]
+        public void DashAfterCharacterClassShorthandInCharacterClassShouldBeLiteral()
+        {
+            // Arrange
+            var target = new Parser(@"[\d-z]");
+
+            // Act
+            var result = target.Parse();
+
+            // Assert
+            RegexNode root = result.Root;
+            var characterClassNode = root.ChildNodes.ShouldHaveSingleItem().ShouldBeOfType<CharacterClassNode>();
+            var characterSet = characterClassNode.ChildNodes.ShouldHaveSingleItem().ShouldBeOfType<CharacterClassCharacterSetNode>();
+            characterSet.ChildNodes.Count().ShouldBe(3);
+            characterSet.ChildNodes.ElementAt(1).ShouldBeOfType<CharacterNode>().ToString().ShouldBe("-");
+        }
+
+        [TestMethod]
+        public void DashAfterUnicodeCategoryInCharacterClassShouldBeLiteral()
+        {
+            // Arrange
+            var target = new Parser(@"[\p{IsBasicLatin}-z]");
+
+            // Act
+            var result = target.Parse();
+
+            // Assert
+            RegexNode root = result.Root;
+            var characterClassNode = root.ChildNodes.ShouldHaveSingleItem().ShouldBeOfType<CharacterClassNode>();
+            var characterSet = characterClassNode.ChildNodes.ShouldHaveSingleItem().ShouldBeOfType<CharacterClassCharacterSetNode>();
+            characterSet.ChildNodes.Count().ShouldBe(3);
+            characterSet.ChildNodes.ElementAt(1).ShouldBeOfType<CharacterNode>().ToString().ShouldBe("-");
+        }
+
+        [TestMethod]
+        public void DashAfterRangeInCharacterClassShouldBeLiteral()
+        {
+            // Arrange
+            var target = new Parser(@"[a-z-z]");
+
+            // Act
+            var result = target.Parse();
+
+            // Assert
+            RegexNode root = result.Root;
+            var characterClassNode = root.ChildNodes.ShouldHaveSingleItem().ShouldBeOfType<CharacterClassNode>();
+            var characterSet = characterClassNode.ChildNodes.ShouldHaveSingleItem().ShouldBeOfType<CharacterClassCharacterSetNode>();
+            characterSet.ChildNodes.Count().ShouldBe(3);
+            characterSet.ChildNodes.ElementAt(1).ShouldBeOfType<CharacterNode>().ToString().ShouldBe("-");
+        }
+
+        [TestMethod]
+        [DataRow("{", "}")]
+        [DataRow("{", "{")]
+        public void DashBetweenEscapeCharactersInCharacterClassShouldBeRange(string start, string end)
+        {
+            // Arrange
+            var target = new Parser($@"[\{start}-\{end}]");
+
+            // Act
+            var result = target.Parse();
+
+            // Assert
+            RegexNode root = result.Root;
+            var characterClassNode = root.ChildNodes.ShouldHaveSingleItem().ShouldBeOfType<CharacterClassNode>();
+            var characterSet = characterClassNode.ChildNodes.ShouldHaveSingleItem().ShouldBeOfType<CharacterClassCharacterSetNode>();
+            var range = characterSet.ChildNodes.ShouldHaveSingleItem().ShouldBeOfType<CharacterClassRangeNode>();
+            range.ChildNodes.Count().ShouldBe(2);
+            range.ChildNodes.First().ShouldBeOfType<EscapeCharacterNode>().Escape.ShouldBe(start);
+            range.ChildNodes.Last().ShouldBeOfType<EscapeCharacterNode>().Escape.ShouldBe(end);
         }
     }
 }

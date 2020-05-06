@@ -2,7 +2,6 @@
 using RegexParser.Nodes;
 using RegexParser.Nodes.CharacterClass;
 using Shouldly;
-using System.Collections.Generic;
 
 namespace RegexParser.UnitTest.Nodes.CharacterClass
 {
@@ -13,7 +12,7 @@ namespace RegexParser.UnitTest.Nodes.CharacterClass
         public void ToStringOnCharacterClassRangeNodeShouldReturnRangeWithStartAndEndSeperatedByDash()
         {
             // Arrange
-            var target = new CharacterClassRangeNode(new List<RegexNode> { new CharacterNode('a'), new CharacterNode('z') });
+            var target = new CharacterClassRangeNode(new CharacterNode('a'), new CharacterNode('z'));
 
             // Act
             var result = target.ToString();
