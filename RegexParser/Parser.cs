@@ -2,11 +2,11 @@
 using RegexParser.Nodes;
 using RegexParser.Nodes.AnchorNodes;
 using RegexParser.Nodes.GroupNodes;
+using RegexParser.Nodes.QuantifierNodes;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
 
 namespace RegexParser
@@ -14,6 +14,7 @@ namespace RegexParser
     public class Parser : IParser
     {
         private int _currentPosition;
+        private bool _previousWasQuantifier;
         private readonly List<RegexNode> _alternates = new List<RegexNode>();
         private readonly List<RegexNode> _concatenation = new List<RegexNode>();
         private readonly Stack<GroupUnit> _groupStack = new Stack<GroupUnit>();
@@ -66,11 +67,13 @@ namespace RegexParser
                         // Start of a group
                         case '(':
                             StartGroup();
+                            _previousWasQuantifier = false;
                             break;
 
                         // End of a group
                         case ')':
                             var closedGroup = CloseGroup();
+                            _previousWasQuantifier = false;
 
                             // Otherwise the closed group went directly to a ConditionalGroupNode
                             if (closedGroup != null)
@@ -79,29 +82,46 @@ namespace RegexParser
                             }
                             break;
 
+                        // Quantifier "*", "+", or "?"
+                        case '*':
+                        case '+':
+                        case '?':
+                            ParseQuantifier(ch);
+                            break;
+
+                        // Quantifier "{n}", "{n,}" or "{n,m}" or just a '{' character
+                        case '{':
+                            ParseTrueQuantifier();
+                            break;
+
                         // End of an alternate
                         case '|':
                             AddAlternate();
+                            _previousWasQuantifier = false;
                             break;
 
                         // An escaped character
                         case '\\':
                             AddNode(ParseBackslash());
+                            _previousWasQuantifier = false;
                             break;
 
                         // A StartOfLine anchor "^"
                         case '^':
                             AddNode(new StartOfLineNode());
+                            _previousWasQuantifier = false;
                             break;
 
                         //  An EndOfLine Anchor
                         case '$':
                             AddNode(new EndOfLineNode());
+                            _previousWasQuantifier = false;
                             break;
 
                         // Any character "."
                         case '.':
                             AddNode(new AnyCharacterNode());
+                            _previousWasQuantifier = false;
                             break;
                         
                         // An unregocnized character
@@ -121,77 +141,14 @@ namespace RegexParser
             return new RegexTree(root);
         }
 
-        /// <summary>
-        /// Create an outer node for the current group.
-        /// The outer node will be an AlternationNode if the current group has alternates.
-        /// Otherwise the outer node will be a ConcatenationNode if the current group has concatenation items.
-        /// Otherwise the outer node will be a EmptyNode.
-        /// </summary>
-        private RegexNode CreateOuterNode()
+        private void ParseChars()
         {
-            
-            if ((_group?.Alternates ?? _alternates).Any())
+            char ch;
+            while (CharsRight() > 0 && !IsSpecial(ch = RightChar()))
             {
-                AddAlternate();
-                return CreateAlternationNode();
+                AddNode(new CharacterNode(ch));
+                MoveRight();
             }
-
-            if ((_group?.Concatenation ?? _concatenation).Any())
-            {
-                return CreateConcatenationNode();
-            }
-
-            return new EmptyNode();
-        }
-
-        /// <summary>
-        /// Creates a ConcatenationNode from the concatenation items of the current group or the outer concatenation.
-        /// </summary>
-        private ConcatenationNode CreateConcatenationNode()
-        {
-            var currentConcatenation = _group?.Concatenation ?? _concatenation;
-            var concatenationNode = new ConcatenationNode(currentConcatenation);
-            currentConcatenation.Clear();
-            return concatenationNode;
-        }
-
-        /// <summary>
-        /// Creates an AlternationNode from the current group's alternates.
-        /// </summary>
-        private AlternationNode CreateAlternationNode()
-        {
-            var currentAlternetes = _group?.Alternates ?? _alternates;
-            var alternationNode = new AlternationNode(currentAlternetes);
-            currentAlternetes.Clear();
-            return alternationNode;
-        }
-
-        /// <summary>
-        /// Adds a ConcatenationNode from the current group's concatenation items it's alternates.
-        /// Adds an EmptyNode if there are no concatenation items.
-        /// </summary>
-        private void AddAlternate()
-        {
-            var currentAlternetes = _group?.Alternates ?? _alternates;
-
-            if ((_group?.Concatenation ?? _concatenation).Any())
-            {
-                currentAlternetes.Add(CreateConcatenationNode());
-            }
-
-            else
-            {
-                currentAlternetes.Add(new EmptyNode());
-            }
-        }
-
-        /// <summary>
-        /// Adds a RegexNode to the current group's concatenation items.
-        /// </summary>
-        /// <param name="node"></param>
-        private void AddNode(RegexNode node)
-        {
-            (_group?.Concatenation ?? _concatenation).Add(node);
         }
 
         /// <summary>
@@ -316,50 +273,6 @@ namespace RegexParser
             return new GroupUnit(new BalancingGroupNode(balancedGroupName, groupName, useQuotes));
         }
 
-        private string ScanOptions()
-        {
-            // Mode modifiers in the condition of a conditional group are not allowed.
-            if (_group?.Node.GetType() == typeof(ConditionalGroupNode))
-            {
-                throw new RegexParseException("Unrecognized grouping construct.");
-            }
-
-            int startPosition = _currentPosition;
-
-            while (CharsRight() > 0)
-            {
-                char ch = RightChar();
-
-                switch (ch)
-                {
-                    case '-':
-                    case '+':
-                    case 'i':
-                    case 'm':
-                    case 'n':
-                    case 's':
-                    case 'x':
-                        MoveRight();
-                        break;
-                    
-                    // Set options for the current group only "(?imnsx-imnsx:...)"
-                    case ':':
-                        string options = Pattern.Substring(startPosition, _currentPosition - startPosition);
-                        MoveRight();
-                        return options;
-
-                    // Set options for the rest of the regular expression "(?imnsx-imnsx)"
-                    case ')':
-                        return Pattern.Substring(startPosition, _currentPosition - startPosition);
-                    default:
-                        throw new RegexParseException($"'{ch}' is not a valid inline mode modifier");
-                }
-            }
-
-            // TODO: better error
-            throw new RegexParseException("No options");
-        }
-
         /// <summary>
         /// Remove a group from the top of the group stack and create a GroupNode from it.
         /// </summary>
@@ -393,14 +306,152 @@ namespace RegexParser
             return currentGroupNode;
         }
 
-        private void ParseChars()
+        /// <summary>
+        /// Create a quantifier node in response to a '*', '+' or '?'. The quantifier node will replace the last concatenation item in the current group.
+        /// Throws an exception if there are no concatenation items in the current group or if the previous node was a quantifier.
+        /// </summary>
+        private void ParseQuantifier(char ch)
         {
-            char ch;
-            while (CharsRight() > 0 &&!IsSpecial(ch = RightChar()))
+            var currentConcatenation = CurrentConcatenation();
+
+            // Don't allow empty quantifiers
+            if (!currentConcatenation.Any())
             {
-                AddNode(new CharacterNode(ch));
-                MoveRight();
+                throw new RegexParseException("Quantifier following nothing");
             }
+
+            // Don't allow nested quantifiers
+            if (_previousWasQuantifier)
+            {
+                throw new RegexParseException("Nested quantifier");
+            }
+
+            RegexNode previousNode = currentConcatenation.Last();
+
+            QuantifierNode quantifier = ch switch
+            {
+                '*' => new QuantifierStarNode(previousNode),
+                '+' => new QuantifierPlusNode(previousNode),
+                // '?'
+                _ => new QuantifierQuestionMarkNode(previousNode),
+            };
+
+            // Quantifier followed by '?' is a lazy quantifier
+            if (IsLazy())
+            {
+                currentConcatenation[^1] = new LazyNode(quantifier);
+            }
+
+            else
+            {
+                currentConcatenation[^1] = quantifier;
+            }
+
+            _previousWasQuantifier = true;
+        }
+
+        /// <summary>
+        /// Parse a quantifier "{n}", "{n,}" or "{n,m}" in response to a '{'.
+        /// The quantifier node will replace the last concatenation item in the current group.
+        /// Throws an exception if there are no concatenation items in the current group or if the previous node was a quantifier.
+        /// If the characters following the opening '{' don't follow this format, the '{' is a regular character instead.
+        /// </summary>
+        private void ParseTrueQuantifier()
+        {
+            int startPosition = _currentPosition;
+            string n = ScanDecimals();
+            QuantifierNode quantifier = null;
+            char ch;
+
+            // No decimal number after opening '{' or decimal number followed by nothing. '{' is a regular character.
+            if (string.IsNullOrEmpty(n) || CharsRight() == 0)
+            {
+                AddNode(new CharacterNode('{'));
+                return;
+            }
+
+            // Opening '{', followed by some decimal number, followed by closing '}'. It is a quantifier "{n}".
+            else if ((ch = RightCharMoveRight()) == '}')
+            {
+                RegexNode previousNode = CurrentConcatenation().Last();
+                quantifier = new QuantifierNNode(n, previousNode);
+            }
+
+            // Opening '{', followed by some decimal number, followed by ','. Could be "{n,}" or "{n,m}".
+            else if (ch == ',')
+            {
+                string m = ScanDecimals();
+
+                if (CharsRight() > 0 && RightCharMoveRight() == '}')
+                {
+                    RegexNode previousNode = CurrentConcatenation().Last();
+
+                    // Opening '{', followed by some decimal number, followed by ',', followed by closing '}'. It is a quantifier "{n,}".
+                    if (string.IsNullOrEmpty(m))
+                    {
+                        quantifier = new QuantifierNOrMoreNode(n, previousNode);
+                    }
+
+                    // Opening '{', followed by some decimal number, followed by ',', followed by some decimal number, followed by closing '}'. It is a quantifier "{n,m}".
+                    else
+                    {
+                        quantifier = new QuantifierNMNode(n, m, previousNode);
+                    }
+                }
+
+            }
+
+            // Characters following '{' followed format "{n}", "{n,}" or "{n,m}". It is a quantifier.
+            if (quantifier != null)
+            {
+                var currentConcatenation = CurrentConcatenation();
+
+                // Don't allow empty quantifiers
+                if (!currentConcatenation.Any())
+                {
+                    throw new RegexParseException("Quantifier following nothing");
+                }
+
+                // Don't allow nested quantifiers
+                if (_previousWasQuantifier)
+                {
+                    throw new RegexParseException("Nested quantifier");
+                }
+
+                // Quantifier followed by '?' is a lazy quantifier
+                if (IsLazy())
+                {
+                    currentConcatenation[^1] = new LazyNode(quantifier);
+                }
+
+                else
+                {
+                    currentConcatenation[^1] = quantifier;
+                }
+
+                _previousWasQuantifier = true;
+            }
+
+            // Characters following '{' did not follow format "{n}", "{n,}" or "{n,m}". '{' is a regular character.
+            else
+            {
+                MoveTo(startPosition);
+                AddNode(new CharacterNode('{'));
+            }
+        }
+
+        /// <summary>
+        /// Checks whether a quantifier is a lazy quantifier followed by a '?'.
+        /// </summary>
+        private bool IsLazy()
+        {
+            if (CharsRight() > 0 && RightChar() == '?')
+            {
+                MoveRight();
+                return true;
+            }
+
+            return false;
         }
 
         private RegexNode ParseBackslash()
@@ -459,8 +510,8 @@ namespace RegexParser
             // TODO: parse octal escape character
             if (ch >= '1' && ch <= '9')
             {
-                int groupNumber = ScanDecimal();
-                return new BackreferenceNode(groupNumber);
+                string groupNumber = ScanDecimals();
+                return new BackreferenceNode(int.Parse(groupNumber));
             }
 
             bool useQuotes;
@@ -536,15 +587,61 @@ namespace RegexParser
             throw new RegexParseException("Incomplete group name.");
         }
 
-        private int ScanDecimal()
+        private string ScanOptions()
         {
-            int i = 0;
-            char ch;
-            while(CharsRight() > 0 && (ch = RightCharMoveRight()) >= '0' && ch <= '9')
+            // Mode modifiers in the condition of a conditional group are not allowed.
+            if (_group?.Node.GetType() == typeof(ConditionalGroupNode))
             {
-                i = i * 10 + ch - '0';
+                throw new RegexParseException("Unrecognized grouping construct.");
             }
-            return i;
+
+            int startPosition = _currentPosition;
+
+            while (CharsRight() > 0)
+            {
+                char ch = RightChar();
+
+                switch (ch)
+                {
+                    case '-':
+                    case '+':
+                    case 'i':
+                    case 'm':
+                    case 'n':
+                    case 's':
+                    case 'x':
+                        MoveRight();
+                        break;
+
+                    // Set options for the current group only "(?imnsx-imnsx:...)"
+                    case ':':
+                        string options = Pattern.Substring(startPosition, _currentPosition - startPosition);
+                        MoveRight();
+                        return options;
+
+                    // Set options for the rest of the regular expression "(?imnsx-imnsx)"
+                    case ')':
+                        return Pattern.Substring(startPosition, _currentPosition - startPosition);
+                    default:
+                        throw new RegexParseException($"'{ch}' is not a valid inline mode modifier");
+                }
+            }
+
+            // TODO: better error
+            throw new RegexParseException("No options");
+        }
+
+        private string ScanDecimals()
+        {
+            char ch;
+            int startPosition = _currentPosition;
+
+            while(CharsRight() > 0 && (ch = RightChar()) >= '0' && ch <= '9')
+            {
+                MoveRight();
+            }
+
+            return Pattern.Substring(startPosition, _currentPosition - startPosition);
         }
 
         private RegexNode ParseCharacterEscape()
@@ -669,9 +766,102 @@ namespace RegexParser
 
         }
 
+
+
+        /// <summary>
+        /// Create an outer node for the current group.
+        /// The outer node will be an AlternationNode if the current group has alternates.
+        /// Otherwise the outer node will be a ConcatenationNode if the current group has concatenation items.
+        /// Otherwise the outer node will be a EmptyNode.
+        /// </summary>
+        private RegexNode CreateOuterNode()
+        {
+
+            if (CurrentAlternates().Any())
+            {
+                AddAlternate();
+                return CreateAlternationNode();
+            }
+
+            if (CurrentConcatenation().Any())
+            {
+                return CreateConcatenationNode();
+            }
+
+            return new EmptyNode();
+        }
+
+        /// <summary>
+        /// Creates a ConcatenationNode from the concatenation items of the current group or the outer concatenation.
+        /// </summary>
+        private ConcatenationNode CreateConcatenationNode()
+        {
+            var currentConcatenation = CurrentConcatenation();
+            var concatenationNode = new ConcatenationNode(currentConcatenation);
+            currentConcatenation.Clear();
+            return concatenationNode;
+        }
+
+        /// <summary>
+        /// Creates an AlternationNode from the current group's alternates.
+        /// </summary>
+        private AlternationNode CreateAlternationNode()
+        {
+            var currentAlternetes = CurrentAlternates();
+            var alternationNode = new AlternationNode(currentAlternetes);
+            currentAlternetes.Clear();
+            return alternationNode;
+        }
+
+        /// <summary>
+        /// Adds a ConcatenationNode from the current group's concatenation items it's alternates.
+        /// Adds an EmptyNode if there are no concatenation items.
+        /// </summary>
+        private void AddAlternate()
+        {
+            if (CurrentConcatenation().Any())
+            {
+                CurrentAlternates().Add(CreateConcatenationNode());
+            }
+
+            else
+            {
+                CurrentAlternates().Add(new EmptyNode());
+            }
+        }
+
+        /// <summary>
+        /// Adds a RegexNode to the current group's concatenation items.
+        /// </summary>
+        /// <param name="node"></param>
+        private void AddNode(RegexNode node)
+        {
+            CurrentConcatenation().Add(node);
+        }
+
+        /// <summary>
+        /// Checks whether a character is one of the metacharacters in ".\$^|()*+?{".
+        /// </summary>
         private static bool IsSpecial(char ch)
         {
-            return @".\$^|()".Contains(ch);
+            return @".\$^|()*+?{".Contains(ch);
+        }
+
+        /// <summary>
+        /// Return the concatenation items of the current group
+        /// </summary>
+        /// <returns></returns>
+        private List<RegexNode> CurrentConcatenation()
+        {
+            return _group?.Concatenation ?? _concatenation;
+        }
+
+        /// <summary>
+        /// Return the alternates of the current group
+        /// </summary>
+        private List<RegexNode> CurrentAlternates()
+        {
+            return _group?.Alternates ?? _alternates;
         }
 
         /// <summary>
@@ -688,6 +878,14 @@ namespace RegexParser
         private void MoveRight()
         {
             _currentPosition++;
+        }
+
+        /// <summary>
+        /// Moves the current parsing position to i.
+        /// </summary>
+        private void MoveTo(int i)
+        {
+            _currentPosition = i;
         }
 
         /// <summary>

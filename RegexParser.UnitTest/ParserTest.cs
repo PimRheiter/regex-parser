@@ -3,6 +3,7 @@ using RegexParser.Exceptions;
 using RegexParser.Nodes;
 using RegexParser.Nodes.AnchorNodes;
 using RegexParser.Nodes.GroupNodes;
+using RegexParser.Nodes.QuantifierNodes;
 using Shouldly;
 using System;
 using System.Linq;
@@ -58,6 +59,14 @@ namespace RegexParser.UnitTest
         [DataRow(@"(?(the(outercap1)n)th(outercap2)en|el(?(innerthen)innerthen|innerelse)se)")]
         [DataRow(@"(?(th(outercap1)en)th(?(innerthen)innerthen|innerelse)en|el(outercap2)se)")]
         [DataRow(@"(?(?(innerthen)innerthen|innerelse)then|else)")]
+        [DataRow(@"(ab){1,2}|cd")]
+        [DataRow(@"(ab){1,2|cd")]
+        [DataRow(@"(ab){|cd")]
+        [DataRow(@"(ab){")]
+        [DataRow(@"(ab){1,2}?|cd")]
+        [DataRow(@"(ab){1,2?|cd")]
+        [DataRow(@"(ab){?|cd")]
+        [DataRow(@"(ab){?")]
         public void ParseShouldReturnRegexNodeWithOriginalRegexPattern(string pattern)
         {
             // Arrange
@@ -1168,6 +1177,276 @@ namespace RegexParser.UnitTest
             balancingGroupNode.BalancedGroupName.ShouldBe("balancedGroup");
             balancingGroupNode.Name.ShouldBe("name");
             balancingGroupNode.UseQuotes.ShouldBeTrue();
+        }
+
+        [TestMethod]
+        public void ParsingQuestionMarkShouldReturnQuantifierQuestionMarkNode()
+        {
+            // Arrange
+            var target = new Parser("a?");
+
+            // Act
+            var result = target.Parse();
+
+            // Assert
+            RegexNode root = result.Root;
+            var childNode = root.ChildNodes.ShouldHaveSingleItem();
+            childNode.ShouldBeOfType<QuantifierQuestionMarkNode>();
+        }
+
+        [TestMethod]
+        public void QuantifierQuestionMarkCanBeLazy()
+        {
+            // Arrange
+            var target = new Parser("a??");
+
+            // Act
+            var result = target.Parse();
+
+            // Assert
+            RegexNode root = result.Root;
+            var childNode = root.ChildNodes.ShouldHaveSingleItem();
+            var lazyNode = childNode.ShouldBeOfType<LazyNode>();
+            var quantifierNode = lazyNode.ChildNodes.ShouldHaveSingleItem();
+            quantifierNode.ShouldBeOfType<QuantifierQuestionMarkNode>();
+        }
+
+        [TestMethod]
+        public void ParsingPlusShouldReturnQuantifierPlusNode()
+        {
+            // Arrange
+            var target = new Parser("a+");
+
+            // Act
+            var result = target.Parse();
+
+            // Assert
+            RegexNode root = result.Root;
+            var childNode = root.ChildNodes.ShouldHaveSingleItem();
+            childNode.ShouldBeOfType<QuantifierPlusNode>();
+        }
+
+        [TestMethod]
+        public void QuantifierPlusCanBeLazy()
+        {
+            // Arrange
+            var target = new Parser("a+?");
+
+            // Act
+            var result = target.Parse();
+
+            // Assert
+            RegexNode root = result.Root;
+            var childNode = root.ChildNodes.ShouldHaveSingleItem();
+            var lazyNode = childNode.ShouldBeOfType<LazyNode>();
+            var quantifierNode = lazyNode.ChildNodes.ShouldHaveSingleItem();
+            quantifierNode.ShouldBeOfType<QuantifierPlusNode>();
+        }
+
+        [TestMethod]
+        public void ParsingStarShouldReturnQuantifierStarNode()
+        {
+            // Arrange
+            var target = new Parser("a*");
+
+            // Act
+            var result = target.Parse();
+
+            // Assert
+            RegexNode root = result.Root;
+            var childNode = root.ChildNodes.ShouldHaveSingleItem();
+            childNode.ShouldBeOfType<QuantifierStarNode>();
+        }
+
+        [TestMethod]
+        public void QuantifierStarCanBeLazy()
+        {
+            // Arrange
+            var target = new Parser("a*?");
+
+            // Act
+            var result = target.Parse();
+
+            // Assert
+            RegexNode root = result.Root;
+            var childNode = root.ChildNodes.ShouldHaveSingleItem();
+            var lazyNode = childNode.ShouldBeOfType<LazyNode>();
+            var quantifierNode = lazyNode.ChildNodes.ShouldHaveSingleItem();
+            quantifierNode.ShouldBeOfType<QuantifierStarNode>();
+        }
+
+        [TestMethod]
+        public void ParsingIntegerBetweenCurlyBracketsShouldReturnQuantifierNNodeWithIntegerAsN()
+        {
+            // Arrange
+            var target = new Parser("a{5}");
+
+            // Act
+            var result = target.Parse();
+
+            // Assert
+            RegexNode root = result.Root;
+            var childNode = root.ChildNodes.ShouldHaveSingleItem();
+            var quantifierNode = childNode.ShouldBeOfType<QuantifierNNode>();
+            quantifierNode.N.ShouldBe(5);
+        }
+
+        [TestMethod]
+        public void QuantifierNCanBeLazy()
+        {
+            // Arrange
+            var target = new Parser("a{5}?");
+
+            // Act
+            var result = target.Parse();
+
+            // Assert
+            RegexNode root = result.Root;
+            var childNode = root.ChildNodes.ShouldHaveSingleItem();
+            var lazyNode = childNode.ShouldBeOfType<LazyNode>();
+            var quantifierNode = lazyNode.ChildNodes.ShouldHaveSingleItem();
+            quantifierNode.ShouldBeOfType<QuantifierNNode>();
+        }
+
+        [TestMethod]
+        public void ParsingIntegerWithLeadingZeroesBetweenCurlyBracketsShouldReturnQuantifierNNodeWithLeadingZeroes()
+        {
+            // Arrange
+            var target = new Parser("a{05}");
+
+            // Act
+            var result = target.Parse();
+
+            // Assert
+            RegexNode root = result.Root;
+            var childNode = root.ChildNodes.ShouldHaveSingleItem();
+            var quantifierNode = childNode.ShouldBeOfType<QuantifierNNode>();
+            quantifierNode.OriginalN.ShouldBe("05");
+            quantifierNode.N.ShouldBe(5);
+        }
+
+        [TestMethod]
+        public void ParsingIntegerCommaBetweenCurlyBracketsShouldReturnQuantifierNNodeWithIntegerAsN()
+        {
+            // Arrange
+            var target = new Parser("a{5,}");
+
+            // Act
+            var result = target.Parse();
+
+            // Assert
+            RegexNode root = result.Root;
+            var childNode = root.ChildNodes.ShouldHaveSingleItem();
+            var quantifierNode = childNode.ShouldBeOfType<QuantifierNOrMoreNode>();
+            quantifierNode.N.ShouldBe(5);
+        }
+
+        [TestMethod]
+        public void QuantifierNOrMoreCanBeLazy()
+        {
+            // Arrange
+            var target = new Parser("a{5,}?");
+
+            // Act
+            var result = target.Parse();
+
+            // Assert
+            RegexNode root = result.Root;
+            var childNode = root.ChildNodes.ShouldHaveSingleItem();
+            var lazyNode = childNode.ShouldBeOfType<LazyNode>();
+            var quantifierNode = lazyNode.ChildNodes.ShouldHaveSingleItem();
+            quantifierNode.ShouldBeOfType<QuantifierNOrMoreNode>();
+        }
+
+        [TestMethod]
+        public void ParsingIntegerWithLeadingZeroesCommaBetweenCurlyBracketsShouldReturnQuantifierNNodeWithLeadingZeroes()
+        {
+            // Arrange
+            var target = new Parser("a{05,}");
+
+            // Act
+            var result = target.Parse();
+
+            // Assert
+            RegexNode root = result.Root;
+            var childNode = root.ChildNodes.ShouldHaveSingleItem();
+            var quantifierNode = childNode.ShouldBeOfType<QuantifierNOrMoreNode>();
+            quantifierNode.OriginalN.ShouldBe("05");
+        }
+
+        [TestMethod]
+        public void ParsingIntegerCommaIntegerBetweenCurlyBracketsShouldReturnQuantifierNNodeWithFirstIntegerAsNAndSecondIntegerAsM()
+        {
+            // Arrange
+            var target = new Parser("a{5,10}");
+
+            // Act
+            var result = target.Parse();
+
+            // Assert
+            RegexNode root = result.Root;
+            var childNode = root.ChildNodes.ShouldHaveSingleItem();
+            var quantifierNode = childNode.ShouldBeOfType<QuantifierNMNode>();
+            quantifierNode.N.ShouldBe(5);
+            quantifierNode.M.ShouldBe(10);
+        }
+
+        [TestMethod]
+        public void QuantifierNMCanBeLazy()
+        {
+            // Arrange
+            var target = new Parser("a{5,10}?");
+
+            // Act
+            var result = target.Parse();
+
+            // Assert
+            RegexNode root = result.Root;
+            var childNode = root.ChildNodes.ShouldHaveSingleItem();
+            var lazyNode = childNode.ShouldBeOfType<LazyNode>();
+            var quantifierNode = lazyNode.ChildNodes.ShouldHaveSingleItem();
+            quantifierNode.ShouldBeOfType<QuantifierNMNode>();
+        }
+
+        [TestMethod]
+        public void ParsingIntegerWithLeadingZeroesCommaIntegerWithLeadingZeroesBetweenCurlyBracketsShouldReturnQuantifierNNodeWithWithLeadingZeroes()
+        {
+            // Arrange
+            var target = new Parser("a{05,010}");
+
+            // Act
+            var result = target.Parse();
+
+            // Assert
+            RegexNode root = result.Root;
+            var childNode = root.ChildNodes.ShouldHaveSingleItem();
+            var quantifierNode = childNode.ShouldBeOfType<QuantifierNMNode>();
+            quantifierNode.OriginalN.ShouldBe("05");
+            quantifierNode.OriginalM.ShouldBe("010");
+        }
+
+        [DataTestMethod]
+        [DataRow("{")]
+        [DataRow("{a")]
+        [DataRow("{1")]
+        [DataRow("{1a")]
+        [DataRow("{1,")]
+        [DataRow("{1,a")]
+        [DataRow("{1,2")]
+        [DataRow("{1,2a")]
+        public void ParsingOpeningCurlyBracketNotFollowingQuantifierFormatShourdReturnBracketAsCharacterNode(string pattern)
+        {
+            // Arrange
+            var target = new Parser(pattern);
+
+            // Act
+            var result = target.Parse();
+
+            // Assert
+            RegexNode root = result.Root;
+            root.ChildNodes.ShouldNotBeEmpty();
+            var characterNode = root.ChildNodes.First().ShouldBeOfType<CharacterNode>();
+            characterNode.ToString().ShouldBe("{");
         }
     }
 }
