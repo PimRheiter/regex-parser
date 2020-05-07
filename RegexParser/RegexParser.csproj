@@ -12,7 +12,7 @@
     <Authors>Pim Rheiter</Authors>
     <Description>A regular expression parser creating a tree of regular expression nodes.</Description>
     <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
-    <Company />
+    <Company>Info Support B.V.</Company>
   </PropertyGroup>
   
 </Project>
