@@ -1455,6 +1455,58 @@ namespace RegexParser.UnitTest
         }
 
         [TestMethod]
+        [DataRow("a?")]
+        [DataRow("^?")]
+        [DataRow("$?")]
+        [DataRow(".?")]
+        [DataRow("[a]?")]
+        [DataRow("()?")]
+        [DataRow(@"()\1?")]
+        [DataRow(@"\d?")]
+        [DataRow(@"\p{Lu}?")]
+        [DataRow(@"\{?")]
+        [DataRow(@"(?<name>)\k<name>?")]
+        public void QuantifierAfterNonAlternationOrQuantifierNodeShouldBeValid(string pattern)
+        {
+            // Arrange
+            var target = new Parser(pattern);
+
+            // Act
+            var result = target.Parse();
+
+            // Assert
+            RegexNode root = result.Root;
+            root.ChildNodes.ShouldNotBeEmpty();
+            root.ChildNodes.Last().ShouldBeOfType<QuantifierQuestionMarkNode>();
+        }
+
+        [TestMethod]
+        [DataRow("a?a?")]
+        [DataRow("a?^?")]
+        [DataRow("a?$?")]
+        [DataRow("a?.?")]
+        [DataRow("a?[a]?")]
+        [DataRow("a?()?")]
+        [DataRow(@"a?()\1?")]
+        [DataRow(@"a?\d?")]
+        [DataRow(@"a?\p{Lu}?")]
+        [DataRow(@"a?\{?")]
+        [DataRow(@"a?(?<name>)\k<name>?")]
+        public void QuantifierAfterNonAlternationOrQuantifierAfterQuantifierNodeShouldBeValid(string pattern)
+        {
+            // Arrange
+            var target = new Parser(pattern);
+
+            // Act
+            var result = target.Parse();
+
+            // Assert
+            RegexNode root = result.Root;
+            root.ChildNodes.ShouldNotBeEmpty();
+            root.ChildNodes.Last().ShouldBeOfType<QuantifierQuestionMarkNode>();
+        }
+
+        [TestMethod]
         public void ParsingCharactersBetweenSquareBracketsNotStartingWithCaretShouldReturnCharacterClassWithNegationFalseAndCharactersInCharacterSet()
         {
             // Arrange
