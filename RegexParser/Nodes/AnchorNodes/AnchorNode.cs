@@ -1,4 +1,4 @@
-﻿using RegexParser.Exceptions;
+﻿using System;
 
 namespace RegexParser.Nodes.AnchorNodes
 {
@@ -23,7 +23,7 @@ namespace RegexParser.Nodes.AnchorNodes
                 'b' => new WordBoundaryNode(),
                 'B' => new NonWordBoundaryNode(),
                 'G' => new ContiguousMatchNode(),
-                _ => throw new RegexParseException($"Invalid code for AnchorNode: {ch}")
+                _ => throw new ArgumentException($"Invalid code for AnchorNode: {ch}")
             };
         }
     }
