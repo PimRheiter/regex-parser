@@ -4,6 +4,8 @@ namespace RegexParser.Nodes
 {
     public class EscapeCharacterNode : RegexNode
     {
+        private const int MaxOctalEscapeValueInDecimals = 255;
+
         public string Escape { get; }
         public char Character { get; }
 
@@ -67,9 +69,9 @@ namespace RegexParser.Nodes
         {
             int decimalValue = Convert.ToInt32(octal, 8);
 
-            if (decimalValue > 255)
+            if (decimalValue > MaxOctalEscapeValueInDecimals)
             {
-                decimalValue ^= 256;
+                decimalValue ^= MaxOctalEscapeValueInDecimals + 1;
             }
 
             var character = (char)decimalValue;

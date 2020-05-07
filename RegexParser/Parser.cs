@@ -14,6 +14,11 @@ namespace RegexParser
 {
     public class Parser : IParser
     {
+        private const int HexadecimalEscapeDigits = 2;
+        private const int UnicodeEscapeDigits = 4;
+        private const int MaxDigitsInOctalEscape = 3;
+        private const int MaxAlternatesInConditionalGroup = 2;
+
         private int _currentPosition;
         private bool _previousWasQuantifier;
         private readonly List<RegexNode> _alternates = new List<RegexNode>();
@@ -70,7 +75,6 @@ namespace RegexParser
                         // Start of a group
                         case '(':
                             StartGroup();
-                            _previousWasQuantifier = false;
                             break;
 
                         // End of a group
@@ -106,7 +110,6 @@ namespace RegexParser
                         // End of an alternate
                         case '|':
                             AddAlternate();
-                            _previousWasQuantifier = false;
                             break;
 
                         // An escaped character
@@ -135,7 +138,7 @@ namespace RegexParser
                         
                         // An unregocnized character
                         default:
-                            throw new RegexParseException("Something went wrong while parsing.");
+                            throw MakeException(RegexParseError.InternalError);
                     }
                 }
             }
@@ -143,7 +146,7 @@ namespace RegexParser
             // A group was started with "(", but never closed with ")".
             if (_groupStack.Any())
             {
-                throw new RegexParseException("Unclosed parentheses.");
+                throw MakeException(RegexParseError.NotEnoughParentheses);
             }
 
             RegexNode root = CreateOuterNode();
@@ -154,7 +157,7 @@ namespace RegexParser
         {
             if (CharsRight() == 0)
             {
-                throw new RegexParseException("Unterminated character class [].");
+                throw MakeException(RegexParseError.UnterminatedCharacterClass);
             }
 
             char ch;
@@ -187,7 +190,7 @@ namespace RegexParser
             // Don't allow empty character class.
             else
             {
-                throw new RegexParseException("Unterminated character class [].");
+                throw MakeException(RegexParseError.UnterminatedCharacterClass);
             }
 
             while(CharsRight() > 1 && (ch = RightChar()) != ']')
@@ -261,7 +264,7 @@ namespace RegexParser
             }
 
             // No closing ']'.
-            throw new RegexParseException("Unterminated character class [].");
+            throw MakeException(RegexParseError.UnterminatedCharacterClass);
         }
 
         /// <summary>
@@ -276,13 +279,13 @@ namespace RegexParser
             // No closing ']' for outer character class.
             if (CharsRight() == 0)
             {
-                throw new RegexParseException("Unterminated character class [].");
+                throw MakeException(RegexParseError.UnterminatedCharacterClass);
             }
 
             // Subtraction must be the last element in a character class.
             if (RightChar() != ']')
             {
-                throw new RegexParseException("A subtraction must be the last element in a character class.");
+                throw MakeException(RegexParseError.SubtractionMustBeLast);
             }
 
             return subtraction;
@@ -297,7 +300,6 @@ namespace RegexParser
         {
             RegexNode rangeEnd;
             char rangeEndChar;
-            char rangeStartChar;
             char ch = RightCharMoveRight();
 
             // End of range is an escape character
@@ -306,12 +308,12 @@ namespace RegexParser
                 rangeEnd = ParseBasicBackslash();
 
                 // Don't allow shorthand or unicode category/block in a character range.
-                if (rangeEnd is CharacterClassShorthandNode || rangeEnd is UnicodeCategoryNode)
+                if (!(rangeEnd is EscapeCharacterNode escapeChar))
                 {
-                    throw new RegexParseException("Character class shorthands and unicode categories are not allowed in  a character range.");
+                    throw MakeException(RegexParseError.BadClassInCharacterRange, rangeEnd);
                 }
 
-                rangeEndChar = ((EscapeCharacterNode)rangeEnd).Character;
+                rangeEndChar = escapeChar.Character;
             }
 
             // End of range is a literal character
@@ -320,21 +322,13 @@ namespace RegexParser
                 rangeEnd = new CharacterNode(ch);
                 rangeEndChar = ch;
             }
-            if (startNode is CharacterNode)
-            {
-                rangeStartChar = ((CharacterNode)startNode).Character;
-            }
 
-            // Previous node is escape character
-            else
-            {
-                rangeStartChar = ((EscapeCharacterNode)startNode).Character;
-            }
+            char rangeStartChar = startNode is CharacterNode characterNode ? characterNode.Character : ((EscapeCharacterNode)startNode).Character;
 
-            // Don't allow shorthand or unicode category/block in a character range.
+            // The end of a character range should be greater than or equal to the start.
             if (rangeStartChar > rangeEndChar)
             {
-                throw new RegexParseException("Character range [x-y] in reverse order.");
+                throw MakeException(RegexParseError.ReverseCharacterRange);
             }
 
             var range = new CharacterClassRangeNode(startNode, rangeEnd);
@@ -346,11 +340,17 @@ namespace RegexParser
         /// </summary>
         private void ParseChars()
         {
-            char ch;
-            while (CharsRight() > 0 && !IsSpecial(ch = RightChar()))
+            int startPosition = _currentPosition;
+
+            while (CharsRight() > 0 && !IsSpecial(RightChar()))
             {
+                char ch = RightCharMoveRight();
                 AddNode(new CharacterNode(ch));
-                MoveRight();
+            }
+
+            if (_currentPosition > startPosition)
+            {
+                _previousWasQuantifier = false;
             }
         }
 
@@ -439,7 +439,7 @@ namespace RegexParser
                         }
 
                         // Invalid grouping construct
-                        throw new RegexParseException("Unrecognized grouping construct.");
+                        throw MakeException(RegexParseError.UnrecognizedGroupingConstruct);
                 }
             }
             _groupStack.Push(_group);
@@ -454,7 +454,7 @@ namespace RegexParser
             // Don't allow named group in condition of conditional group
             if (_group?.Node.GetType() == typeof(ConditionalGroupNode) && !_group.Node.ChildNodes.Any())
             {
-                throw new RegexParseException("Conditional group condition can't be named.");
+                throw MakeException(RegexParseError.ConditionCantCapture);
             }
 
             var useQuotes = closeChar == '\'';
@@ -487,7 +487,7 @@ namespace RegexParser
         {
             if (_groupStack.Count == 0)
             {
-                throw new RegexParseException("Too many parentheses");
+                throw MakeException(RegexParseError.TooManyParentheses);
             }
 
             RegexNode outerNode = CreateOuterNode();
@@ -497,17 +497,19 @@ namespace RegexParser
 
 
             // The first group "(...)" inside a conditional group goes directly to the condition group as it's condition.
-            // TODO: "(...)" shouldn't be a capture group, but a reference node "(1)" without "\" or a named reference "(name)" without "<>" if this is the name of a named group or a lookahead without "?=" otherwise
-            if (_group?.Node.GetType() == typeof(ConditionalGroupNode) && !_group.Node.ChildNodes.Any())
+            // TODO: "(...)" should be a reference node "(1)" without "\" or a named reference "(name)" without "?<>" if this is the name of a named group or a lookahead without "?=" otherwise.
+            if (_group?.Node is ConditionalGroupNode && !_group.Node.ChildNodes.Any())
             {
                 _group.Node = _group.Node.AddNode(currentGroupNode);
                 return null;
             }
 
             // No more than two alternates allowed in a conditional group
-            if (_group?.Node.GetType() == typeof(ConditionalGroupNode) && currentGroupNode.GetType() == typeof(AlternationNode) && currentGroupNode.ChildNodes.Count() > 2)
+            if (_group?.Node is ConditionalGroupNode &&
+                outerNode is AlternationNode &&
+                outerNode.ChildNodes.Count() > MaxAlternatesInConditionalGroup)
             {
-                throw new RegexParseException("Too many | in (?()|)");
+                throw MakeException(RegexParseError.TooManyAlternates);
             }
 
             return currentGroupNode;
@@ -524,13 +526,13 @@ namespace RegexParser
             // Don't allow empty quantifiers
             if (!currentConcatenation.Any())
             {
-                throw new RegexParseException("Quantifier following nothing");
+                throw MakeException(RegexParseError.EmptyQuantifier);
             }
 
             // Don't allow nested quantifiers
             if (_previousWasQuantifier)
             {
-                throw new RegexParseException("Nested quantifier");
+                throw MakeException(RegexParseError.NestedQuantifier);
             }
 
             RegexNode previousNode = currentConcatenation.Last();
@@ -580,7 +582,7 @@ namespace RegexParser
             // Opening '{', followed by some decimal number, followed by closing '}'. It is a quantifier "{n}".
             else if ((ch = RightCharMoveRight()) == '}')
             {
-                RegexNode previousNode = CurrentConcatenation().Last();
+                RegexNode previousNode = CurrentConcatenation().LastOrDefault();
                 quantifier = new QuantifierNNode(n, previousNode);
             }
 
@@ -591,7 +593,7 @@ namespace RegexParser
 
                 if (CharsRight() > 0 && RightCharMoveRight() == '}')
                 {
-                    RegexNode previousNode = CurrentConcatenation().Last();
+                    RegexNode previousNode = CurrentConcatenation().LastOrDefault();
 
                     // Opening '{', followed by some decimal number, followed by ',', followed by closing '}'. It is a quantifier "{n,}".
                     if (string.IsNullOrEmpty(m))
@@ -616,13 +618,13 @@ namespace RegexParser
                 // Don't allow empty quantifiers
                 if (!currentConcatenation.Any())
                 {
-                    throw new RegexParseException("Quantifier following nothing");
+                    throw MakeException(RegexParseError.EmptyQuantifier);
                 }
 
                 // Don't allow nested quantifiers
                 if (_previousWasQuantifier)
                 {
-                    throw new RegexParseException("Nested quantifier");
+                    throw MakeException(RegexParseError.NestedQuantifier);
                 }
 
                 // Quantifier followed by '?' is a lazy quantifier
@@ -669,7 +671,7 @@ namespace RegexParser
         {
             if (CharsRight() == 0)
             {
-                throw new RegexParseException("Illegal escape at end position.");
+                throw MakeException(RegexParseError.IllegalEndEscape);
             }
 
             char ch = RightChar();
@@ -693,7 +695,7 @@ namespace RegexParser
 
                     if (CharsRight() == 0)
                     {
-                        throw new RegexParseException("Malformed \\k<...> named backreference.");
+                        throw MakeException(RegexParseError.MalformedNamedReference);
                     }
 
                     useQuotes = RightCharMoveRight() == '\'';
@@ -732,7 +734,7 @@ namespace RegexParser
         {
             if (CharsRight() == 0)
             {
-                throw new RegexParseException("Illegal escape at end position.");
+                throw MakeException(RegexParseError.IllegalEndEscape);
             }
 
             char ch = RightChar();
@@ -801,7 +803,7 @@ namespace RegexParser
                     // Other word characters should not be escaped.
                     if (IsWordChar(ch))
                     {
-                        throw new RegexParseException("Unrecognized escape sequence.");
+                        throw MakeException(RegexParseError.UnregocnizedEscape, ch);
                     }
 
                     // Escape metacharacter
@@ -819,9 +821,9 @@ namespace RegexParser
                 {
                     return ch;
                 }
-                throw new RegexParseException("Invalid control character.");
+                throw MakeException(RegexParseError.UnregocnizedControl, ch);
             }
-            throw new RegexParseException("Missing control character.");
+            throw MakeException(RegexParseError.MissingControl);
         }
 
         /// <summary>
@@ -830,7 +832,7 @@ namespace RegexParser
         /// <returns>A string of decimal digits</returns>
         private string ScanDecimals()
         {
-            int startPosition = _currentPosition;
+            int startPosition = Position();
 
             while (CharsRight() > 0 && IsDecimalDigit(RightChar()))
             {
@@ -851,19 +853,20 @@ namespace RegexParser
         {
             if (CharsRight() >= c)
             {
-                int startPosition = _currentPosition;
+                int startPosition = Position();
+
                 for (; c > 0; c--)
                 {
                     char ch = RightCharMoveRight();
                     if (!IsHexDigit(ch))
                     {
-                        throw new RegexParseException("Insufficient hexadecimal digits.");
+                        throw MakeException(RegexParseError.NotEnoughHex);
                     }
                 }
                 return Pattern[startPosition.._currentPosition];
             }
 
-            throw new RegexParseException("Insufficient hexadecimal digits.");
+            throw MakeException(RegexParseError.NotEnoughHex);
         }
 
         /// <summary>
@@ -872,9 +875,9 @@ namespace RegexParser
         /// <returns>A string of octal digits</returns>
         private string ScanOctal()
         {
-            int startPosition = _currentPosition;
+            int startPosition = Position();
 
-            for (var c = 0; c < 3 && CharsRight() > 0 && IsOctDigit(RightChar()); c++)
+            for (var c = 0; c < MaxDigitsInOctalEscape && CharsRight() > 0 && IsOctDigit(RightChar()); c++)
             {
                 MoveRight();
             }
@@ -890,12 +893,14 @@ namespace RegexParser
         /// <returns>Group name</returns>
         private string ScanGroupName(char closeChar, bool allowBalancing)
         {
-            if (CharsRight() < 2)
+            var minCharsToClosName = 2;
+
+            if (CharsRight() < minCharsToClosName)
             {
-                throw new RegexParseException("Incomplete group name.");
+                throw MakeException(RegexParseError.InvalidGroupName);
             }
 
-            int startPosition = _currentPosition;
+            int startPosition = Position();
             char ch = RightChar();
 
             while (CharsRight() > 0 && IsWordChar(ch))
@@ -920,7 +925,7 @@ namespace RegexParser
                 return groupName;
             }
 
-            throw new RegexParseException("Incomplete group name.");
+            throw MakeException(RegexParseError.InvalidGroupName);
         }
 
         private string ScanOptions()
@@ -928,10 +933,10 @@ namespace RegexParser
             // Mode modifiers in the condition of a conditional group are not allowed.
             if (_group?.Node.GetType() == typeof(ConditionalGroupNode))
             {
-                throw new RegexParseException("Unrecognized grouping construct.");
+                throw MakeException(RegexParseError.UnrecognizedGroupingConstruct);
             }
 
-            int startPosition = _currentPosition;
+            int startPosition = Position();
 
             while (CharsRight() > 0)
             {
@@ -959,12 +964,11 @@ namespace RegexParser
                     case ')':
                         return Pattern[startPosition.._currentPosition];
                     default:
-                        throw new RegexParseException($"'{ch}' is not a valid inline mode modifier");
+                        throw MakeException(RegexParseError.UnrecognizedGroupingConstruct);
                 }
             }
 
-            // TODO: better error
-            throw new RegexParseException("No options");
+            throw MakeException(RegexParseError.UnrecognizedGroupingConstruct);
         }
 
         private bool IsDecimalDigit(char ch)
@@ -991,12 +995,14 @@ namespace RegexParser
 
         private RegexNode ParseUnicodeCategoryNode(bool negated)
         {
-            if (CharsRight() < 3 || RightCharMoveRight() != '{')
+            var minCharsInUnicodeCategory = 3;
+
+            if (CharsRight() < minCharsInUnicodeCategory || RightCharMoveRight() != '{')
             {
-                throw new RegexParseException($"Incomplete unicode category or block at position {_currentPosition}");
+                throw MakeException(RegexParseError.IncompleteUnicodeCategory);
             }
 
-            int startPosition = _currentPosition;
+            int startPosition = Position();
 
             while (CharsRight() > 0 && RightChar() != '}')
             {
@@ -1005,7 +1011,7 @@ namespace RegexParser
 
             if (CharsRight() == 0)
             {
-                throw new RegexParseException($"Incomplete unicode category or block at position {_currentPosition}");
+                throw MakeException(RegexParseError.IncompleteUnicodeCategory);
             }
 
             string categoryName = Pattern[startPosition.._currentPosition];
@@ -1110,60 +1116,51 @@ namespace RegexParser
             return _group?.Alternates ?? _alternates;
         }
 
+        private RegexParseException MakeException(RegexParseError error, params object[] faults)
+        {
+            var x = string.Format(error.GetDescription(), faults);
+            var message = $"Invalid pattern \"{Pattern}\" at offset {_currentPosition}. {x}";
+            return new RegexParseException(error, _currentPosition, message);
+        }
+
+        /// <summary>
+        /// Returns the current parsing position.
+        /// </summary>
+        private int Position() => _currentPosition;
+
         /// <summary>
         /// Returns the number of characters to the right of the current parsing position.
         /// </summary>
-        private int CharsRight()
-        {
-            return Pattern.Length - _currentPosition;
-        }
+        private int CharsRight() => Pattern.Length - _currentPosition;
 
         /// <summary>
         /// Moves the current parsing position one the the right.
         /// </summary>
-        private void MoveRight()
-        {
-            _currentPosition++;
-        }
+        private void MoveRight() => _currentPosition++;
 
         /// <summary>
         /// Moves the current parsing position to i.
         /// </summary>
-        private void MoveTo(int i)
-        {
-            _currentPosition = i;
-        }
+        private void MoveTo(int i) => _currentPosition = i;
 
         /// <summary>
         /// Returns the character right of the current parsing position.
         /// </summary>
-        private char RightChar()
-        {
-            return Pattern[_currentPosition];
-        }
+        private char RightChar() => Pattern[_currentPosition];
 
         /// <summary>
         /// Returns the character i characters right of the current parsing position.
         /// </summary>
-        private char RightChar(int i)
-        {
-            return Pattern[_currentPosition + i];
-        }
+        private char RightChar(int i) => Pattern[_currentPosition + i];
 
         /// <summary>
         /// Returns the character left of the current parsing position.
         /// </summary>
-        private char LeftChar()
-        {
-            return Pattern[_currentPosition - 1];
-        }
+        private char LeftChar() => Pattern[_currentPosition - 1];
 
         /// <summary>
         /// Returns the character to the right of the current parsing position and moves the current parsing position one the the right.
         /// </summary>
-        private char RightCharMoveRight()
-        {
-            return Pattern[_currentPosition++];
-        }
+        private char RightCharMoveRight() => Pattern[_currentPosition++];
     }
 }
