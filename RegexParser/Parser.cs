@@ -778,11 +778,11 @@ namespace RegexParser
             {
                 // Hexadecimal character \x00
                 case 'x':
-                    return EscapeCharacterNode.FromHex(ScanHex(2));
+                    return EscapeCharacterNode.FromHex(ScanHex(HexadecimalEscapeDigits));
 
                 // Unicode character \u0000
                 case 'u':
-                    return EscapeCharacterNode.FromUnicode(ScanHex(4));
+                    return EscapeCharacterNode.FromUnicode(ScanHex(UnicodeEscapeDigits));
 
                 // Control character \cA
                 case 'c':
@@ -832,14 +832,14 @@ namespace RegexParser
         /// <returns>A string of decimal digits</returns>
         private string ScanDecimals()
         {
-            int startPosition = Position();
+            int startPosition = _currentPosition;
 
             while (CharsRight() > 0 && IsDecimalDigit(RightChar()))
             {
                 MoveRight();
             }
 
-            return Pattern[startPosition.._currentPosition];
+            return Pattern[new Range(startPosition, _currentPosition)];
         }
 
         /// <summary>
@@ -853,7 +853,7 @@ namespace RegexParser
         {
             if (CharsRight() >= c)
             {
-                int startPosition = Position();
+                int startPosition = _currentPosition;
 
                 for (; c > 0; c--)
                 {
@@ -875,7 +875,7 @@ namespace RegexParser
         /// <returns>A string of octal digits</returns>
         private string ScanOctal()
         {
-            int startPosition = Position();
+            int startPosition = _currentPosition;
 
             for (var c = 0; c < MaxDigitsInOctalEscape && CharsRight() > 0 && IsOctDigit(RightChar()); c++)
             {
@@ -893,14 +893,14 @@ namespace RegexParser
         /// <returns>Group name</returns>
         private string ScanGroupName(char closeChar, bool allowBalancing)
         {
-            var minCharsToClosName = 2;
+            const int minCharsToClosName = 2;
 
             if (CharsRight() < minCharsToClosName)
             {
                 throw MakeException(RegexParseError.InvalidGroupName);
             }
 
-            int startPosition = Position();
+            int startPosition = _currentPosition;
             char ch = RightChar();
 
             while (CharsRight() > 0 && IsWordChar(ch))
@@ -936,7 +936,7 @@ namespace RegexParser
                 throw MakeException(RegexParseError.UnrecognizedGroupingConstruct);
             }
 
-            int startPosition = Position();
+            int startPosition = _currentPosition;
 
             while (CharsRight() > 0)
             {
@@ -995,14 +995,14 @@ namespace RegexParser
 
         private RegexNode ParseUnicodeCategoryNode(bool negated)
         {
-            var minCharsInUnicodeCategory = 3;
+            const int minCharsInUnicodeCategory = 3;
 
             if (CharsRight() < minCharsInUnicodeCategory || RightCharMoveRight() != '{')
             {
                 throw MakeException(RegexParseError.IncompleteUnicodeCategory);
             }
 
-            int startPosition = Position();
+            int startPosition = _currentPosition;
 
             while (CharsRight() > 0 && RightChar() != '}')
             {
@@ -1122,11 +1122,6 @@ namespace RegexParser
             var message = $"Invalid pattern \"{Pattern}\" at offset {_currentPosition}. {x}";
             return new RegexParseException(error, _currentPosition, message);
         }
-
-        /// <summary>
-        /// Returns the current parsing position.
-        /// </summary>
-        private int Position() => _currentPosition;
 
         /// <summary>
         /// Returns the number of characters to the right of the current parsing position.
