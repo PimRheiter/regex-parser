@@ -128,36 +128,19 @@ namespace RegexParser
                     _previousWasQuantifier = false;
                     break;
 
-                // Quantifier "*", "+", or "?"
-                case '*':
-                case '+':
-                case '?':
-                    ParseQuantifier(ch);
-                    break;
-
-                // Quantifier "{n}", "{n,}" or "{n,m}" or just a '{' character
-                case '{':
-                    ParseTrueQuantifier();
-                    break;
-
-                // End of an alternate
-                case '|':
-                    AddAlternate();
-                    break;
-
-                // An escaped character
+                // Escaped character
                 case '\\':
                     AddNode(ParseBackslash());
                     _previousWasQuantifier = false;
                     break;
 
-                // A StartOfLine anchor "^"
+                // StartOfLine anchor "^"
                 case '^':
                     AddNode(new StartOfLineNode());
                     _previousWasQuantifier = false;
                     break;
 
-                //  An EndOfLine Anchor
+                // EndOfLine Anchor
                 case '$':
                     AddNode(new EndOfLineNode());
                     _previousWasQuantifier = false;
@@ -169,9 +152,15 @@ namespace RegexParser
                     _previousWasQuantifier = false;
                     break;
 
-                // An unregocnized character
+                // End of an alternate
+                case '|':
+                    AddAlternate();
+                    break;
+
+                // Quantifier
                 default:
-                    throw MakeException(RegexParseError.InternalError);
+                    ParseQuantifier(ch);
+                    break;
             }
         }
 
@@ -558,10 +547,35 @@ namespace RegexParser
         }
 
         /// <summary>
+        /// Parse a quantifier alias '*', '+' or '?' or true quantifier "{n}", "{n,}" or "{n,m}".
+        /// </summary>
+        private void ParseQuantifier(char ch)
+        {
+            switch (ch)
+            {
+                // Quantifier alias '*', '+' or '?'
+                case '*':
+                case '+':
+                case '?':
+                    ParseQuantifierAlias(ch);
+                    break;
+
+                // Quantifier "{n}", "{n,}" or "{n,m}" or just a '{' character
+                case '{':
+                    ParseTrueQuantifier();
+                    break;
+
+                // Default unrecognized character
+                default:
+                    throw MakeException(RegexParseError.InternalError);
+            }
+        }
+
+        /// <summary>
         /// Create a quantifier node in response to a '*', '+' or '?'. The quantifier node will replace the last concatenation item in the current group.
         /// Throws an exception if there are no concatenation items in the current group or if the previous node was a quantifier.
         /// </summary>
-        private void ParseQuantifier(char ch)
+        private void ParseQuantifierAlias(char ch)
         {
             var currentConcatenation = CurrentConcatenation();
 
@@ -624,13 +638,7 @@ namespace RegexParser
             // Opening '{', followed by some decimal number, followed by closing '}'. It is a quantifier "{n}".
             if ((ch = RightCharMoveRight()) == '}')
             {
-                // Don't allow empty quantifiers
-                if (!CurrentConcatenation().Any())
-                {
-                    throw MakeException(RegexParseError.EmptyQuantifier);
-                }
-
-                RegexNode previousNode = CurrentConcatenation().Last();
+                RegexNode previousNode = CurrentConcatenation().LastOrDefault();
                 quantifier = new QuantifierNNode(n, previousNode);
             }
 
@@ -641,13 +649,7 @@ namespace RegexParser
 
                 if (CharsRight() > 0 && RightCharMoveRight() == '}')
                 {
-                    // Don't allow empty quantifiers
-                    if (!CurrentConcatenation().Any())
-                    {
-                        throw MakeException(RegexParseError.EmptyQuantifier);
-                    }
-
-                    RegexNode previousNode = CurrentConcatenation().Last();
+                    RegexNode previousNode = CurrentConcatenation().LastOrDefault();
 
                     // Opening '{', followed by some decimal number, followed by ',', followed by closing '}'. It is a quantifier "{n,}".
                     if (string.IsNullOrEmpty(m))
@@ -685,6 +687,12 @@ namespace RegexParser
         private void AddQuantifier(QuantifierNode quantifier)
         {
             var currentConcatenation = CurrentConcatenation();
+
+            // Don't allow empty quantifiers
+            if (!currentConcatenation.Any())
+            {
+                throw MakeException(RegexParseError.EmptyQuantifier);
+            }
 
             // Don't allow nested quantifiers
             if (_previousWasQuantifier)
@@ -741,46 +749,48 @@ namespace RegexParser
                 return new BackreferenceNode(int.Parse(groupNumber));
             }
 
-            bool useQuotes;
-            char closeChar;
-
             switch (ch)
             {
                 // Named reference "\k<name>" or "\k'name'"
                 case 'k':
                     MoveRight();
-
-                    if (CharsRight() == 0)
-                    {
-                        throw MakeException(RegexParseError.MalformedNamedReference);
-                    }
-
-                    useQuotes = RightCharMoveRight() == '\'';
-                    closeChar = useQuotes ? '\'' : '>';
-                    return new NamedReferenceNode(ScanGroupName(closeChar, false), useQuotes, true);
+                    return ParseNamedReferenceNode(true);
 
                 // Named reference "\<name>" and "\'name'" are deprecated, but can still be used
                 case '<':
                 case '\'':
-                    MoveRight();
-                    useQuotes = ch == '\'';
-                    closeChar = useQuotes ? '\'' : '>';
-                    return new NamedReferenceNode(ScanGroupName(closeChar, false), ch == '\'', false);
+                    return ParseNamedReferenceNode(false);
 
-                // Anchors
-                case 'A':
-                case 'Z':
-                case 'z':
-                case 'G':
-                case 'b':
-                case 'B':
-                    MoveRight();
-                    return AnchorNode.FromChar(ch);
-
-                // Character escape
+                // Anchor or character escape
                 default:
+                    // Anchor
+                    if (IsAnchorCode(ch))
+                    {
+                        MoveRight();
+                        return AnchorNode.FromChar(ch);
+                    }
+
+                    // Character escape
                     return ParseBasicBackslash();
             }
+        }
+
+        /// <summary>
+        /// Parse and return a NamedReferenceNode in response to "\k", "\<" pr "\'".
+        /// </summary>
+        /// <param name="useK">Whether the named reference is openened with 'k'.</param>
+        private NamedReferenceNode ParseNamedReferenceNode(bool useK)
+        {
+            var minCharsInReference = 3;
+
+            if (CharsRight() < minCharsInReference)
+            {
+                throw MakeException(RegexParseError.MalformedNamedReference);
+            }
+
+            var useQuotes = RightCharMoveRight() == '\'';
+            var closeChar = useQuotes ? '\'' : '>';
+            return new NamedReferenceNode(ScanGroupName(closeChar, false), useQuotes, useK);
         }
 
         /// <summary>
@@ -822,6 +832,36 @@ namespace RegexParser
         }
 
         /// <summary>
+        /// Parse and return a UnicodeCategryNode.
+        /// </summary>
+        /// <param name="negated">Whether the unicode category is negated "\P{X}" or not "\p{X}".</param>
+        private RegexNode ParseUnicodeCategoryNode(bool negated)
+        {
+            const int minCharsInUnicodeCategory = 3;
+
+            if (CharsRight() < minCharsInUnicodeCategory || RightCharMoveRight() != '{')
+            {
+                throw MakeException(RegexParseError.IncompleteUnicodeCategory);
+            }
+
+            int startPosition = _currentPosition;
+
+            while (CharsRight() > 0 && RightChar() != '}')
+            {
+                MoveRight();
+            }
+
+            if (CharsRight() == 0)
+            {
+                throw MakeException(RegexParseError.IncompleteUnicodeCategory);
+            }
+
+            string categoryName = Pattern[startPosition.._currentPosition];
+            MoveRight();
+            return new UnicodeCategoryNode(categoryName, negated);
+        }
+
+        /// <summary>
         /// Parse an escaped characters following a '\'. It is an octal, hexadecimal, unicode or character escape.
         /// The escaped character can be used in a character class.
         /// </summary>
@@ -858,7 +898,7 @@ namespace RegexParser
                     }
 
                     // Unescapable character
-                    throw MakeException(RegexParseError.UnregocnizedEscape, ch);
+                    throw MakeException(RegexParseError.UnrecognizedEscape, ch);
             }
         }
 
@@ -875,7 +915,7 @@ namespace RegexParser
                 {
                     return ch;
                 }
-                throw MakeException(RegexParseError.UnregocnizedControl, ch);
+                throw MakeException(RegexParseError.UnrecognizedControl, ch);
             }
             throw MakeException(RegexParseError.MissingControl);
         }
@@ -1023,6 +1063,40 @@ namespace RegexParser
             throw MakeException(RegexParseError.UnrecognizedGroupingConstruct);
         }
 
+        private bool IsQuantifier(char ch)
+        {
+            switch (ch)
+            {
+                case '*':
+                case '+':
+                case '?':
+                case '{':
+                    return true;
+                default:
+                    return false;
+            }
+        }
+
+        /// <summary>
+        /// Checks whether a character is a valid \ anchor code.
+        /// </summary>
+        private bool IsAnchorCode(char ch)
+        {
+            switch (ch)
+            {
+                case 'A':
+                case 'Z':
+                case 'z':
+                case 'G':
+                case 'b':
+                case 'B':
+                    return true;
+
+                default:
+                    return false;
+            }
+        }
+
         /// <summary>
         /// Checks whether a character is escapable. Escapable characters are 'a', 'b', 'e', 'f', 'n', 'r', 't', 'v' and non-word characters.
         /// </summary>
@@ -1108,33 +1182,6 @@ namespace RegexParser
         private bool IsWordChar(char ch)
         {
             return _wordCharCategories.Contains(char.GetUnicodeCategory(ch));
-        }
-
-        private RegexNode ParseUnicodeCategoryNode(bool negated)
-        {
-            const int minCharsInUnicodeCategory = 3;
-
-            if (CharsRight() < minCharsInUnicodeCategory || RightCharMoveRight() != '{')
-            {
-                throw MakeException(RegexParseError.IncompleteUnicodeCategory);
-            }
-
-            int startPosition = _currentPosition;
-
-            while (CharsRight() > 0 && RightChar() != '}')
-            {
-                MoveRight();
-            }
-
-            if (CharsRight() == 0)
-            {
-                throw MakeException(RegexParseError.IncompleteUnicodeCategory);
-            }
-
-            string categoryName = Pattern[startPosition.._currentPosition];
-            MoveRight();
-            return new UnicodeCategoryNode(categoryName, negated);
-
         }
 
         /// <summary>

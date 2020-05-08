@@ -34,11 +34,11 @@ namespace RegexParser.Exceptions
 		[Description("Malformed \\k<...> named backreference.")]
 		MalformedNamedReference,
 		[Description("Unrecognized escape sequence \\{0}.")]
-		UnregocnizedEscape,
+		UnrecognizedEscape,
 		[Description("Missing control character.")]
 		MissingControl,
 		[Description("Unrecognized control character \\c{0}.")]
-		UnregocnizedControl,
+		UnrecognizedControl,
 		[Description("Not enough hexadecimal digits.")]
 		NotEnoughHex,
 		[Description("Invalid group name.")]
