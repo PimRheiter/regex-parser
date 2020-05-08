@@ -781,7 +781,7 @@ namespace RegexParser
         /// <param name="useK">Whether the named reference is openened with 'k'.</param>
         private NamedReferenceNode ParseNamedReferenceNode(bool useK)
         {
-            var minCharsInReference = 3;
+            const int minCharsInReference = 3;
 
             if (CharsRight() < minCharsInReference)
             {
@@ -835,7 +835,7 @@ namespace RegexParser
         /// Parse and return a UnicodeCategryNode.
         /// </summary>
         /// <param name="negated">Whether the unicode category is negated "\P{X}" or not "\p{X}".</param>
-        private RegexNode ParseUnicodeCategoryNode(bool negated)
+        private UnicodeCategoryNode ParseUnicodeCategoryNode(bool negated)
         {
             const int minCharsInUnicodeCategory = 3;
 
@@ -1061,20 +1061,6 @@ namespace RegexParser
             }
 
             throw MakeException(RegexParseError.UnrecognizedGroupingConstruct);
-        }
-
-        private bool IsQuantifier(char ch)
-        {
-            switch (ch)
-            {
-                case '*':
-                case '+':
-                case '?':
-                case '{':
-                    return true;
-                default:
-                    return false;
-            }
         }
 
         /// <summary>
