@@ -6,14 +6,14 @@ namespace RegexParser.Nodes.AnchorNodes
     {
         /// <summary>
         /// Create an new instance of an AnchorNode based on a character folling a "\":
-        /// 'A' creates a new StartOfStringNode instance
-        /// 'Z' creates a new EndOfStringZNode instance
-        /// 'z' creates a new EndOfStringNode instance
-        /// 'b' creates a new WordBoundaryNode instance
-        /// 'B' creates a new NonWordBoundaryNode instance
-        /// 'G' creates a new ContiguousMatchNode instance
+        /// 'A' creates a new StartOfStringNode instance.
+        /// 'Z' creates a new EndOfStringZNode instance.
+        /// 'z' creates a new EndOfStringNode instance.
+        /// 'b' creates a new WordBoundaryNode instance.
+        /// 'B' creates a new NonWordBoundaryNode instance.
+        /// 'G' creates a new ContiguousMatchNode instance.
         /// </summary>
-        internal static RegexNode FromCode(char ch)
+        internal static RegexNode FromChar(char ch)
         {
             return ch switch
             {
