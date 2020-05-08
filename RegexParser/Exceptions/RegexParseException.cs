@@ -4,7 +4,7 @@ using System.Runtime.Serialization;
 namespace RegexParser.Exceptions
 {
     [Serializable]
-    public class RegexParseException : Exception
+    public class RegexParseException : ArgumentException
     {
         public RegexParseError Error { get; }
         public int Offset { get; }
