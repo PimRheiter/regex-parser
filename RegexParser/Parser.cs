@@ -79,14 +79,8 @@ namespace RegexParser
 
                         // End of a group
                         case ')':
-                            var closedGroup = CloseGroup();
+                            CloseGroup();
                             _previousWasQuantifier = false;
-
-                            // Otherwise the closed group went directly to a ConditionalGroupNode
-                            if (closedGroup != null)
-                            {
-                                AddNode(closedGroup);
-                            }
                             break;
 
                         // Character class [...]
@@ -130,12 +124,12 @@ namespace RegexParser
                             _previousWasQuantifier = false;
                             break;
 
-                        // Any character "."
+                        // Any character (wildcard) "."
                         case '.':
                             AddNode(new AnyCharacterNode());
                             _previousWasQuantifier = false;
                             break;
-                        
+
                         // An unregocnized character
                         default:
                             throw MakeException(RegexParseError.InternalError);
@@ -153,6 +147,9 @@ namespace RegexParser
             return new RegexTree(root);
         }
 
+        /// <summary>
+        /// Parse a character class [...] in response to an opening '['.
+        /// </summary>
         private CharacterClassNode ParseCharacterClass()
         {
             if (CharsRight() == 0)
@@ -172,28 +169,9 @@ namespace RegexParser
                 negated = true;
             }
 
-            if (CharsRight() > 0 && (ch = RightCharMoveRight()) != ']')
-            {
-                // Escape character, shorthand or unicode category
-                if (ch == '\\')
-                {
-                    previousNode = ParseBasicBackslash();
-                }
+            previousNode = FirstCharacterClassElement();
 
-                // Literal character. '-' at the start of a character class is also a literal character.
-                else
-                {
-                    previousNode = new CharacterNode(ch);
-                }
-            }
-
-            // Don't allow empty character class.
-            else
-            {
-                throw MakeException(RegexParseError.UnterminatedCharacterClass);
-            }
-
-            while(CharsRight() > 1 && (ch = RightChar()) != ']')
+            while (CharsRight() > 1 && (ch = RightChar()) != ']')
             {
                 MoveRight();
 
@@ -201,37 +179,7 @@ namespace RegexParser
                 {
                     // Could be range or subtraction.
                     case '-':
-                        // '-' at the and of a character class is a literal character.
-                        if (RightChar() == ']')
-                        {
-                            characterSet.Add(previousNode);
-                            previousNode = new CharacterNode(ch);
-                        }
-
-                        // Subtraction [...-[...]]
-                        else if (RightChar() == '[')
-                        {
-                            MoveRight();
-                            subtraction = ParseCharacterClassSubtraction();
-                        }
-
-                        // Could be range.
-                        else
-                        {
-                            // '-' after character class shorthand or unicode category/block is a literal character.
-                            if (previousNode is CharacterClassShorthandNode || previousNode is UnicodeCategoryNode || previousNode is CharacterClassRangeNode)
-                            {
-                                characterSet.Add(previousNode);
-                                previousNode = new CharacterNode(ch);
-                            }
-
-                            // Range.
-                            else
-                            {
-                                previousNode = ParseCharacterRange(previousNode);
-                            }
-                        }
-
+                        previousNode = ParseCharacterClassDash(characterSet, previousNode, ref subtraction);
                         break;
 
                     // Escape character, shorthand or unicode category.
@@ -265,6 +213,77 @@ namespace RegexParser
 
             // No closing ']'.
             throw MakeException(RegexParseError.UnterminatedCharacterClass);
+        }
+
+        /// <summary>
+        /// Parse the first element (after optional negation '^') of a character class [...].
+        /// A '-' character will always be parsed as a literal character at this position.
+        /// </summary>
+        private RegexNode FirstCharacterClassElement()
+        {
+            char ch;
+            if (CharsRight() > 0 && (ch = RightCharMoveRight()) != ']')
+            {
+                // Escape character, shorthand or unicode category
+                if (ch == '\\')
+                {
+                    return ParseBasicBackslash();
+                }
+
+                // Literal character. '-' at the start of a character class is also a literal character.
+                else
+                {
+                    return new CharacterNode(ch);
+                }
+            }
+
+            // Don't allow empty character class.
+            else
+            {
+                throw MakeException(RegexParseError.UnterminatedCharacterClass);
+            }
+        }
+
+        /// <summary>
+        /// Parse characters following a dash '-' in a character class [...]. It could be part of a character range x-y or character class subtraction -[...]
+        /// </summary>
+        /// <param name="characterSet">The set of characters already in the characterclass.</param>
+        /// <param name="previousNode">The character class element left of the dash '-'.</param>
+        /// <param name="subtraction">A character class will be saved here if the dash '-' is part of a character class subtraction.</param>
+        /// <returns></returns>
+        private RegexNode ParseCharacterClassDash(List<RegexNode> characterSet, RegexNode previousNode, ref CharacterClassNode subtraction)
+        {
+            // '-' at the and of a character class is a literal character.
+            if (RightChar() == ']')
+            {
+                characterSet.Add(previousNode);
+                return new CharacterNode('-');
+            }
+
+            // Subtraction [...-[...]]
+            else if (RightChar() == '[')
+            {
+                MoveRight();
+                subtraction = ParseCharacterClassSubtraction();
+                return previousNode;
+            }
+
+            // Could be range.
+            else
+            {
+                // '-' after character class shorthand, unicode category/block or range is a literal character.
+                if (previousNode is CharacterClassShorthandNode || previousNode is UnicodeCategoryNode || previousNode is CharacterClassRangeNode)
+                {
+                    characterSet.Add(previousNode);
+                    return new CharacterNode('-');
+                }
+
+                // Range.
+                else
+                {
+                    return ParseCharacterRange(previousNode);
+                }
+            }
         }
 
         /// <summary>
@@ -371,7 +390,6 @@ namespace RegexParser
             {
                 MoveRight();
                 char ch = RightChar();
-                var lookahead = true;
 
                 switch (ch)
                 {
@@ -392,11 +410,11 @@ namespace RegexParser
                         _group = new GroupUnit(new ConditionalGroupNode());
                         break;
 
-                    // Possitive lookahead "(?=...)" or negative lookbehind "(?!...)"
+                    // Possitive lookahead "(?=...)" or negative lookahead "(?!...)"
                     case '=':
                     case '!':
                         MoveRight();
-                        _group = new GroupUnit(new LookaroundGroupNode(lookahead, ch == '='));
+                        _group = new GroupUnit(new LookaroundGroupNode(true, ch == '='));
                         break;
 
                     // Named capturing group "(?'name'...)" or balancing group "(?'name-balancedGroupName'...)"
@@ -416,9 +434,10 @@ namespace RegexParser
                             if (nextCh == '=' || nextCh == '!')
                             {
                                 MoveRight();
-                                ch = nextCh;
-                                lookahead = false;
-                                goto case '!';
+                                // Consume both the '<' and '=' or '!' characters.
+                                MoveRight();
+                                _group = new GroupUnit(new LookaroundGroupNode(false, nextCh == '='));
+                                break;
                             }
                         }
 
@@ -483,7 +502,7 @@ namespace RegexParser
         /// <summary>
         /// Remove a group from the top of the group stack and create a GroupNode from it in response to a closing ')'.
         /// </summary>
-        private RegexNode CloseGroup()
+        private void CloseGroup()
         {
             if (_groupStack.Count == 0)
             {
@@ -501,7 +520,7 @@ namespace RegexParser
             if (_group?.Node is ConditionalGroupNode && !_group.Node.ChildNodes.Any())
             {
                 _group.Node = _group.Node.AddNode(currentGroupNode);
-                return null;
+                return;
             }
 
             // No more than two alternates allowed in a conditional group
@@ -512,7 +531,7 @@ namespace RegexParser
                 throw MakeException(RegexParseError.TooManyAlternates);
             }
 
-            return currentGroupNode;
+            AddNode(currentGroupNode);
         }
 
         /// <summary>
@@ -718,7 +737,7 @@ namespace RegexParser
                 case 'b':
                 case 'B':
                     MoveRight();
-                    return AnchorNode.FromCode(ch);
+                    return AnchorNode.FromChar(ch);
 
                 // Character escape
                 default:
@@ -839,7 +858,7 @@ namespace RegexParser
                 MoveRight();
             }
 
-            return Pattern[new Range(startPosition, _currentPosition)];
+            return Pattern[startPosition.._currentPosition];
         }
 
         /// <summary>
@@ -858,7 +877,7 @@ namespace RegexParser
                 for (; c > 0; c--)
                 {
                     char ch = RightCharMoveRight();
-                    if (!IsHexDigit(ch))
+                    if (!IsHexadecimalDigit(ch))
                     {
                         throw MakeException(RegexParseError.NotEnoughHex);
                     }
@@ -877,7 +896,7 @@ namespace RegexParser
         {
             int startPosition = _currentPosition;
 
-            for (var c = 0; c < MaxDigitsInOctalEscape && CharsRight() > 0 && IsOctDigit(RightChar()); c++)
+            for (var c = 0; c < MaxDigitsInOctalEscape && CharsRight() > 0 && IsOctalDigit(RightChar()); c++)
             {
                 MoveRight();
             }
@@ -928,6 +947,10 @@ namespace RegexParser
             throw MakeException(RegexParseError.InvalidGroupName);
         }
 
+        /// <summary>
+        /// Scans a group for inline mode modifiers. Only "imnsx-+" characters can be used for the options part of a ModeModifierGroup.
+        /// </summary>
+        /// <returns></returns>
         private string ScanOptions()
         {
             // Mode modifiers in the condition of a conditional group are not allowed.
@@ -971,23 +994,38 @@ namespace RegexParser
             throw MakeException(RegexParseError.UnrecognizedGroupingConstruct);
         }
 
+        /// <summary>
+        /// Checks whether a character is a decimal digit 0-9
+        /// </summary>
         private bool IsDecimalDigit(char ch)
         {
             return ch >= '0' && ch <= '9';
         }
 
-        private bool IsHexDigit(char ch)
+        /// <summary>
+        /// Checks whether a character is a hexadecimal digit 0-9 || A-F || a-f
+        /// </summary>
+        private bool IsHexadecimalDigit(char ch)
         {
+            ch = char.ToLower(ch);
             return IsDecimalDigit(ch) ||
-                (ch >= 'A' && ch <= 'F') ||
                 (ch >= 'a' && ch <= 'f');
         }
 
-        private bool IsOctDigit(char ch)
+        /// <summary>
+        /// Checks whether a character is an octal digit 0-7
+        /// </summary>
+        private bool IsOctalDigit(char ch)
         {
             return ch >= '0' && ch <= '7';
         }
 
+        /// <summary>
+        /// Checks whether a character is a word character.
+        /// A character is considered a word character if it belongs to one of the following unicode categories:
+        /// UppercaseLetter (Lu), LowercaseLetter (Ll), TitlecaseLetter (Lt), ModifierLetter (Lm), OtherLetter (Lo),
+        /// NonSpacingMark (Mn), SpacingCombiningMark (Mc), DecimalDigitNumber (Nd), ConnectorPunctuation (Pc)
+        /// </summary>
         private bool IsWordChar(char ch)
         {
             return _wordCharCategories.Contains(char.GetUnicodeCategory(ch));
@@ -1129,7 +1167,7 @@ namespace RegexParser
         private int CharsRight() => Pattern.Length - _currentPosition;
 
         /// <summary>
-        /// Moves the current parsing position one the the right.
+        /// Moves the current parsing position one to the right.
         /// </summary>
         private void MoveRight() => _currentPosition++;
 
