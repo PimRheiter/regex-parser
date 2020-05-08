@@ -65,75 +65,12 @@ namespace RegexParser
         {
             while (CharsRight() > 0)
             {
-                ParseChars();
+                // Move past all literal characters and add them to the current concatenation item.
+                ParseLiteralCharacters();
 
                 if (CharsRight() > 0)
                 {
-                    char ch = RightCharMoveRight();
-                    switch (ch)
-                    {
-                        // Start of a group
-                        case '(':
-                            StartGroup();
-                            break;
-
-                        // End of a group
-                        case ')':
-                            CloseGroup();
-                            _previousWasQuantifier = false;
-                            break;
-
-                        // Character class [...]
-                        case '[':
-                            AddNode(ParseCharacterClass());
-                            _previousWasQuantifier = false;
-                            break;
-
-                        // Quantifier "*", "+", or "?"
-                        case '*':
-                        case '+':
-                        case '?':
-                            ParseQuantifier(ch);
-                            break;
-
-                        // Quantifier "{n}", "{n,}" or "{n,m}" or just a '{' character
-                        case '{':
-                            ParseTrueQuantifier();
-                            break;
-
-                        // End of an alternate
-                        case '|':
-                            AddAlternate();
-                            break;
-
-                        // An escaped character
-                        case '\\':
-                            AddNode(ParseBackslash());
-                            _previousWasQuantifier = false;
-                            break;
-
-                        // A StartOfLine anchor "^"
-                        case '^':
-                            AddNode(new StartOfLineNode());
-                            _previousWasQuantifier = false;
-                            break;
-
-                        //  An EndOfLine Anchor
-                        case '$':
-                            AddNode(new EndOfLineNode());
-                            _previousWasQuantifier = false;
-                            break;
-
-                        // Any character (wildcard) "."
-                        case '.':
-                            AddNode(new AnyCharacterNode());
-                            _previousWasQuantifier = false;
-                            break;
-
-                        // An unregocnized character
-                        default:
-                            throw MakeException(RegexParseError.InternalError);
-                    }
+                    ParseNonLiteralCharacter();
                 }
             }
 
@@ -145,6 +82,97 @@ namespace RegexParser
 
             RegexNode root = CreateOuterNode();
             return new RegexTree(root);
+        }
+
+        /// <summary>
+        /// Parse all characters as literal characters and add them to the current concatenation item until we find a special character.
+        /// </summary>
+        private void ParseLiteralCharacters()
+        {
+            int startPosition = _currentPosition;
+
+            while (CharsRight() > 0 && !IsSpecial(RightChar()))
+            {
+                char ch = RightCharMoveRight();
+                AddNode(new CharacterNode(ch));
+            }
+
+            if (_currentPosition > startPosition)
+            {
+                _previousWasQuantifier = false;
+            }
+        }
+
+        /// <summary>
+        /// Parse anything that is not a literal character.
+        /// </summary>
+        private void ParseNonLiteralCharacter()
+        {
+            char ch = RightCharMoveRight();
+            switch (ch)
+            {
+                // Start of a group
+                case '(':
+                    StartGroup();
+                    break;
+
+                // End of a group
+                case ')':
+                    CloseGroup();
+                    _previousWasQuantifier = false;
+                    break;
+
+                // Character class [...]
+                case '[':
+                    AddNode(ParseCharacterClass());
+                    _previousWasQuantifier = false;
+                    break;
+
+                // Quantifier "*", "+", or "?"
+                case '*':
+                case '+':
+                case '?':
+                    ParseQuantifier(ch);
+                    break;
+
+                // Quantifier "{n}", "{n,}" or "{n,m}" or just a '{' character
+                case '{':
+                    ParseTrueQuantifier();
+                    break;
+
+                // End of an alternate
+                case '|':
+                    AddAlternate();
+                    break;
+
+                // An escaped character
+                case '\\':
+                    AddNode(ParseBackslash());
+                    _previousWasQuantifier = false;
+                    break;
+
+                // A StartOfLine anchor "^"
+                case '^':
+                    AddNode(new StartOfLineNode());
+                    _previousWasQuantifier = false;
+                    break;
+
+                //  An EndOfLine Anchor
+                case '$':
+                    AddNode(new EndOfLineNode());
+                    _previousWasQuantifier = false;
+                    break;
+
+                // Any character (wildcard) "."
+                case '.':
+                    AddNode(new AnyCharacterNode());
+                    _previousWasQuantifier = false;
+                    break;
+
+                // An unregocnized character
+                default:
+                    throw MakeException(RegexParseError.InternalError);
+            }
         }
 
         /// <summary>
@@ -355,32 +383,12 @@ namespace RegexParser
         }
 
         /// <summary>
-        /// Parse all characters as literal characters and add them to the current concatenation item until we find a special character.
-        /// </summary>
-        private void ParseChars()
-        {
-            int startPosition = _currentPosition;
-
-            while (CharsRight() > 0 && !IsSpecial(RightChar()))
-            {
-                char ch = RightCharMoveRight();
-                AddNode(new CharacterNode(ch));
-            }
-
-            if (_currentPosition > startPosition)
-            {
-                _previousWasQuantifier = false;
-            }
-        }
-
-        /// <summary>
         /// Adds a new GroupUnit to the group stack and sets it as the current group in response to an opening '('.
         /// </summary>
         private void StartGroup()
         {
             // Regular capturing group "(...)"
-            // "(" followed by nothing   ||   "(x..." where x != "?"   ||   "(?)"
-            if (CharsRight() == 0 || RightChar() != '?' || (CharsRight() > 1 && RightChar(1) == ')'))
+            if (IsCaptureGroup())
             {
                 _group = new GroupUnit(new CaptureGroupNode());
             }
@@ -389,65 +397,45 @@ namespace RegexParser
             else
             {
                 MoveRight();
-                char ch = RightChar();
+                char ch = RightCharMoveRight();
 
                 switch (ch)
                 {
                     // Noncapturing group "(?:...)"
                     case ':':
-                        MoveRight();
                         _group = new GroupUnit(new NonCaptureGroupNode());
                         break;
 
                     // Atomic group "(?>...)"
                     case '>':
-                        MoveRight();
                         _group = new GroupUnit(new AtomicGroupNode());
                         break;
 
                     // Conditional group (?(condition)then|else)
                     case '(':
+                        MoveLeft();
                         _group = new GroupUnit(new ConditionalGroupNode());
                         break;
 
                     // Possitive lookahead "(?=...)" or negative lookahead "(?!...)"
                     case '=':
                     case '!':
-                        MoveRight();
                         _group = new GroupUnit(new LookaroundGroupNode(true, ch == '='));
                         break;
 
                     // Named capturing group "(?'name'...)" or balancing group "(?'name-balancedGroupName'...)"
                     case '\'':
-                        MoveRight();
-                        _group = CreateNamedGroupUnit(ch);
+                        _group = new GroupUnit(CreateNamedGroup(ch));
                         break;
 
 
                     // Named capturing group "(?<name>...)" or possitive lookbehind "(?<=...)" or negative lookbehind "(?<!...)"
                     case '<':
-                        if (CharsRight() > 1)
-                        {
-                            char nextCh = RightChar(1);
-
-                            // Possitive lookbehind "(?<=...)" or negative lookbehind "(?<!...)"
-                            if (nextCh == '=' || nextCh == '!')
-                            {
-                                MoveRight();
-                                // Consume both the '<' and '=' or '!' characters.
-                                MoveRight();
-                                _group = new GroupUnit(new LookaroundGroupNode(false, nextCh == '='));
-                                break;
-                            }
-                        }
-
-                        // Named capturing group "(?<name>...)" or balancing group "(?<name-balancedGroupName>...)"
-                        MoveRight();
-                        _group = CreateNamedGroupUnit('>');
+                        StartNamedOrLookbehindGroup();
                         break;
 
-                    
                     default:
+                        MoveLeft();
                         string options = ScanOptions();
 
                         // Mode modifier group "(?imnsx-imnsx)" or "(?imnsx-imnsx:...)"
@@ -465,10 +453,45 @@ namespace RegexParser
         }
 
         /// <summary>
+        /// Checks whether a group is a regular capturing group () in response to an opening '('.
+        /// </summary>
+        private bool IsCaptureGroup()
+        {
+            // "(" followed by nothing.
+            if (CharsRight() == 0)
+            {
+                throw MakeException(RegexParseError.NotEnoughParentheses);
+            }
+
+            // "(x..." where x != "?" or "(?)"
+            return RightChar() != '?' || (CharsRight() > 1 && RightChar(1) == ')');
+        }
+
+        private void StartNamedOrLookbehindGroup()
+        {
+            if (CharsRight() > 0)
+            {
+                char ch = RightChar();
+
+                // Possitive lookbehind "(?<=...)" or negative lookbehind "(?<!...)"
+                if (ch == '=' || ch == '!')
+                {
+                    // Consume both the '<' and the '=' or '!' characters.
+                    MoveRight();
+                    _group = new GroupUnit(new LookaroundGroupNode(false, ch == '='));
+                    return;
+                }
+            }
+
+            // Named capturing group "(?<name>...)" or balancing group "(?<name-balancedGroupName>...)"
+            _group = new GroupUnit(CreateNamedGroup('>'));
+        }
+
+        /// <summary>
         /// Creates a group unit for a named group.
         /// </summary>
         /// <param name="closeChar">The character that closes the named group. Should be '\'' or '>'.</param>
-        private GroupUnit CreateNamedGroupUnit(char closeChar)
+        private GroupNode CreateNamedGroup(char closeChar)
         {
             // Don't allow named group in condition of conditional group
             if (_group?.Node.GetType() == typeof(ConditionalGroupNode) && !_group.Node.ChildNodes.Any())
@@ -482,21 +505,21 @@ namespace RegexParser
             // Group name was closed. It is a named capturing group "(?<name>...)" or "(?'name'...)".
             if (LeftChar() == closeChar)
             {
-                return new GroupUnit(new NamedGroupNode(groupName, useQuotes));
+                return new NamedGroupNode(groupName, useQuotes);
             }
 
-            // Group name was not closed. It is a balancing group "(?'-balancedGroupName'...)" or "(?'name-balancedGroupName'...)".
+            // Group name was not closed. It is a balancing group "(?<-balancedGroupName>...)" or "(?<name-balancedGroupName>...)".
             // Don't allow balancing a second time.
             string balancedGroupName = ScanGroupName(closeChar, false);
 
             // Unnamed balancing group "(?<-balancedGroupName>...)" or "(?'-balancedGroupName'...)"
             if (string.IsNullOrEmpty(groupName))
             {
-                return new GroupUnit(new BalancingGroupNode(balancedGroupName, useQuotes));
+                return new BalancingGroupNode(balancedGroupName, useQuotes);
             }
 
             // Named balancing group "(?<name-balancedGroupName>...)" or "(?'name-balancedGroupName'...)"
-            return new GroupUnit(new BalancingGroupNode(balancedGroupName, groupName, useQuotes));
+            return new BalancingGroupNode(balancedGroupName, groupName, useQuotes);
         }
 
         /// <summary>
@@ -599,9 +622,15 @@ namespace RegexParser
             }
 
             // Opening '{', followed by some decimal number, followed by closing '}'. It is a quantifier "{n}".
-            else if ((ch = RightCharMoveRight()) == '}')
+            if ((ch = RightCharMoveRight()) == '}')
             {
-                RegexNode previousNode = CurrentConcatenation().LastOrDefault();
+                // Don't allow empty quantifiers
+                if (!CurrentConcatenation().Any())
+                {
+                    throw MakeException(RegexParseError.EmptyQuantifier);
+                }
+
+                RegexNode previousNode = CurrentConcatenation().Last();
                 quantifier = new QuantifierNNode(n, previousNode);
             }
 
@@ -612,7 +641,13 @@ namespace RegexParser
 
                 if (CharsRight() > 0 && RightCharMoveRight() == '}')
                 {
-                    RegexNode previousNode = CurrentConcatenation().LastOrDefault();
+                    // Don't allow empty quantifiers
+                    if (!CurrentConcatenation().Any())
+                    {
+                        throw MakeException(RegexParseError.EmptyQuantifier);
+                    }
+
+                    RegexNode previousNode = CurrentConcatenation().Last();
 
                     // Opening '{', followed by some decimal number, followed by ',', followed by closing '}'. It is a quantifier "{n,}".
                     if (string.IsNullOrEmpty(m))
@@ -632,32 +667,7 @@ namespace RegexParser
             // Characters following '{' followed format "{n}", "{n,}" or "{n,m}". It is a quantifier.
             if (quantifier != null)
             {
-                var currentConcatenation = CurrentConcatenation();
-
-                // Don't allow empty quantifiers
-                if (!currentConcatenation.Any())
-                {
-                    throw MakeException(RegexParseError.EmptyQuantifier);
-                }
-
-                // Don't allow nested quantifiers
-                if (_previousWasQuantifier)
-                {
-                    throw MakeException(RegexParseError.NestedQuantifier);
-                }
-
-                // Quantifier followed by '?' is a lazy quantifier
-                if (IsLazy())
-                {
-                    currentConcatenation[^1] = new LazyNode(quantifier);
-                }
-
-                else
-                {
-                    currentConcatenation[^1] = quantifier;
-                }
-
-                _previousWasQuantifier = true;
+                AddQuantifier(quantifier);
             }
 
             // Characters following '{' did not follow format "{n}", "{n,}" or "{n,m}". '{' is a literal character.
@@ -666,6 +676,34 @@ namespace RegexParser
                 MoveTo(startPosition);
                 AddNode(new CharacterNode('{'));
             }
+        }
+
+        /// <summary>
+        /// Add a quantifier to the current concatenation items.
+        /// The last element of the current concatenation items will become the quantifier's child en be replaced as the last element by the quantifier.
+        /// </summary>
+        private void AddQuantifier(QuantifierNode quantifier)
+        {
+            var currentConcatenation = CurrentConcatenation();
+
+            // Don't allow nested quantifiers
+            if (_previousWasQuantifier)
+            {
+                throw MakeException(RegexParseError.NestedQuantifier);
+            }
+
+            // Quantifier followed by '?' is a lazy quantifier
+            if (IsLazy())
+            {
+                currentConcatenation[^1] = new LazyNode(quantifier);
+            }
+
+            else
+            {
+                currentConcatenation[^1] = quantifier;
+            }
+
+            _previousWasQuantifier = true;
         }
 
         /// <summary>
@@ -746,7 +784,8 @@ namespace RegexParser
         }
 
         /// <summary>
-        /// Parse characters following a '\' when it is not a backreference or an anchor. The escaped character can be used in a character class.
+        /// Parse characters following a '\' when it is not a backreference or an anchor.
+        /// The escaped character can be used in a character class.
         /// </summary>
         /// <returns>CharacterClassShorthandNode, UnicodeCategoryNode or EscapeNode</returns>
         private RegexNode ParseBasicBackslash()
@@ -782,11 +821,15 @@ namespace RegexParser
             }
         }
 
+        /// <summary>
+        /// Parse an escaped characters following a '\'. It is an octal, hexadecimal, unicode or character escape.
+        /// The escaped character can be used in a character class.
+        /// </summary>
         private RegexNode ParseCharacterEscape()
         {
             char ch = RightChar();
             
-            if (ch >= '0' && ch <= '7')
+            if (IsOctalDigit(ch))
             {
                 return EscapeCharacterNode.FromOctal(ScanOctal());
             }
@@ -807,36 +850,28 @@ namespace RegexParser
                 case 'c':
                     return EscapeCharacterNode.FromControlCharacter(ScanControlCharacter());
 
-                // Character escape
-                case 'a':
-                case 'b':
-                case 'e':
-                case 'f':
-                case 'n':
-                case 'r':
-                case 't':
-                case 'v':
-                    return EscapeCharacterNode.FromCharacter(ch);
-
                 default:
-                    // Other word characters should not be escaped.
-                    if (IsWordChar(ch))
+                    // Character escape
+                    if (IsEscapable(ch))
                     {
-                        throw MakeException(RegexParseError.UnregocnizedEscape, ch);
+                        return EscapeCharacterNode.FromCharacter(ch);
                     }
 
-                    // Escape metacharacter
-                    return EscapeCharacterNode.FromCharacter(ch);
+                    // Unescapable character
+                    throw MakeException(RegexParseError.UnregocnizedEscape, ch);
             }
         }
 
+        /// <summary>
+        /// Scans a character following \c. Valid control characters are A-Z and a-z.
+        /// </summary>
         private char ScanControlCharacter()
         {
             if (CharsRight() > 0)
             {
                 char ch = RightCharMoveRight();
-                if ((ch >= 'A' && ch <= 'z') ||
-                    (ch >= 'a' && ch <= 'Z'))
+                if ((ch >= 'A' && ch <= 'Z') ||
+                    (ch >= 'a' && ch <= 'z'))
                 {
                     return ch;
                 }
@@ -961,37 +996,81 @@ namespace RegexParser
 
             int startPosition = _currentPosition;
 
-            while (CharsRight() > 0)
+            while (CharsRight() > 0 && IsValidOption(RightChar()))
+            {
+                MoveRight();
+            }
+
+            if (CharsRight() > 0)
             {
                 char ch = RightChar();
 
-                switch (ch)
+                if (ch == ':')
                 {
-                    case '-':
-                    case '+':
-                    case 'i':
-                    case 'm':
-                    case 'n':
-                    case 's':
-                    case 'x':
-                        MoveRight();
-                        break;
-
-                    // Set options for the current group only "(?imnsx-imnsx:...)"
-                    case ':':
-                        string options = Pattern[startPosition.._currentPosition];
-                        MoveRight();
-                        return options;
-
-                    // Set options for the rest of the regular expression "(?imnsx-imnsx)"
-                    case ')':
-                        return Pattern[startPosition.._currentPosition];
-                    default:
-                        throw MakeException(RegexParseError.UnrecognizedGroupingConstruct);
+                    string options = Pattern[startPosition.._currentPosition];
+                    MoveRight();
+                    return options;
                 }
+
+                if (ch == ')')
+                {
+                    return Pattern[startPosition.._currentPosition];
+                }
+
+                throw MakeException(RegexParseError.UnrecognizedGroupingConstruct);
             }
 
             throw MakeException(RegexParseError.UnrecognizedGroupingConstruct);
+        }
+
+        /// <summary>
+        /// Checks whether a character is escapable. Escapable characters are 'a', 'b', 'e', 'f', 'n', 'r', 't', 'v' and non-word characters.
+        /// </summary>
+        private bool IsEscapable(char ch)
+        {
+            switch (ch)
+            {
+                // Character escape
+                case 'a':
+                case 'b':
+                case 'e':
+                case 'f':
+                case 'n':
+                case 'r':
+                case 't':
+                case 'v':
+                    return true;
+
+                default:
+                    // Other word characters should not be escaped.
+                    if (IsWordChar(ch))
+                    {
+                        return false;
+                    }
+
+                    // Escape metacharacter
+                    return true;
+            }
+        }
+
+        /// <summary>
+        /// Checks whether a character is a valid inline option. Valid options are 'i', 'm', 'n', 's', 'x', '-', '+'.
+        /// </summary>
+        private bool IsValidOption(char ch)
+        {
+            switch (ch)
+            {
+                case 'i':
+                case 'm':
+                case 'n':
+                case 's':
+                case 'x':
+                case '-':
+                case '+':
+                    return true;
+                default:
+                    return false;
+            }
         }
 
         /// <summary>
@@ -1170,6 +1249,11 @@ namespace RegexParser
         /// Moves the current parsing position one to the right.
         /// </summary>
         private void MoveRight() => _currentPosition++;
+
+        /// <summary>
+        /// Moves the current parsing position one to the right.
+        /// </summary>
+        private void MoveLeft() => _currentPosition--;
 
         /// <summary>
         /// Moves the current parsing position to i.
