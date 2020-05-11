@@ -10,24 +10,11 @@ namespace RegexParser.UnitTest.Nodes.CharacterClass
     public class CharacterClassNodeTest
     {
         [TestMethod]
-        public void ToStringOnEmptyCharacterClassNodeShouldReturnEmptyBrackets()
-        {
-            // Arrange
-            var target = new CharacterClassNode(false);
-
-            // Act
-            var result = target.ToString();
-
-            // Assert
-            result.ShouldBe("[]");
-        }
-
-        [TestMethod]
         public void ToStringOnCharacterClassNodeWithCharacterSetShouldReturnCharactersBetweenBrackets()
         {
             // Arrange
             var characterSet = new CharacterClassCharacterSetNode(new List<RegexNode> { new CharacterNode('a'), new CharacterNode('b'), new CharacterNode('c') });
-            var target = new CharacterClassNode(false, characterSet);
+            var target = new CharacterClassNode(characterSet, false);
 
             // Act
             var result = target.ToString();
@@ -41,7 +28,7 @@ namespace RegexParser.UnitTest.Nodes.CharacterClass
         {
             // Arrange
             var characterSet = new CharacterClassCharacterSetNode(new List<RegexNode> { new CharacterNode('a'), new CharacterNode('b'), new CharacterNode('c') });
-            var target = new CharacterClassNode(true, characterSet);
+            var target = new CharacterClassNode(characterSet, true);
 
             // Act
             var result = target.ToString();
@@ -55,9 +42,9 @@ namespace RegexParser.UnitTest.Nodes.CharacterClass
         {
             // Arrange
             var subtractionCharacterSet = new CharacterClassCharacterSetNode(new CharacterNode('a'));
-            var subtraction = new CharacterClassNode(false, subtractionCharacterSet);
+            var subtraction = new CharacterClassNode(subtractionCharacterSet, false);
             var characterSet = new CharacterClassCharacterSetNode(new List<RegexNode> { new CharacterNode('a'), new CharacterNode('b'), new CharacterNode('c') });
-            var target = new CharacterClassNode(false, characterSet, subtraction);
+            var target = new CharacterClassNode(characterSet, subtraction, false);
 
             // Act
             var result = target.ToString();
@@ -72,7 +59,7 @@ namespace RegexParser.UnitTest.Nodes.CharacterClass
             // Arrange
             var characterSet = new CharacterClassCharacterSetNode(new List<RegexNode> { new CharacterNode('a'), new CharacterNode('b'), new CharacterNode('c') });
             var replacementCharacterSet = new CharacterClassCharacterSetNode(new List<RegexNode> { new CharacterNode('b'), new CharacterNode('c') });
-            var target = new CharacterClassNode(true, characterSet);
+            var target = new CharacterClassNode(characterSet, true);
 
             // Act
             // ReplaceNode returns a copy of the current node.
@@ -81,6 +68,50 @@ namespace RegexParser.UnitTest.Nodes.CharacterClass
             // Assert
             CharacterClassNode characterClassNode = result.ShouldBeOfType<CharacterClassNode>();
             characterClassNode.Negated.ShouldBe(target.Negated);
+        }
+
+        [TestMethod]
+        public void CharacterSetShouldReturnOriginalCharacterSet()
+        {
+            // Arrange
+            var characterSet = new CharacterClassCharacterSetNode(new List<RegexNode> { new CharacterNode('a'), new CharacterNode('b'), new CharacterNode('c') });
+            var target = new CharacterClassNode(characterSet, false);
+
+            // Act
+            var result = target.CharacterSet;
+
+            // Assert
+            result.ShouldBe(characterSet);
+        }
+
+        [TestMethod]
+        public void SubtractionShouldReturnOriginalSubtraction()
+        {
+            // Arrange
+            var subtractionCharacterSet = new CharacterClassCharacterSetNode(new CharacterNode('a'));
+            var subtraction = new CharacterClassNode(subtractionCharacterSet, false);
+            var characterSet = new CharacterClassCharacterSetNode(new List<RegexNode> { new CharacterNode('a'), new CharacterNode('b'), new CharacterNode('c') });
+            var target = new CharacterClassNode(characterSet, subtraction, false);
+
+            // Act
+            var result = target.Subtraction;
+
+            // Assert
+            result.ShouldBe(subtraction);
+        }
+
+        [TestMethod]
+        public void SubtractionShouldReturnNullIfNoSubtraction()
+        {
+            // Arrange
+            var characterSet = new CharacterClassCharacterSetNode(new List<RegexNode> { new CharacterNode('a'), new CharacterNode('b'), new CharacterNode('c') });
+            var target = new CharacterClassNode(characterSet, false);
+
+            // Act
+            var result = target.Subtraction;
+
+            // Assert
+            result.ShouldBeNull();
         }
     }
 }

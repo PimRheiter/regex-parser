@@ -7,19 +7,21 @@ namespace RegexParser.Nodes.CharacterClass
     public class CharacterClassNode : RegexNode
     {
         public bool Negated { get; }
+        public CharacterClassCharacterSetNode CharacterSet => ChildNodes.First() as CharacterClassCharacterSetNode;
+        public CharacterClassNode Subtraction => ChildNodes.ElementAtOrDefault(1) as CharacterClassNode;
 
-        public CharacterClassNode(bool negated)
+        private CharacterClassNode(bool negated)
         {
             Negated = negated;
         }
 
-        public CharacterClassNode(bool negated, CharacterClassCharacterSetNode characterSet)
+        public CharacterClassNode(CharacterClassCharacterSetNode characterSet, bool negated)
             : base(characterSet)
         {
             Negated = negated;
         }
 
-        public CharacterClassNode(bool negated, CharacterClassCharacterSetNode characterSet, CharacterClassNode subtraction)
+        public CharacterClassNode(CharacterClassCharacterSetNode characterSet, CharacterClassNode subtraction, bool negated)
             : base(new List<RegexNode> { characterSet, subtraction })
         {
             Negated = negated;
