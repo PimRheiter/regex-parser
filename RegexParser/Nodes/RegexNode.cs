@@ -6,9 +6,9 @@ namespace RegexParser.Nodes
     public abstract class RegexNode
     {
         private readonly List<RegexNode> _childNodes = new List<RegexNode>();
-        private RegexNode _parent;
 
         public IEnumerable<RegexNode> ChildNodes => _childNodes;
+        public RegexNode Parent { get; private set; }
 
         protected RegexNode() { }
 
@@ -43,7 +43,7 @@ namespace RegexParser.Nodes
         /// <returns>The current RegexNode</returns>
         private void Add(RegexNode newNode)
         {
-            newNode._parent = this;
+            newNode.Parent = this;
             _childNodes.Add(newNode);
         }
 
@@ -104,9 +104,9 @@ namespace RegexParser.Nodes
 
             copy.Add(newNode);
 
-            if (returnRoot && _parent != null)
+            if (returnRoot && Parent != null)
             {
-                return _parent.ReplaceNode(this, copy);
+                return Parent.ReplaceNode(this, copy);
             }
 
             return copy;
@@ -126,9 +126,9 @@ namespace RegexParser.Nodes
             {
                 copy.Add(childNode == oldNode ? newNode : childNode.ReplaceNode(oldNode, newNode, false));
             }
-            if (returnRoot && _parent != null)
+            if (returnRoot && Parent != null)
             {
-                return _parent.ReplaceNode(this, copy);
+                return Parent.ReplaceNode(this, copy);
             }
             return copy;
         }
@@ -149,9 +149,9 @@ namespace RegexParser.Nodes
                     copy.Add(childNode.RemoveNode(oldNode, false));
                 }
             }
-            if (returnRoot && _parent != null)
+            if (returnRoot && Parent != null)
             {
-                return _parent.ReplaceNode(this, copy);
+                return Parent.ReplaceNode(this, copy);
             }
             return copy;
         }
