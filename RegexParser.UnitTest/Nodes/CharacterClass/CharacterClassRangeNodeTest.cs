@@ -12,13 +12,45 @@ namespace RegexParser.UnitTest.Nodes.CharacterClass
         public void ToStringOnCharacterClassRangeNodeShouldReturnRangeWithStartAndEndSeperatedByDash()
         {
             // Arrange
-            var target = new CharacterClassRangeNode(new CharacterNode('a'), new CharacterNode('z'));
+            var start = new CharacterNode('a');
+            var end = new CharacterNode('z');
+            var target = new CharacterClassRangeNode(start, end);
 
             // Act
             var result = target.ToString();
 
             // Assert
             result.ShouldBe("a-z");
+        }
+
+        [TestMethod]
+        public void StarttShouldReturnOriginalStart()
+        {
+            // Arrange
+            var start = new CharacterNode('a');
+            var end = new CharacterNode('z');
+            var target = new CharacterClassRangeNode(start, end);
+
+            // Act
+            var result = target.Start;
+
+            // Assert
+            result.ShouldBe(start);
+        }
+
+        [TestMethod]
+        public void EndShouldReturnOriginalEnd()
+        {
+            // Arrange
+            var start = new CharacterNode('a');
+            var end = new CharacterNode('z');
+            var target = new CharacterClassRangeNode(start, end);
+
+            // Act
+            var result = target.End;
+
+            // Assert
+            result.ShouldBe(end);
         }
     }
 }
