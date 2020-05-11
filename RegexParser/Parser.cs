@@ -222,10 +222,10 @@ namespace RegexParser
 
                 if (subtraction == null)
                 {
-                    return new CharacterClassNode(negated, characterSetNode);
+                    return new CharacterClassNode(characterSetNode, negated);
                 }
 
-                return new CharacterClassNode(negated, characterSetNode, subtraction);
+                return new CharacterClassNode(characterSetNode, subtraction, negated);
             }
 
             // No closing ']'.
