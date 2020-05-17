@@ -110,5 +110,20 @@ namespace RegexParser.UnitTest.Nodes.GroupNodes
             lookaroundGroupNode.Lookahead.ShouldBe(target.Lookahead);
             lookaroundGroupNode.Possitive.ShouldBe(target.Possitive);
         }
+
+        [TestMethod]
+        public void ToStringOnLookaroundGroupNodeWithprefixShouldReturnPrefixBeforeLookaroundGroupNode()
+        {
+
+            // Arrange
+            var comment = new CommentGroupNode("This is a comment.");
+            var target = new LookaroundGroupNode(true, true) { Prefix = comment };
+
+            // Act
+            var result = target.ToString();
+
+            // Assert
+            result.ShouldBe("(?#This is a comment.)(?=)");
+        }
     }
 }

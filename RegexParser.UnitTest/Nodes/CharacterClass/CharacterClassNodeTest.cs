@@ -1,6 +1,7 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using RegexParser.Nodes;
 using RegexParser.Nodes.CharacterClass;
+using RegexParser.Nodes.GroupNodes;
 using Shouldly;
 using System.Collections.Generic;
 
@@ -112,6 +113,21 @@ namespace RegexParser.UnitTest.Nodes.CharacterClass
 
             // Assert
             result.ShouldBeNull();
+        }
+
+        [TestMethod]
+        public void ToStringOnCharacterClassNodeWithPrefixShouldReturnPrefixBeforeCharacterClass()
+        {
+            // Arrange
+            var comment = new CommentGroupNode("This is a comment.");
+            var characterSet = new CharacterClassCharacterSetNode(new List<RegexNode> { new CharacterNode('a'), new CharacterNode('b'), new CharacterNode('c') });
+            var target = new CharacterClassNode(characterSet, false) { Prefix = comment };
+
+            // Act
+            var result = target.ToString();
+
+            // Assert
+            result.ShouldBe("(?#This is a comment.)[abc]");
         }
     }
 }

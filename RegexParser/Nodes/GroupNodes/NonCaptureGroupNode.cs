@@ -20,7 +20,7 @@ namespace RegexParser.Nodes.GroupNodes
 
         public override string ToString()
         {
-            return $"(?:{string.Concat(ChildNodes)})";
+            return $"{Prefix}(?:{string.Concat(ChildNodes)})";
         }
     }
 }

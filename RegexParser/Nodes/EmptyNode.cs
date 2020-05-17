@@ -2,6 +2,9 @@
 {
     public class EmptyNode : RegexNode
     {
-        public override string ToString() => "";
+        public override string ToString()
+        {
+            return $"{Prefix}";
+        }
     }
 }

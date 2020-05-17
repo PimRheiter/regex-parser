@@ -34,7 +34,7 @@ namespace RegexParser.Nodes.GroupNodes
 
         public override string ToString()
         {
-            return $"(?{(UseQuotes ? "'" : "<")}{Name}{(UseQuotes ? "'" : ">")}{string.Concat(ChildNodes)})";
+            return $"{Prefix}(?{(UseQuotes ? "'" : "<")}{Name}{(UseQuotes ? "'" : ">")}{string.Concat(ChildNodes)})";
         }
     }
 }

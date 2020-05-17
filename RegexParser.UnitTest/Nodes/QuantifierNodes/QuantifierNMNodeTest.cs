@@ -1,5 +1,6 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using RegexParser.Nodes;
+using RegexParser.Nodes.GroupNodes;
 using RegexParser.Nodes.QuantifierNodes;
 using Shouldly;
 
@@ -21,7 +22,6 @@ namespace RegexParser.UnitTest.Nodes.QuantifierNodes
             // Assert
             result.ShouldBe("a{05,006}");
         }
-
 
         [TestMethod]
         public void ToStringShouldReturnQuantifierNMOfIntegersNAndMIfNoOriginalNAndMIsGiven()
@@ -54,6 +54,21 @@ namespace RegexParser.UnitTest.Nodes.QuantifierNodes
             quantifierNMNode.N.ShouldBe(target.N);
             quantifierNMNode.OriginalM.ShouldBe(target.OriginalM);
             quantifierNMNode.M.ShouldBe(target.M);
+        }
+
+        [TestMethod]
+        public void ToStringOnQuantifierWithPrefixShouldReturnPrefixBeforeOriginalQuantifierAndAfterQuantifiersChildNode()
+        {
+            // Arrange
+            var comment = new CommentGroupNode("This is a comment.");
+            var characterNode = new CharacterNode('a');
+            var target = new QuantifierNMNode("05", "006", characterNode) { Prefix = comment };
+
+            // Act
+            var result = target.ToString();
+
+            // Assert
+            result.ShouldBe("a(?#This is a comment.){05,006}");
         }
     }
 }

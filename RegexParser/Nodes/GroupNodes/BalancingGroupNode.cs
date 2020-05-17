@@ -53,7 +53,7 @@ namespace RegexParser.Nodes.GroupNodes
 
         public override string ToString()
         {
-            return $"(?{(UseQuotes ? "'" : "<")}{(string.IsNullOrEmpty(Name) ? "" : $"{Name}")}-{BalancedGroupName}{(UseQuotes ? "'" : ">")}{string.Concat(ChildNodes)})";
+            return $"{Prefix}(?{(UseQuotes ? "'" : "<")}{(string.IsNullOrEmpty(Name) ? "" : $"{Name}")}-{BalancedGroupName}{(UseQuotes ? "'" : ">")}{string.Concat(ChildNodes)})";
         }
     }
 }

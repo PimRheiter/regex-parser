@@ -16,7 +16,7 @@
 
         public override string ToString()
         {
-            return $@"\{Shorthand}";
+            return $@"{Prefix}\{Shorthand}";
         }
     }
 }

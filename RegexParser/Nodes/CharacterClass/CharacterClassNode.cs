@@ -4,6 +4,9 @@ using System.Text;
 
 namespace RegexParser.Nodes.CharacterClass
 {
+    /// <summary>
+    /// Represents a character class [] in the RegexTree.
+    /// </summary>
     public class CharacterClassNode : RegexNode
     {
         public bool Negated { get; }
@@ -34,7 +37,7 @@ namespace RegexParser.Nodes.CharacterClass
 
         public override string ToString()
         {
-            var stringBuilder = new StringBuilder("[");
+            var stringBuilder = new StringBuilder($"{Prefix}[");
 
             if (Negated)
             {

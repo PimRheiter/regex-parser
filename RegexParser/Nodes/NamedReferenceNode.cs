@@ -26,7 +26,7 @@
 
         public override string ToString()
         {
-            return $@"\{(UseK ? "k" : "")}{(UseQuotes ? "'" : "<")}{Name}{(UseQuotes ? "'" : ">")}";
+            return $@"{Prefix}\{(UseK ? "k" : "")}{(UseQuotes ? "'" : "<")}{Name}{(UseQuotes ? "'" : ">")}";
         }
     }
 }

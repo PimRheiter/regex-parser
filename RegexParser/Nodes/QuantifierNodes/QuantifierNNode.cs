@@ -34,7 +34,7 @@ namespace RegexParser.Nodes.QuantifierNodes
         
         public override string ToString()
         {
-            return $"{ChildNodes.First()}{{{OriginalN ?? N.ToString()}}}";
+            return $"{ChildNodes.First()}{Prefix}{{{OriginalN ?? N.ToString()}}}";
         }
     }
 }

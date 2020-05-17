@@ -1,5 +1,6 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using RegexParser.Nodes;
+using RegexParser.Nodes.GroupNodes;
 using Shouldly;
 
 namespace RegexParser.UnitTest.Nodes
@@ -144,6 +145,21 @@ namespace RegexParser.UnitTest.Nodes
             var escapeNode = result.ShouldBeOfType<EscapeCharacterNode>();
             escapeNode.Escape.ShouldBe(target.Escape);
             escapeNode.Character.ShouldBe(target.Character);
+        }
+
+        [TestMethod]
+        public void ToStringOnEscapeCharacterNodeWithPrefixShouldReturnPrefixBeforeEscapeCharacter()
+        {
+            // Arrange
+            var comment = new CommentGroupNode("This is a comment.");
+            var target = EscapeCharacterNode.FromCharacter('a');
+            target.Prefix = comment;
+
+            // Act
+            var result = target.ToString();
+
+            // Assert
+            result.ShouldBe(@"(?#This is a comment.)\a");
         }
     }
 }

@@ -31,7 +31,7 @@ namespace RegexParser.Nodes.GroupNodes
 
         public override string ToString()
         {
-            return $"(?{Modifiers}{(ChildNodes.Any() ? $":{string.Concat(ChildNodes)}" : "")})";
+            return $"{Prefix}(?{Modifiers}{(ChildNodes.Any() ? $":{string.Concat(ChildNodes)}" : "")})";
         }
     }
 }

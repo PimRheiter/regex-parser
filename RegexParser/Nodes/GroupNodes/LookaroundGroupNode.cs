@@ -34,7 +34,7 @@ namespace RegexParser.Nodes.GroupNodes
 
         public override string ToString()
         {
-            return $"(?{(Lookahead ? "" : "<")}{(Possitive ? "=" : "!")}{string.Concat(ChildNodes)})";
+            return $"{Prefix}(?{(Lookahead ? "" : "<")}{(Possitive ? "=" : "!")}{string.Concat(ChildNodes)})";
         }
     }
 }

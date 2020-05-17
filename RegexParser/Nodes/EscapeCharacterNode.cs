@@ -96,7 +96,7 @@ namespace RegexParser.Nodes
 
         public override string ToString()
         {
-            return $@"\{Escape}";
+            return $@"{Prefix}\{Escape}";
         }
     }
 }

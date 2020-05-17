@@ -82,5 +82,20 @@ namespace RegexParser.UnitTest.Nodes.GroupNodes
             namedGroupNode.Name.ShouldBe(target.Name);
             namedGroupNode.UseQuotes.ShouldBe(target.UseQuotes);
         }
+
+        [TestMethod]
+        public void ToStringOnNamedGroupNodeWithprefixShouldReturnPrefixBeforeNamedGroupNode()
+        {
+
+            // Arrange
+            var comment = new CommentGroupNode("This is a comment.");
+            var target = new NamedGroupNode("name", false) { Prefix = comment };
+
+            // Act
+            var result = target.ToString();
+
+            // Assert
+            result.ShouldBe("(?#This is a comment.)(?<name>)");
+        }
     }
 }

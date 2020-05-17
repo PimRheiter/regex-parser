@@ -15,7 +15,7 @@ namespace RegexParser.Nodes
 
         public override string ToString()
         {
-            return $"{ChildNodes.First()}?";
+            return $"{ChildNodes.First()}{Prefix}?";
         }
     }
 }

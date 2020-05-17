@@ -1,5 +1,6 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using RegexParser.Nodes;
+using RegexParser.Nodes.GroupNodes;
 using Shouldly;
 
 namespace RegexParser.UnitTest.Nodes
@@ -33,6 +34,20 @@ namespace RegexParser.UnitTest.Nodes
             // Assert
             CharacterNode characterNode = result.ShouldBeOfType<CharacterNode>();
             characterNode.Character.ShouldBe(target.Character);
+        }
+
+        [TestMethod]
+        public void ToStringOnCharacterNodeWithPrefixShouldReturnPrefixBeforeCharacter()
+        {
+            // Arrange
+            var comment = new CommentGroupNode("This is a comment.");
+            var target = new CharacterNode('a') { Prefix = comment };
+
+            // Act
+            var result = target.ToString();
+
+            // Assert
+            result.ShouldBe("(?#This is a comment.)a");
         }
     }
 }

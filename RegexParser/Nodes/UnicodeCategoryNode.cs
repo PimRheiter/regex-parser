@@ -18,7 +18,7 @@
 
         public override string ToString()
         {
-            return $@"\{(Negated ? "P" : "p")}{{{Category}}}";
+            return $@"{Prefix}\{(Negated ? "P" : "p")}{{{Category}}}";
         }
     }
 }

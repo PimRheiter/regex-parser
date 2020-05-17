@@ -103,5 +103,24 @@ namespace RegexParser.UnitTest.Nodes.GroupNodes
             // Assert
             result.ShouldBeNull(); ;
         }
+
+        [TestMethod]
+        public void ToStringOnConditionalGroupNodeWithprefixShouldReturnPrefixBeforeConditionalGroupNode()
+        {
+
+            // Arrange
+            var comment = new CommentGroupNode("This is a comment.");
+            var thenBranch = new CharacterNode('t');
+            var elseBranch = new CharacterNode('e');
+            var alternates = new AlternationNode(new List<RegexNode> { thenBranch, elseBranch });
+            var condition = new CaptureGroupNode(new CharacterNode('c'));
+            var target = new ConditionalGroupNode(condition, alternates) { Prefix = comment };
+
+            // Act
+            var result = target.ToString();
+
+            // Assert
+            result.ShouldBe("(?#This is a comment.)(?(c)t|e)");
+        }
     }
 }

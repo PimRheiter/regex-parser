@@ -79,5 +79,20 @@ namespace RegexParser.UnitTest.Nodes.GroupNodes
             balancingGroupNode.Name.ShouldBe(target.Name);
             balancingGroupNode.UseQuotes.ShouldBe(target.UseQuotes);
         }
+
+        [TestMethod]
+        public void ToStringOnBalancingGroupWithprefixShouldReturnPrefixBeforeBalancingGroup()
+        {
+
+            // Arrange
+            var comment = new CommentGroupNode("This is a comment.");
+            var target = new BalancingGroupNode("balancedGroup", "currentGroup", false) { Prefix = comment };
+
+            // Act
+            var result = target.ToString();
+
+            // Assert
+            result.ShouldBe("(?#This is a comment.)(?<currentGroup-balancedGroup>)");
+        }
     }
 }

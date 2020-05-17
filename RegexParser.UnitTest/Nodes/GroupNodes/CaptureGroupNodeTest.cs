@@ -50,5 +50,21 @@ namespace RegexParser.UnitTest.Nodes.GroupNodes
             // Assert
             result.ShouldBe("(abc)");
         }
+
+        [TestMethod]
+        public void ToStringOnCaptureGroupNodeWithprefixShouldReturnPrefixBeforeCaptureGroupNode()
+        {
+
+            // Arrange
+            var comment = new CommentGroupNode("This is a comment.");
+            var childNode = new CharacterNode('a');
+            var target = new CaptureGroupNode(childNode) { Prefix = comment };
+
+            // Act
+            var result = target.ToString();
+
+            // Assert
+            result.ShouldBe("(?#This is a comment.)(a)");
+        }
     }
 }

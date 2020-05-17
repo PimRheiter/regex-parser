@@ -68,5 +68,20 @@ namespace RegexParser.UnitTest.Nodes.GroupNodes
             ModeModifierGroupNode modeModifierGroupNode = result.ShouldBeOfType<ModeModifierGroupNode>();
             modeModifierGroupNode.Modifiers.ShouldBe(target.Modifiers);
         }
+
+        [TestMethod]
+        public void ToStringOnModeModifierGroupNodeWithprefixShouldReturnPrefixBeforeModeModifierGroupNode()
+        {
+
+            // Arrange
+            var comment = new CommentGroupNode("This is a comment.");
+            var target = new ModeModifierGroupNode("imsnx-imsnx") { Prefix = comment };
+
+            // Act
+            var result = target.ToString();
+
+            // Assert
+            result.ShouldBe("(?#This is a comment.)(?imsnx-imsnx)");
+        }
     }
 }

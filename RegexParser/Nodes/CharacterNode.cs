@@ -11,7 +11,7 @@
 
         public override string ToString()
         {
-            return Character.ToString();
+            return $"{Prefix}{Character}";
         }
 
         protected override RegexNode CopyInstance()

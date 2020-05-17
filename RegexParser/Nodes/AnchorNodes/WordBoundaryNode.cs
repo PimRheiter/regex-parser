@@ -4,7 +4,7 @@
     {
         public override string ToString()
         {
-            return @"\b";
+            return $@"{Prefix}\b";
         }
     }
 }

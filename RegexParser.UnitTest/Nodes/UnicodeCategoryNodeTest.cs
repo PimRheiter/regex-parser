@@ -1,5 +1,6 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using RegexParser.Nodes;
+using RegexParser.Nodes.GroupNodes;
 using Shouldly;
 
 namespace RegexParser.UnitTest.Nodes
@@ -48,6 +49,20 @@ namespace RegexParser.UnitTest.Nodes
             UnicodeCategoryNode unicodeCategoryNode = result.ShouldBeOfType<UnicodeCategoryNode>();
             unicodeCategoryNode.Category.ShouldBe(target.Category);
             unicodeCategoryNode.Negated.ShouldBe(target.Negated);
+        }
+
+        [TestMethod]
+        public void ToStringOnUnicodeCategoryNodeWithPrefixShouldReturnPrefixBeforeUnicodeCategory()
+        {
+            // Arrange
+            var comment = new CommentGroupNode("This is a comment.");
+            var target = new UnicodeCategoryNode("IsBasicLatin", false) { Prefix = comment };
+
+            // Act
+            var result = target.ToString();
+
+            // Assert
+            result.ShouldBe(@"(?#This is a comment.)\p{IsBasicLatin}");
         }
     }
 }
