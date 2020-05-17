@@ -1,6 +1,6 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Moq;
 using RegexParser.Nodes;
+using RegexParser.Nodes.GroupNodes;
 using RegexParser.Nodes.QuantifierNodes;
 using Shouldly;
 using System.Collections.Generic;
@@ -15,7 +15,7 @@ namespace RegexParser.UnitTest.Nodes
         public void EmptyConstructorShouldReturnNewRegexNodeWithNoChildNodes()
         {
             // Arrange
-            var target = new Mock<RegexNode>().Object;
+            var target = new TestRegexNode();
 
             // Assert
             target.ChildNodes.ShouldBeEmpty();
@@ -28,7 +28,7 @@ namespace RegexParser.UnitTest.Nodes
             var childNodes = new List<RegexNode> { new CharacterNode('a'), new CharacterNode('b') };
 
             // Act
-            var target = new Mock<RegexNode>(childNodes).Object;
+            var target = new TestRegexNode(childNodes);
 
             // Assert
             target.ChildNodes.Count().ShouldBe(2);
@@ -40,7 +40,7 @@ namespace RegexParser.UnitTest.Nodes
         public void AddNodeShouldCopyNodeAndAddNewRegexNode()
         {
             // Arrange
-            var target = new Mock<RegexNode>(new List<RegexNode> { new CharacterNode('a'), new CharacterNode('b') }) { CallBase = true, }.Object;
+            var target = new TestRegexNode(new List<RegexNode> { new CharacterNode('a'), new CharacterNode('b') });
             var newNode = new CharacterNode('c');
 
             // Act
@@ -57,7 +57,7 @@ namespace RegexParser.UnitTest.Nodes
             // Arrange
             var grandChildConcatNode = new ConcatenationNode(new List<RegexNode> { new CharacterNode('d'), new CharacterNode('e') });
             var childConcatNode = new ConcatenationNode(new List<RegexNode> { grandChildConcatNode, new CharacterNode('a'), new CharacterNode('b') });
-            var target = new Mock<RegexNode>(childConcatNode) { CallBase = true, }.Object;
+            var target = new TestRegexNode(childConcatNode);
             var newNode = new CharacterNode('c');
 
             // Act
@@ -76,7 +76,7 @@ namespace RegexParser.UnitTest.Nodes
             var charNodeA = new CharacterNode('a');
             var charNodeB = new CharacterNode('b');
             var childNodes = new List<RegexNode> { charNodeA, charNodeB };
-            var target = new Mock<RegexNode>(childNodes) { CallBase = true, }.Object;
+            var target = new TestRegexNode(childNodes);
             var newNode = new CharacterNode('c');
 
             // Act
@@ -93,9 +93,9 @@ namespace RegexParser.UnitTest.Nodes
         {
             // Arrange
             var targetChildNodes = new List<RegexNode> { new CharacterNode('a'), new CharacterNode('b') };
-            var target = new Mock<RegexNode>(targetChildNodes) { CallBase = true }.Object;
-            var targetParent = new Mock<RegexNode>(target) { CallBase = true, }.Object;
-            _ = new Mock<RegexNode>(targetParent) { CallBase = true, }.Object;
+            var target = new TestRegexNode(targetChildNodes);
+            var targetParent = new TestRegexNode(target);
+            _ = new TestRegexNode(targetParent);
             var newNode = new CharacterNode('c');
 
             // Act
@@ -113,9 +113,9 @@ namespace RegexParser.UnitTest.Nodes
         {
             // Arrange
             var targetChildNodes = new List<RegexNode> { new CharacterNode('a'), new CharacterNode('b') };
-            var target = new Mock<RegexNode>(targetChildNodes) { CallBase = true }.Object;
-            var targetParent = new Mock<RegexNode>(target) { CallBase = true, }.Object;
-            _ = new Mock<RegexNode>(targetParent) { CallBase = true, }.Object;
+            var target = new TestRegexNode(targetChildNodes);
+            var targetParent = new TestRegexNode(target);
+            _ = new TestRegexNode(targetParent);
             var newNode = new CharacterNode('c');
 
             // Act
@@ -133,7 +133,7 @@ namespace RegexParser.UnitTest.Nodes
             var charNodeA = new CharacterNode('a');
             var charNodeB = new CharacterNode('b');
             var childNodes = new List<RegexNode> { charNodeA, charNodeB };
-            var target = new Mock<RegexNode>(childNodes) { CallBase = true, }.Object;
+            var target = new TestRegexNode(childNodes);
             var newNode = new CharacterNode('c');
 
             // Act
@@ -151,7 +151,7 @@ namespace RegexParser.UnitTest.Nodes
             var charNodeA = new CharacterNode('a');
             var charNodeB = new CharacterNode('b');
             var childNodes = new List<RegexNode> { charNodeA, charNodeB };
-            var target = new Mock<RegexNode>(childNodes) { CallBase = true, }.Object;
+            var target = new TestRegexNode(childNodes);
             var newNode = new CharacterNode('c');
 
             // Act
@@ -170,9 +170,9 @@ namespace RegexParser.UnitTest.Nodes
             var charNodeA = new CharacterNode('a');
             var charNodeB = new CharacterNode('b');
             var targetChildNodes = new List<RegexNode> { charNodeA, charNodeB };
-            var target = new Mock<RegexNode>(targetChildNodes) { CallBase = true, }.Object;
-            var targetParent = new Mock<RegexNode>(target) { CallBase = true, }.Object;
-            _ = new Mock<RegexNode>(targetParent) { CallBase = true, }.Object;
+            var target = new TestRegexNode(targetChildNodes);
+            var targetParent = new TestRegexNode(target);
+            _ = new TestRegexNode(targetParent);
             var newNode = new CharacterNode('c');
 
             // Act
@@ -192,9 +192,9 @@ namespace RegexParser.UnitTest.Nodes
             var charNodeA = new CharacterNode('a');
             var charNodeB = new CharacterNode('b');
             var targetChildNodes = new List<RegexNode> { charNodeA, charNodeB };
-            var target = new Mock<RegexNode>(targetChildNodes) { CallBase = true, }.Object;
-            var targetParent = new Mock<RegexNode>(target) { CallBase = true, }.Object;
-            _ = new Mock<RegexNode>(targetParent) { CallBase = true, }.Object;
+            var target = new TestRegexNode(targetChildNodes);
+            var targetParent = new TestRegexNode(target);
+            _ = new TestRegexNode(targetParent);
             var newNode = new CharacterNode('c');
 
             // Act
@@ -212,7 +212,7 @@ namespace RegexParser.UnitTest.Nodes
             var charNodeA = new CharacterNode('a');
             var charNodeB = new CharacterNode('b');
             var childNodes = new List<RegexNode> { charNodeA, charNodeB };
-            var target = new Mock<RegexNode>(childNodes) { CallBase = true, }.Object;
+            var target = new TestRegexNode(childNodes);
 
             // Act
             RegexNode result = target.RemoveNode(charNodeA);
@@ -229,7 +229,7 @@ namespace RegexParser.UnitTest.Nodes
             var charNodeA = new CharacterNode('a');
             var charNodeB = new CharacterNode('b');
             var childNodes = new List<RegexNode> { charNodeA, charNodeB };
-            var target = new Mock<RegexNode>(childNodes) { CallBase = true, }.Object;
+            var target = new TestRegexNode(childNodes);
 
             // Act
             RegexNode result = target.RemoveNode(charNodeA);
@@ -247,9 +247,9 @@ namespace RegexParser.UnitTest.Nodes
             var charNodeA = new CharacterNode('a');
             var charNodeB = new CharacterNode('b');
             var targetChildNodes = new List<RegexNode> { charNodeA, charNodeB };
-            var target = new Mock<RegexNode>(targetChildNodes) { CallBase = true, }.Object;
-            var targetParent = new Mock<RegexNode>(target) { CallBase = true, }.Object;
-            _ = new Mock<RegexNode>(targetParent) { CallBase = true, }.Object;
+            var target = new TestRegexNode(targetChildNodes);
+            var targetParent = new TestRegexNode(target);
+            _ = new TestRegexNode(targetParent);
 
             // Act
             RegexNode result = target.RemoveNode(charNodeA);
@@ -268,9 +268,9 @@ namespace RegexParser.UnitTest.Nodes
             var charNodeA = new CharacterNode('a');
             var charNodeB = new CharacterNode('b');
             var targetChildNodes = new List<RegexNode> { charNodeA, charNodeB };
-            var target = new Mock<RegexNode>(targetChildNodes) { CallBase = true, }.Object;
-            var targetParent = new Mock<RegexNode>(target) { CallBase = true, }.Object;
-            _ = new Mock<RegexNode>(targetParent) { CallBase = true, }.Object;
+            var target = new TestRegexNode(targetChildNodes);
+            var targetParent = new TestRegexNode(target);
+            _ = new TestRegexNode(targetParent);
 
             // Act
             RegexNode result = target.RemoveNode(charNodeA, false);
@@ -292,7 +292,7 @@ namespace RegexParser.UnitTest.Nodes
             var quantifierStar = new QuantifierStarNode(charNodeC);
             var grandchildren = new List<RegexNode> { quantifierPlus, charNodeB, quantifierStar };
             var concatenationNode = new ConcatenationNode(grandchildren);
-            var target = new Mock<RegexNode>(concatenationNode) { CallBase = true, }.Object;
+            var target = new TestRegexNode(concatenationNode);
 
             // Act
             IEnumerable<RegexNode> result = target.GetDescendantNodes();
@@ -311,13 +311,127 @@ namespace RegexParser.UnitTest.Nodes
         public void GetDescendantsOnNodeWithNoChildrenShouldReturnEmptyIEnumerable()
         {
             // Arrange
-            var target = new Mock<RegexNode>() { CallBase = true, }.Object;
+            var target = new TestRegexNode();
 
             // Act
             IEnumerable<RegexNode> result = target.GetDescendantNodes();
 
             // Assert
             result.ShouldBeEmpty();
+        }
+
+        [TestMethod]
+        public void AddNodeShouldCopyPrefix()
+        {
+            // Arrange
+            var prefix = new CommentGroupNode("This is a prefix.");
+            var target = new TestRegexNode { Prefix = prefix };
+            var newNode = new CharacterNode('a');
+
+            // Act
+            RegexNode result = target.AddNode(newNode);
+
+            // Assert
+            result.Prefix.ToString().ShouldBe(target.Prefix.ToString());
+        }
+
+        [TestMethod]
+        public void AddNodeResultShouldNotHaveReferenceToOriginalPrefix()
+        {
+            // Arrange
+            var prefix = new CommentGroupNode("This is a prefix.");
+            var target = new TestRegexNode { Prefix = prefix };
+            var newNode = new CharacterNode('a');
+
+            // Act
+            RegexNode result = target.AddNode(newNode);
+
+            // Assert
+            result.Prefix.ShouldNotBe(target.Prefix);
+        }
+
+        [TestMethod]
+        public void RemoveNodeShouldCopyPrefix()
+        {
+            // Arrange
+            var prefix = new CommentGroupNode("This is a prefix.");
+            var oldNode = new CharacterNode('a');
+            var target = new TestRegexNode(oldNode) { Prefix = prefix };
+
+            // Act
+            RegexNode result = target.RemoveNode(oldNode);
+
+            // Assert
+            result.Prefix.ToString().ShouldBe(target.Prefix.ToString());
+        }
+
+        [TestMethod]
+        public void RemoveNodeResultShouldNotHaveReferenceToOriginalPrefix()
+        {
+            // Arrange
+            var prefix = new CommentGroupNode("This is a prefix.");
+            var oldNode = new CharacterNode('a');
+            var target = new TestRegexNode(oldNode) { Prefix = prefix };
+
+            // Act
+            RegexNode result = target.RemoveNode(oldNode);
+
+            // Assert
+            result.Prefix.ShouldNotBe(target.Prefix);
+        }
+
+        [TestMethod]
+        public void ReplaceNodeShouldCopyPrefix()
+        {
+            // Arrange
+            var prefix = new CommentGroupNode("This is a prefix.");
+            var oldNode = new CharacterNode('a');
+            var newNode = new CharacterNode('b');
+            var target = new TestRegexNode(oldNode) { Prefix = prefix };
+
+            // Act
+            RegexNode result = target.ReplaceNode(oldNode, newNode);
+
+            // Assert
+            result.Prefix.ToString().ShouldBe(target.Prefix.ToString());
+        }
+
+        [TestMethod]
+        public void ReplaceNodeResultShouldNotHaveReferenceToOriginalPrefix()
+        {
+            // Arrange
+            var prefix = new CommentGroupNode("This is a prefix.");
+            var oldNode = new CharacterNode('a');
+            var newNode = new CharacterNode('b');
+            var target = new TestRegexNode(oldNode) { Prefix = prefix };
+
+            // Act
+            RegexNode result = target.ReplaceNode(oldNode, newNode);
+
+            // Assert
+            result.Prefix.ShouldNotBe(target.Prefix);
+        }
+    }
+
+    public class TestRegexNode : RegexNode
+    {
+        public TestRegexNode()
+        {
+        }
+
+        public TestRegexNode(RegexNode childNode)
+            : base(childNode)
+        {
+        }
+
+        public TestRegexNode(IEnumerable<RegexNode> childNodes)
+            : base(childNodes)
+        {
+        }
+
+        public override string ToString()
+        {
+            throw new System.NotImplementedException();
         }
     }
 }
