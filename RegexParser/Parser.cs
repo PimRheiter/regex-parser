@@ -433,17 +433,8 @@ namespace RegexParser
 
                     default:
                         MoveLeft();
-                        string options = ScanOptions();
-
-                        // Mode modifier group "(?imnsx-imnsx)" or "(?imnsx-imnsx:...)"
-                        if (!string.IsNullOrEmpty(options))
-                        {
-                            _group = new GroupUnit(new ModeModifierGroupNode(options));
-                            break;
-                        }
-
-                        // Invalid grouping construct
-                        throw MakeException(RegexParseError.UnrecognizedGroupingConstruct);
+                        StartModeModifierGroup();
+                        break;
                 }
             }
             _groupStack.Push(_group);
@@ -462,6 +453,23 @@ namespace RegexParser
 
             // "(x..." where x != "?" or "(?)"
             return RightChar() != '?' || (CharsRight() > 1 && RightChar(1) == ')');
+        }
+
+        /// <summary>
+        /// Sets a new GroupUnit with a ModeModifierGroupNode as the current group
+        /// </summary>
+        private void StartModeModifierGroup()
+        {
+            string options = ScanOptions();
+
+            // Invalid grouping construct
+            if (string.IsNullOrEmpty(options))
+            {
+                throw MakeException(RegexParseError.UnrecognizedGroupingConstruct);
+            }
+
+            // Mode modifier group "(?imnsx-imnsx)" or "(?imnsx-imnsx:...)"
+            _group = new GroupUnit(new ModeModifierGroupNode(options));
         }
 
         private void StartNamedOrLookbehindGroup()
