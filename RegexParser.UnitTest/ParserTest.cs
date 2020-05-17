@@ -68,6 +68,18 @@ namespace RegexParser.UnitTest
         [DataRow(@"(ab){1,2?|cd")]
         [DataRow(@"(ab){?|cd")]
         [DataRow(@"(ab){?")]
+        [DataRow(@"(?#This is a comment.)")]
+        [DataRow(@"(?#This is a comment.)a")]
+        [DataRow(@"a(?#This is a comment.)")]
+        [DataRow(@"((?#This is a comment.))")]
+        [DataRow(@"((?#This is a comment.)a)")]
+        [DataRow(@"(a(?#This is a comment.))")]
+        [DataRow(@"(?#This is a comment.)|b")]
+        [DataRow(@"(?#This is a comment.)a|b")]
+        [DataRow(@"a(?#This is a comment.)|b")]
+        [DataRow(@"a|(?#This is a comment.)")]
+        [DataRow(@"a|b(?#This is a comment.)")]
+        [DataRow(@"(?#This is the first comment.)(?#This is the second comment.)(?#This is the third comment.)a")]
         public void ParseShouldReturnRegexNodeWithOriginalRegexPattern(string pattern)
         {
             // Arrange
@@ -2005,6 +2017,219 @@ namespace RegexParser.UnitTest
             range.ChildNodes.Count().ShouldBe(2);
             range.ChildNodes.First().ShouldBeOfType<EscapeCharacterNode>().Escape.ShouldBe(start);
             range.ChildNodes.Last().ShouldBeOfType<EscapeCharacterNode>().Escape.ShouldBe(end);
+        }
+
+        [TestMethod]
+        public void ParsingCommentGroupShouldAddCommentAsPrefixForNextToken()
+        {
+            // Arrange
+            var target = new Parser("(?#This is a comment.)a");
+
+            // Act
+            var result = target.Parse();
+
+            // Assert
+            RegexNode root = result.Root;
+            var characterNode = root.ChildNodes.ShouldHaveSingleItem().ShouldBeOfType<CharacterNode>();
+            var comment = characterNode.Prefix.ShouldBeOfType<CommentGroupNode>();
+            comment.Comment.ShouldBe("This is a comment.");
+        }
+
+        [TestMethod]
+        public void ParsingCommentGroupAtEndOfPatternShouldAddCommentAsPrefixForEmptyNode()
+        {
+            // Arrange
+            var target = new Parser("a(?#This is a comment.)");
+
+            // Act
+            var result = target.Parse();
+
+            // Assert
+            RegexNode root = result.Root;
+            root.ChildNodes.Count().ShouldBe(2);
+            var emptyNode = root.ChildNodes.Last().ShouldBeOfType<EmptyNode>();
+            var comment = emptyNode.Prefix.ShouldBeOfType<CommentGroupNode>();
+            comment.Comment.ShouldBe("This is a comment.");
+        }
+
+        [TestMethod]
+        public void ParsingPatternWithOnlyCommentGroupShouldReturnOnlyEmptyNodeWithPrefix()
+        {
+            // Arrange
+            var target = new Parser("(?#This is a comment.)");
+
+            // Act
+            var result = target.Parse();
+
+            // Assert
+            RegexNode root = result.Root.ShouldBeOfType<EmptyNode>();
+            var comment = root.Prefix.ShouldBeOfType<CommentGroupNode>();
+            comment.Comment.ShouldBe("This is a comment.");
+        }
+
+        [TestMethod]
+        public void ParsingCommentGroupInGroupShouldAddCommentAsPrefixForNextTokenInGroup()
+        {
+            // Arrange
+            var target = new Parser("((?#This is a comment.)a)");
+
+            // Act
+            var result = target.Parse();
+
+            // Assert
+            RegexNode root = result.Root;
+            var group = root.ChildNodes.ShouldHaveSingleItem().ShouldBeOfType<CaptureGroupNode>();
+            var groupConcat = group.ChildNodes.ShouldHaveSingleItem().ShouldBeOfType<ConcatenationNode>();
+            var characterNode = groupConcat.ChildNodes.ShouldHaveSingleItem().ShouldBeOfType<CharacterNode>();
+            var comment = characterNode.Prefix.ShouldBeOfType<CommentGroupNode>();
+            comment.Comment.ShouldBe("This is a comment.");
+        }
+
+        [TestMethod]
+        public void ParsingCommentGroupAtEndOfAGroupShouldAddCommentAsPrefixForEmptyNodeAtTheEndOfTheGroup()
+        {
+            // Arrange
+            var target = new Parser("(a(?#This is a comment.))");
+
+            // Act
+            var result = target.Parse();
+
+            // Assert
+            RegexNode root = result.Root;
+            var group = root.ChildNodes.ShouldHaveSingleItem().ShouldBeOfType<CaptureGroupNode>();
+            var groupConcatenation = group.ChildNodes.ShouldHaveSingleItem();
+            groupConcatenation.ChildNodes.Count().ShouldBe(2);
+            var emptyNode = groupConcatenation.ChildNodes.Last().ShouldBeOfType<EmptyNode>();
+            var comment = emptyNode.Prefix.ShouldBeOfType<CommentGroupNode>();
+            comment.Comment.ShouldBe("This is a comment.");
+        }
+
+        [TestMethod]
+        public void ParsingGroupWithOnlyCommentGroupShouldAddCommentAsPrefixForEmptyNodeAsOnlyChildOfTheGroup()
+        {
+            // Arrange
+            var target = new Parser("((?#This is a comment.))");
+
+            // Act
+            var result = target.Parse();
+
+            // Assert
+            RegexNode root = result.Root;
+            var group = root.ChildNodes.ShouldHaveSingleItem().ShouldBeOfType<CaptureGroupNode>();
+            var emptyNode = group.ChildNodes.ShouldHaveSingleItem().ShouldBeOfType<EmptyNode>();
+            var comment = emptyNode.Prefix.ShouldBeOfType<CommentGroupNode>();
+            comment.Comment.ShouldBe("This is a comment.");
+        }
+
+        [TestMethod]
+        public void ParsingCommentGroupInAlternationShouldAddCommentAsPrefixForNextToken()
+        {
+            // Arrange
+            var target = new Parser("(?#This is a comment.)a|b");
+
+            // Act
+            var result = target.Parse();
+
+            // Assert
+            var root = result.Root.ShouldBeOfType<AlternationNode>();
+            root.ChildNodes.Count().ShouldBe(2);
+            var alternate = root.ChildNodes.First().ShouldBeOfType<ConcatenationNode>();
+            var characterNode = alternate.ChildNodes.ShouldHaveSingleItem().ShouldBeOfType<CharacterNode>();
+            var comment = characterNode.Prefix.ShouldBeOfType<CommentGroupNode>();
+            comment.Comment.ShouldBe("This is a comment.");
+        }
+
+        [TestMethod]
+        public void ParsingCommentGroupAtEndOfAlternateShouldAddCommentAsPrefixForEmptyNode()
+        {
+            // Arrange
+            var target = new Parser("a(?#This is a comment.)|b");
+
+            // Act
+            var result = target.Parse();
+
+            // Assert
+            var root = result.Root.ShouldBeOfType<AlternationNode>();
+            root.ChildNodes.Count().ShouldBe(2);
+            var alternate = root.ChildNodes.First().ShouldBeOfType<ConcatenationNode>();
+            alternate.ChildNodes.Count().ShouldBe(2);
+            var emptyNode = alternate.ChildNodes.Last().ShouldBeOfType<EmptyNode>();
+            var comment = emptyNode.Prefix.ShouldBeOfType<CommentGroupNode>();
+            comment.Comment.ShouldBe("This is a comment.");
+        }
+
+        [TestMethod]
+        public void ParsingAlternateWithOnlyCommentGroupShouldAddOnlyEmptyNodeWithPrefixAsAlternate()
+        {
+            // Arrange
+            var target = new Parser("(?#This is a comment.)|b");
+
+            // Act
+            var result = target.Parse();
+
+            // Assert
+            var root = result.Root.ShouldBeOfType<AlternationNode>();
+            root.ChildNodes.Count().ShouldBe(2);
+            var alternate = root.ChildNodes.First().ShouldBeOfType<EmptyNode>();
+            var comment = alternate.Prefix.ShouldBeOfType<CommentGroupNode>();
+            comment.Comment.ShouldBe("This is a comment.");
+        }
+
+        [TestMethod]
+        public void ParsingAlternationWithOnlyCommentGroupInLastAlternateShouldAddOnlyEmptyNodeWithPrefixAsAlternate()
+        {
+            // Arrange
+            var target = new Parser("a|(?#This is a comment.)");
+
+            // Act
+            var result = target.Parse();
+
+            // Assert
+            var root = result.Root.ShouldBeOfType<AlternationNode>();
+            root.ChildNodes.Count().ShouldBe(2);
+            var alternate = root.ChildNodes.Last().ShouldBeOfType<EmptyNode>();
+            var comment = alternate.Prefix.ShouldBeOfType<CommentGroupNode>();
+            comment.Comment.ShouldBe("This is a comment.");
+        }
+
+        [TestMethod]
+        public void ParsingMultipleCommentGroupsOnMultipleTokensShouldAddCommentsAsPrefixesForNextTokens()
+        {
+            // Arrange
+            var target = new Parser("(?#This is the first comment.)a(?#This is the second comment.)b");
+
+            // Act
+            var result = target.Parse();
+
+            // Assert
+            RegexNode root = result.Root;
+            root.ChildNodes.Count().ShouldBe(2);
+            var firstCharacter = root.ChildNodes.First().ShouldBeOfType<CharacterNode>();
+            var firstComment = firstCharacter.Prefix.ShouldBeOfType<CommentGroupNode>();
+            firstComment.Comment.ShouldBe("This is the first comment.");
+            var lastCharacter = root.ChildNodes.Last().ShouldBeOfType<CharacterNode>();
+            var lastComment = lastCharacter.Prefix.ShouldBeOfType<CommentGroupNode>();
+            lastComment.Comment.ShouldBe("This is the second comment.");
+        }
+
+        [TestMethod]
+        public void ParsingCommentGroupBeforeCommentGroupShouldAddCommentAsPrefixForNextCommentGroup()
+        {
+            // Arrange
+            var target = new Parser("(?#This is the first comment.)(?#This is the second comment.)(?#This is the third comment.)a");
+
+            // Act
+            var result = target.Parse();
+
+            // Assert
+            RegexNode root = result.Root;
+            var characterNode = root.ChildNodes.ShouldHaveSingleItem().ShouldBeOfType<CharacterNode>();
+            var comment = characterNode.Prefix.ShouldBeOfType<CommentGroupNode>();
+            comment.Comment.ShouldBe("This is the third comment.");
+            var secondComment = comment.Prefix.ShouldBeOfType<CommentGroupNode>();
+            secondComment.Comment.ShouldBe("This is the second comment.");
+            var lastComment = secondComment.Prefix.ShouldBeOfType<CommentGroupNode>();
+            lastComment.Comment.ShouldBe("This is the first comment.");
         }
     }
 }

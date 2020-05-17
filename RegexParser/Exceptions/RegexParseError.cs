@@ -45,6 +45,8 @@ namespace RegexParser.Exceptions
 		InvalidGroupName,
 		[Description("Incomplete \\p{{X}} unicode category or block.")]
 		IncompleteUnicodeCategory,
+		[Description("Unterminated comment group (?#... .")]
+		UnterminatedCommentGroup,
 	}
 
 	internal static class RegexParseErrorExtension

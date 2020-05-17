@@ -25,6 +25,7 @@ namespace RegexParser
         private readonly List<RegexNode> _concatenation = new List<RegexNode>();
         private readonly Stack<GroupUnit> _groupStack = new Stack<GroupUnit>();
         private GroupUnit _group;
+        private CommentGroupNode _prefix;
         private readonly UnicodeCategory[] _wordCharCategories = {
             UnicodeCategory.UppercaseLetter,
             UnicodeCategory.LowercaseLetter,
@@ -422,6 +423,13 @@ namespace RegexParser
                     case '<':
                         StartNamedOrLookbehindGroup();
                         break;
+
+                    // Comment group "(?#...)" is not added to the group stack. It will be the prefix for the next node instead.
+                    case '#':
+                        string comment = ScanComment();
+                        _prefix = new CommentGroupNode(comment) { Prefix = _prefix };
+                        // Return here, so nothing gets pushed to the group stack.
+                        return;
 
                     default:
                         MoveLeft();
@@ -1025,7 +1033,7 @@ namespace RegexParser
         /// <summary>
         /// Scans a group for inline mode modifiers. Only "imnsx-+" characters can be used for the options part of a ModeModifierGroup.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>Options as a string.</returns>
         private string ScanOptions()
         {
             // Mode modifiers in the condition of a conditional group are not allowed.
@@ -1061,6 +1069,29 @@ namespace RegexParser
             }
 
             throw MakeException(RegexParseError.UnrecognizedGroupingConstruct);
+        }
+
+        /// <summary>
+        /// Scans a comment until a closing ')' is found.
+        /// </summary>
+        /// <returns>The comment.</returns>
+        private string ScanComment()
+        {
+            int startPosition = _currentPosition;
+
+            while (CharsRight() > 0 && RightChar() != ')')
+            {
+                MoveRight();
+            }
+
+            if (CharsRight() > 0)
+            {
+                string comment = Pattern[startPosition.._currentPosition];
+                MoveRight();
+                return comment;
+            }
+
+            throw MakeException(RegexParseError.UnterminatedCommentGroup);
         }
 
         /// <summary>
@@ -1174,7 +1205,7 @@ namespace RegexParser
         /// Create an outer node for the current group.
         /// The outer node will be an AlternationNode if the current group has alternates.
         /// Otherwise the outer node will be a ConcatenationNode if the current group has concatenation items.
-        /// Otherwise the outer node will be a EmptyNode.
+        /// Otherwise the outer node will be a EmptyNode. Adds a prefix to the empty node if there is one and resets _prefix to null;
         /// </summary>
         private RegexNode CreateOuterNode()
         {
@@ -1190,7 +1221,9 @@ namespace RegexParser
                 return CreateConcatenationNode();
             }
 
-            return new EmptyNode();
+            var emptyNode = new EmptyNode() { Prefix = _prefix};
+            _prefix = null;
+            return emptyNode;
         }
 
         /// <summary>
@@ -1199,6 +1232,15 @@ namespace RegexParser
         private ConcatenationNode CreateConcatenationNode()
         {
             var currentConcatenation = CurrentConcatenation();
+
+            // If there is a prefix left, add an empty node to hold the prefix.
+            if (_prefix != null)
+            {
+                var emptyNode = new EmptyNode { Prefix = _prefix };
+                _prefix = null;
+                currentConcatenation.Add(emptyNode);
+            }
+
             var concatenationNode = new ConcatenationNode(currentConcatenation);
             currentConcatenation.Clear();
             return concatenationNode;
@@ -1218,26 +1260,39 @@ namespace RegexParser
         /// <summary>
         /// Adds a ConcatenationNode from the current group's concatenation items it's alternates.
         /// Adds an EmptyNode if there are no concatenation items.
+        /// Adds an EmptyNode to the last alternate to hold a prefix if there is one.
         /// </summary>
         private void AddAlternate()
         {
             if (CurrentConcatenation().Any())
             {
+                // Add an EmptyNode to hold a prefix if there is one.
+                if (_prefix != null)
+                {
+                    var emptyNode = new EmptyNode { Prefix = _prefix };
+                    _prefix = null;
+                    CurrentConcatenation().Add(emptyNode);
+                }
+
                 CurrentAlternates().Add(CreateConcatenationNode());
             }
 
             else
             {
-                CurrentAlternates().Add(new EmptyNode());
+                var emptyNode = new EmptyNode { Prefix = _prefix };
+                _prefix = null;
+                CurrentAlternates().Add(emptyNode);
             }
         }
 
         /// <summary>
-        /// Adds a RegexNode to the current group's concatenation items.
+        /// Adds a RegexNode to the current group's concatenation items. Adds a prefix to the node if there is one and resets the prefix to null.
         /// </summary>
         /// <param name="node"></param>
         private void AddNode(RegexNode node)
         {
+            node.Prefix = _prefix;
+            _prefix = null;
             CurrentConcatenation().Add(node);
         }
 
