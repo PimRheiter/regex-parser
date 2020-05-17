@@ -1,4 +1,5 @@
-﻿using System;
+﻿using RegexParser.Nodes.GroupNodes;
+using System;
 using System.Collections.Generic;
 
 namespace RegexParser.Nodes
@@ -9,6 +10,7 @@ namespace RegexParser.Nodes
 
         public IEnumerable<RegexNode> ChildNodes => _childNodes;
         public RegexNode Parent { get; private set; }
+        public CommentGroupNode Prefix { get; set; }
 
         protected RegexNode() { }
 
@@ -55,6 +57,7 @@ namespace RegexParser.Nodes
         internal RegexNode Copy(bool copyChildNodes = false)
         {
             RegexNode copy = CopyInstance();
+            copy.Prefix = Prefix?.CopyInstance() as CommentGroupNode;
             if (copyChildNodes)
             {
                 copy.CopyChildNodes(_childNodes);
