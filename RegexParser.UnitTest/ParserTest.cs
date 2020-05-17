@@ -517,11 +517,11 @@ namespace RegexParser.UnitTest
 
         [TestMethod]
         [DataRow(1)]
-        [DataRow(10)]
+        [DataRow(9)]
         public void ParsingBackslashDigitShouldReturnBackreferenceNodeWithGroupNumber(int groupNumber)
         {
             // Arrange
-            var target = new Parser($@"()\{groupNumber}");
+            var target = new Parser($@"()()()()()()()()()\{groupNumber}");
 
             // Act
             RegexTree result = target.Parse();
