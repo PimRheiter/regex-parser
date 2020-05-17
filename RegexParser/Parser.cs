@@ -431,6 +431,7 @@ namespace RegexParser
                         // Return here, so nothing gets pushed to the group stack.
                         return;
 
+                    // Could be inline mode modifier group "(?imnsx-imnsx)" or "(?imnsx-imnsx:...)". Invalid grouping construct otherwise.
                     default:
                         MoveLeft();
                         StartModeModifierGroup();
