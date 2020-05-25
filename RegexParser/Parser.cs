@@ -141,7 +141,7 @@ namespace RegexParser
                     _previousWasQuantifier = false;
                     break;
 
-                // EndOfLine Anchor
+                // EndOfLine Anchor "$"
                 case '$':
                     AddNode(new EndOfLineNode());
                     _previousWasQuantifier = false;
@@ -333,7 +333,7 @@ namespace RegexParser
         /// Throws an exception if the end of the range is a shorthand or unicode category or if start > end. 
         /// </summary>
         /// <param name="startNode">The start of the range. Should be a CharacterNode or EscapeCharacterNode.</param>
-        private RegexNode ParseCharacterRange(RegexNode startNode)
+        private CharacterClassRangeNode ParseCharacterRange(RegexNode startNode)
         {
             RegexNode rangeEnd;
             char rangeEndChar;
@@ -500,7 +500,7 @@ namespace RegexParser
         private GroupNode CreateNamedGroup(char closeChar)
         {
             // Don't allow named group in condition of conditional group
-            if (_group?.Node.GetType() == typeof(ConditionalGroupNode) && !_group.Node.ChildNodes.Any())
+            if (_group?.Node is ConditionalGroupNode && !_group.Node.ChildNodes.Any())
             {
                 throw MakeException(RegexParseError.ConditionCantCapture);
             }
@@ -582,7 +582,7 @@ namespace RegexParser
                     ParseTrueQuantifier();
                     break;
 
-                // Default unrecognized character
+                // Unrecognized character
                 default:
                     throw MakeException(RegexParseError.InternalError);
             }
@@ -614,8 +614,8 @@ namespace RegexParser
             {
                 '*' => new QuantifierStarNode(previousNode),
                 '+' => new QuantifierPlusNode(previousNode),
-                // '?'
-                _ => new QuantifierQuestionMarkNode(previousNode),
+                '?' => new QuantifierQuestionMarkNode(previousNode),
+                _ => throw MakeException(RegexParseError.InternalError)
             };
 
             // Quantifier followed by '?' is a lazy quantifier
@@ -759,7 +759,7 @@ namespace RegexParser
             char ch = RightChar();
 
             // Parse backreference "\1"
-            // TODO: parse octal escape character
+            // TODO: parse octal escape character if the digits following the '\' don't correspond to the number of a capturing group or named group.
             if (ch >= '1' && ch <= '9')
             {
                 string groupNumber = ScanDecimals();
@@ -773,7 +773,7 @@ namespace RegexParser
                     MoveRight();
                     return ParseNamedReferenceNode(true);
 
-                // Named reference "\<name>" and "\'name'" are deprecated, but can still be used
+                // Named references "\<name>" and "\'name'" are deprecated, but can still be used
                 case '<':
                 case '\'':
                     return ParseNamedReferenceNode(false);
@@ -1046,7 +1046,7 @@ namespace RegexParser
         private string ScanOptions()
         {
             // Mode modifiers in the condition of a conditional group are not allowed.
-            if (_group?.Node.GetType() == typeof(ConditionalGroupNode))
+            if (_group?.Node is ConditionalGroupNode)
             {
                 throw MakeException(RegexParseError.UnrecognizedGroupingConstruct);
             }
@@ -1267,7 +1267,7 @@ namespace RegexParser
         }
 
         /// <summary>
-        /// Adds a ConcatenationNode from the current group's concatenation items it's alternates.
+        /// Adds a ConcatenationNode from the current group's concatenation items to it's alternates.
         /// Adds an EmptyNode if there are no concatenation items.
         /// Adds an EmptyNode to the last alternate to hold a prefix if there is one.
         /// </summary>
@@ -1306,7 +1306,7 @@ namespace RegexParser
         }
 
         /// <summary>
-        /// Checks whether a character is one of the metacharacters in ".\$^|()*+?{".
+        /// Checks whether a character is one of the metacharacters in ".\$^|()*+?{[".
         /// </summary>
         private static bool IsSpecial(char ch)
         {
@@ -1330,10 +1330,15 @@ namespace RegexParser
             return _group?.Alternates ?? _alternates;
         }
 
+        /// <summary>
+        /// Creates a RegexParseException based on the type of RegexParseError.
+        /// </summary>
+        /// <param name="error">The error that caused the exception.</param>
+        /// <param name="faults">The faulty token(s) that caused the error.</param>
         private RegexParseException MakeException(RegexParseError error, params object[] faults)
         {
-            var x = string.Format(error.GetDescription(), faults);
-            var message = $"Invalid pattern \"{Pattern}\" at offset {_currentPosition}. {x}";
+            var errorDescription = string.Format(error.GetDescription(), faults);
+            var message = $"Invalid pattern \"{Pattern}\" at offset {_currentPosition}. {errorDescription}";
             return new RegexParseException(error, _currentPosition, message);
         }
 
