@@ -326,7 +326,7 @@ namespace RegexParser.UnitTest.Nodes
             // Arrange
             var prefix = new CommentGroupNode("This is a prefix.");
             var target = new TestRegexNode { Prefix = prefix };
-            var newNode = new CharacterNode('a');
+            var newNode = new TestRegexNode();
 
             // Act
             RegexNode result = target.AddNode(newNode);
@@ -341,7 +341,7 @@ namespace RegexParser.UnitTest.Nodes
             // Arrange
             var prefix = new CommentGroupNode("This is a prefix.");
             var target = new TestRegexNode { Prefix = prefix };
-            var newNode = new CharacterNode('a');
+            var newNode = new TestRegexNode();
 
             // Act
             RegexNode result = target.AddNode(newNode);
@@ -356,7 +356,7 @@ namespace RegexParser.UnitTest.Nodes
             // Arrange
             var prefix2 = new CommentGroupNode("This is the prefix's prefix.");
             var prefix = new CommentGroupNode("This is a prefix.") { Prefix = prefix2 };
-            var oldNode = new CharacterNode('a');
+            var oldNode = new TestRegexNode();
             var target = new TestRegexNode(oldNode) { Prefix = prefix };
 
             // Act
@@ -371,7 +371,7 @@ namespace RegexParser.UnitTest.Nodes
         {
             // Arrange
             var prefix = new CommentGroupNode("This is a prefix.");
-            var oldNode = new CharacterNode('a');
+            var oldNode = new TestRegexNode();
             var target = new TestRegexNode(oldNode) { Prefix = prefix };
 
             // Act
@@ -386,8 +386,8 @@ namespace RegexParser.UnitTest.Nodes
         {
             // Arrange
             var prefix = new CommentGroupNode("This is a prefix.");
-            var oldNode = new CharacterNode('a') { Prefix = prefix };
-            var nextNode = new CharacterNode('b');
+            var oldNode = new TestRegexNode() { Prefix = prefix };
+            var nextNode = new TestRegexNode();
             var target = new ConcatenationNode(new List<RegexNode> { oldNode, nextNode });
 
             // Act
@@ -400,13 +400,13 @@ namespace RegexParser.UnitTest.Nodes
         }
 
         [TestMethod]
-        public void RemoveNodeShouldAddOldNodesPrefixAsPrefixToNextNodesPresixIfNextNodeAlreadyHasPrefix()
+        public void RemoveNodeShouldAddOldNodesPrefixAsPrefixToNextNodesPrefixIfNextNodeAlreadyHasPrefix()
         {
             // Arrange
             var oldNodePrefix = new CommentGroupNode("This is a prefix.");
-            var oldNode = new CharacterNode('a') { Prefix = oldNodePrefix };
+            var oldNode = new TestRegexNode() { Prefix = oldNodePrefix };
             var nextNodePrefix = new CommentGroupNode("This is the prefix of the next node.");
-            var nextNode = new CharacterNode('b') { Prefix = nextNodePrefix };
+            var nextNode = new TestRegexNode() { Prefix = nextNodePrefix };
             var target = new ConcatenationNode(new List<RegexNode> { oldNode, nextNode });
 
             // Act
@@ -420,14 +420,14 @@ namespace RegexParser.UnitTest.Nodes
         }
 
         [TestMethod]
-        public void RemoveNodeShouldAddOldNodesPrefixAsFirstPresixIfNextNodeAlreadyHasMultiplePrefixes()
+        public void RemoveNodeShouldAddOldNodesPrefixAsFirstPrefixIfNextNodeAlreadyHasMultiplePrefixes()
         {
             // Arrange
             var oldNodePrefix = new CommentGroupNode("This is a prefix.");
-            var oldNode = new CharacterNode('a') { Prefix = oldNodePrefix };
+            var oldNode = new TestRegexNode() { Prefix = oldNodePrefix };
             var nextNodeFirstPrefix = new CommentGroupNode("This is the first prefix of the next node.");
             var nextNodeSecondPrefix = new CommentGroupNode("This is the second prefix of the next node.") { Prefix = nextNodeFirstPrefix };
-            var nextNode = new CharacterNode('b') { Prefix = nextNodeSecondPrefix };
+            var nextNode = new TestRegexNode() { Prefix = nextNodeSecondPrefix };
             var target = new ConcatenationNode(new List<RegexNode> { oldNode, nextNode });
 
             // Act
@@ -447,7 +447,7 @@ namespace RegexParser.UnitTest.Nodes
         {
             // Arrange
             var prefix = new CommentGroupNode("This is a prefix.");
-            var oldNode = new CharacterNode('a') { Prefix = prefix };
+            var oldNode = new TestRegexNode() { Prefix = prefix };
             var target = new ConcatenationNode(new List<RegexNode> { oldNode });
 
             // Act
@@ -463,7 +463,7 @@ namespace RegexParser.UnitTest.Nodes
         public void RemoveNodeShouldNotAddEmptyNodeWithIfOldNodeHasNoPrefix()
         {
             // Arrange
-            var oldNode = new CharacterNode('a');
+            var oldNode = new TestRegexNode();
             var target = new ConcatenationNode(new List<RegexNode> { oldNode });
 
             // Act
@@ -478,8 +478,8 @@ namespace RegexParser.UnitTest.Nodes
         {
             // Arrange
             var prefix = new CommentGroupNode("This is a prefix.");
-            var oldNode = new CharacterNode('a');
-            var newNode = new CharacterNode('b');
+            var oldNode = new TestRegexNode();
+            var newNode = new TestRegexNode();
             var target = new TestRegexNode(oldNode) { Prefix = prefix };
 
             // Act
@@ -494,8 +494,8 @@ namespace RegexParser.UnitTest.Nodes
         {
             // Arrange
             var prefix = new CommentGroupNode("This is a prefix.");
-            var oldNode = new CharacterNode('a');
-            var newNode = new CharacterNode('b');
+            var oldNode = new TestRegexNode();
+            var newNode = new TestRegexNode();
             var target = new TestRegexNode(oldNode) { Prefix = prefix };
 
             // Act
@@ -503,6 +503,67 @@ namespace RegexParser.UnitTest.Nodes
 
             // Assert
             result.Prefix.ShouldNotBe(target.Prefix);
+        }
+
+        [TestMethod]
+        public void ReplaceNodeShouldMoveOldNodesPrefixToNewNode()
+        {
+            // Arrange
+            var prefix = new CommentGroupNode("This is a prefix.");
+            var oldNode = new TestRegexNode() { Prefix = prefix };
+            var newNode = new TestRegexNode();
+            var target = new ConcatenationNode(oldNode);
+
+            // Act
+            RegexNode result = target.ReplaceNode(oldNode, newNode);
+
+            // Assert
+            var childNode = result.ChildNodes.ShouldHaveSingleItem();
+            childNode.Prefix.ShouldNotBeNull();
+            childNode.Prefix.Comment.ShouldBe(prefix.Comment);
+        }
+
+        [TestMethod]
+        public void ReplaceNodeShouldAddOldNodesPrefixAsPrefixToNewNodesPrefixIfNewNodeAlreadyHasPrefix()
+        {
+            // Arrange
+            var oldNodePrefix = new CommentGroupNode("This is a prefix.");
+            var oldNode = new TestRegexNode() { Prefix = oldNodePrefix };
+            var newNodePrefix = new CommentGroupNode("This is the prefix of the next node.");
+            var newNode = new TestRegexNode() { Prefix = newNodePrefix };
+            var target = new ConcatenationNode(oldNode);
+
+            // Act
+            RegexNode result = target.ReplaceNode(oldNode, newNode);
+
+            // Assert
+            var childNode = result.ChildNodes.ShouldHaveSingleItem();
+            childNode.Prefix.Comment.ShouldBe(newNode.Prefix.Comment);
+            childNode.Prefix.Prefix.ShouldNotBeNull();
+            childNode.Prefix.Prefix.Comment.ShouldBe(oldNodePrefix.Comment);
+        }
+
+        [TestMethod]
+        public void ReplaceNodeShouldAddOldNodesPrefixAsFirstPrefixIfNewNodeAlreadyHasMultiplePrefixes()
+        {
+            // Arrange
+            var oldNodePrefix = new CommentGroupNode("This is a prefix.");
+            var oldNode = new TestRegexNode() { Prefix = oldNodePrefix };
+            var newNodeFirstPrefix = new CommentGroupNode("This is the first prefix of the new node.");
+            var newNodeSecondPrefix = new CommentGroupNode("This is the second prefix of the new node.") { Prefix = newNodeFirstPrefix };
+            var newNode = new TestRegexNode() { Prefix = newNodeSecondPrefix };
+            var target = new ConcatenationNode(oldNode);
+
+            // Act
+            RegexNode result = target.ReplaceNode(oldNode, newNode);
+
+            // Assert
+            var childNode = result.ChildNodes.ShouldHaveSingleItem();
+            childNode.Prefix.Comment.ShouldBe(newNode.Prefix.Comment);
+            childNode.Prefix.Prefix.ShouldNotBeNull();
+            childNode.Prefix.Prefix.Comment.ShouldBe(newNode.Prefix.Prefix.Comment);
+            childNode.Prefix.Prefix.Prefix.ShouldNotBeNull();
+            childNode.Prefix.Prefix.Prefix.Comment.ShouldBe(oldNodePrefix.Comment);
         }
     }
 
@@ -524,7 +585,7 @@ namespace RegexParser.UnitTest.Nodes
 
         public override string ToString()
         {
-            throw new System.NotImplementedException();
+            return $"{Prefix}RegexTestNode";
         }
     }
 }

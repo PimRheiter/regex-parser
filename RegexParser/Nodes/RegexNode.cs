@@ -125,14 +125,22 @@ namespace RegexParser.Nodes
         public RegexNode ReplaceNode(RegexNode oldNode, RegexNode newNode, bool returnRoot = true)
         {
             RegexNode copy = Copy();
+            
+            if (oldNode.Prefix != null)
+            {
+                newNode.AddPrefixToPrefix(oldNode.Prefix.Copy() as CommentGroupNode);
+            }
+
             foreach (RegexNode childNode in _childNodes)
             {
                 copy.Add(childNode == oldNode ? newNode : childNode.ReplaceNode(oldNode, newNode, false));
             }
+
             if (returnRoot && Parent != null)
             {
                 return Parent.ReplaceNode(this, copy);
             }
+
             return copy;
         }
 
@@ -157,22 +165,24 @@ namespace RegexParser.Nodes
                 {
                     if (lastWasOldNode && oldNode.Prefix != null)
                     {
-                        childNode.AddPrefixToPrefix(oldNode.Prefix?.Copy() as CommentGroupNode);
+                        childNode.AddPrefixToPrefix(oldNode.Prefix.Copy() as CommentGroupNode);
                     }
                     copy.Add(childNode.RemoveNode(oldNode, false));
                     lastWasOldNode = false;
                 }
 
-                if (lastWasOldNode && oldNode.Prefix != null)
-                {
-                    copy.Add(new EmptyNode { Prefix = oldNode.Prefix.Copy() as CommentGroupNode });
-                }
-
             }
+
+            if (lastWasOldNode && oldNode.Prefix != null)
+            {
+                copy.Add(new EmptyNode { Prefix = oldNode.Prefix.Copy() as CommentGroupNode });
+            }
+
             if (returnRoot && Parent != null)
             {
                 return Parent.ReplaceNode(this, copy);
             }
+
             return copy;
         }
 
