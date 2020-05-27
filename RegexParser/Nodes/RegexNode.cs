@@ -57,7 +57,7 @@ namespace RegexParser.Nodes
         internal RegexNode Copy(bool copyChildNodes = false)
         {
             RegexNode copy = CopyInstance();
-            copy.Prefix = Prefix?.CopyInstance() as CommentGroupNode;
+            copy.Prefix = Prefix?.Copy() as CommentGroupNode;
             if (copyChildNodes)
             {
                 copy.CopyChildNodes(_childNodes);
@@ -96,7 +96,7 @@ namespace RegexParser.Nodes
         /// <param name="newNode">The new node to add</param>
         /// <param name="returnRoot">Whether to create a copy of the tree from the root. Defaults to true.</param>
         /// <returns>Returns a modified copy of the tree's root if  returnRoot is set to true. Returns a modified copy of the current node if returnRoot is set to false.</returns>
-        public virtual RegexNode AddNode(RegexNode newNode, bool returnRoot = true)
+        public RegexNode AddNode(RegexNode newNode, bool returnRoot = true)
         {
             RegexNode copy = Copy();
 
@@ -122,7 +122,7 @@ namespace RegexParser.Nodes
         /// <param name="newNode">The new replacement node</param>
         /// <param name="returnRoot">Whether to create a copy of the tree from the root. Defaults to true.</param>
         /// <returns>Returns a modified copy of the tree's root if  returnRoot is set to true. Returns a modified copy of the current node if returnRoot is set to false.</returns>
-        public virtual RegexNode ReplaceNode(RegexNode oldNode, RegexNode newNode, bool returnRoot = true)
+        public RegexNode ReplaceNode(RegexNode oldNode, RegexNode newNode, bool returnRoot = true)
         {
             RegexNode copy = Copy();
             foreach (RegexNode childNode in _childNodes)
@@ -142,21 +142,48 @@ namespace RegexParser.Nodes
         /// <param name="oldNode">The node to remove</param>
         /// <param name="returnRoot">Whether to create a copy of the tree from the root. Defaults to true.</param>
         /// <returns>Returns a modified copy of the tree's root if  returnRoot is set to true. Returns a modified copy of the current node if returnRoot is set to false.</returns>
-        public virtual RegexNode RemoveNode(RegexNode oldNode, bool returnRoot = true)
+        public RegexNode RemoveNode(RegexNode oldNode, bool returnRoot = true)
         {
             RegexNode copy = Copy();
+            var lastWasOldNode = false;
             foreach (RegexNode childNode in _childNodes)
             {
-                if (childNode != oldNode)
+                if (childNode == oldNode)
                 {
-                    copy.Add(childNode.RemoveNode(oldNode, false));
+                    lastWasOldNode = true;
                 }
+
+                else
+                {
+                    if (lastWasOldNode && oldNode.Prefix != null)
+                    {
+                        childNode.AddPrefixToPrefix(oldNode.Prefix?.Copy() as CommentGroupNode);
+                    }
+                    copy.Add(childNode.RemoveNode(oldNode, false));
+                    lastWasOldNode = false;
+                }
+
+                if (lastWasOldNode && oldNode.Prefix != null)
+                {
+                    copy.Add(new EmptyNode { Prefix = oldNode.Prefix.Copy() as CommentGroupNode });
+                }
+
             }
             if (returnRoot && Parent != null)
             {
                 return Parent.ReplaceNode(this, copy);
             }
             return copy;
+        }
+
+        private void AddPrefixToPrefix(CommentGroupNode newPrefix)
+        {
+            RegexNode currentNode = this;
+            while (currentNode.Prefix != null)
+            {
+                currentNode = currentNode.Prefix;
+            }
+            currentNode.Prefix = newPrefix;
         }
 
         public abstract override string ToString();

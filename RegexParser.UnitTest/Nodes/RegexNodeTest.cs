@@ -351,10 +351,11 @@ namespace RegexParser.UnitTest.Nodes
         }
 
         [TestMethod]
-        public void RemoveNodeShouldCopyPrefix()
+        public void RemoveNodeShouldCopyRootsPrefix()
         {
             // Arrange
-            var prefix = new CommentGroupNode("This is a prefix.");
+            var prefix2 = new CommentGroupNode("This is the prefix's prefix.");
+            var prefix = new CommentGroupNode("This is a prefix.") { Prefix = prefix2 };
             var oldNode = new CharacterNode('a');
             var target = new TestRegexNode(oldNode) { Prefix = prefix };
 
@@ -378,6 +379,98 @@ namespace RegexParser.UnitTest.Nodes
 
             // Assert
             result.Prefix.ShouldNotBe(target.Prefix);
+        }
+
+        [TestMethod]
+        public void RemoveNodeShouldMoveOldNodesPrefixToNextNode()
+        {
+            // Arrange
+            var prefix = new CommentGroupNode("This is a prefix.");
+            var oldNode = new CharacterNode('a') { Prefix = prefix };
+            var nextNode = new CharacterNode('b');
+            var target = new ConcatenationNode(new List<RegexNode> { oldNode, nextNode });
+
+            // Act
+            RegexNode result = target.RemoveNode(oldNode);
+
+            // Assert
+            var remainingNode = result.ChildNodes.ShouldHaveSingleItem();
+            remainingNode.Prefix.ShouldNotBeNull();
+            remainingNode.Prefix.Comment.ShouldBe(prefix.Comment);
+        }
+
+        [TestMethod]
+        public void RemoveNodeShouldAddOldNodesPrefixAsPrefixToNextNodesPresixIfNextNodeAlreadyHasPrefix()
+        {
+            // Arrange
+            var oldNodePrefix = new CommentGroupNode("This is a prefix.");
+            var oldNode = new CharacterNode('a') { Prefix = oldNodePrefix };
+            var nextNodePrefix = new CommentGroupNode("This is the prefix of the next node.");
+            var nextNode = new CharacterNode('b') { Prefix = nextNodePrefix };
+            var target = new ConcatenationNode(new List<RegexNode> { oldNode, nextNode });
+
+            // Act
+            RegexNode result = target.RemoveNode(oldNode);
+
+            // Assert
+            var remainingNode = result.ChildNodes.ShouldHaveSingleItem();
+            remainingNode.Prefix.Comment.ShouldBe(nextNode.Prefix.Comment);
+            remainingNode.Prefix.Prefix.ShouldNotBeNull();
+            remainingNode.Prefix.Prefix.Comment.ShouldBe(oldNodePrefix.Comment);
+        }
+
+        [TestMethod]
+        public void RemoveNodeShouldAddOldNodesPrefixAsFirstPresixIfNextNodeAlreadyHasMultiplePrefixes()
+        {
+            // Arrange
+            var oldNodePrefix = new CommentGroupNode("This is a prefix.");
+            var oldNode = new CharacterNode('a') { Prefix = oldNodePrefix };
+            var nextNodeFirstPrefix = new CommentGroupNode("This is the first prefix of the next node.");
+            var nextNodeSecondPrefix = new CommentGroupNode("This is the second prefix of the next node.") { Prefix = nextNodeFirstPrefix };
+            var nextNode = new CharacterNode('b') { Prefix = nextNodeSecondPrefix };
+            var target = new ConcatenationNode(new List<RegexNode> { oldNode, nextNode });
+
+            // Act
+            RegexNode result = target.RemoveNode(oldNode);
+
+            // Assert
+            var remainingNode = result.ChildNodes.ShouldHaveSingleItem();
+            remainingNode.Prefix.Comment.ShouldBe(nextNode.Prefix.Comment);
+            remainingNode.Prefix.Prefix.ShouldNotBeNull();
+            remainingNode.Prefix.Prefix.Comment.ShouldBe(nextNode.Prefix.Prefix.Comment);
+            remainingNode.Prefix.Prefix.Prefix.ShouldNotBeNull();
+            remainingNode.Prefix.Prefix.Prefix.Comment.ShouldBe(oldNodePrefix.Comment);
+        }
+
+        [TestMethod]
+        public void RemoveNodeShouldAddEmptyNodeWithOldNodesPrefixIfThereAreNoNextNodes()
+        {
+            // Arrange
+            var prefix = new CommentGroupNode("This is a prefix.");
+            var oldNode = new CharacterNode('a') { Prefix = prefix };
+            var target = new ConcatenationNode(new List<RegexNode> { oldNode });
+
+            // Act
+            RegexNode result = target.RemoveNode(oldNode);
+
+            // Assert
+            var emptyNode = result.ChildNodes.ShouldHaveSingleItem().ShouldBeOfType<EmptyNode>();
+            emptyNode.Prefix.ShouldNotBeNull();
+            emptyNode.Prefix.Comment.ShouldBe(prefix.Comment);
+        }
+
+        [TestMethod]
+        public void RemoveNodeShouldNotAddEmptyNodeWithIfOldNodeHasNoPrefix()
+        {
+            // Arrange
+            var oldNode = new CharacterNode('a');
+            var target = new ConcatenationNode(new List<RegexNode> { oldNode });
+
+            // Act
+            RegexNode result = target.RemoveNode(oldNode);
+
+            // Assert
+            result.ChildNodes.ShouldBeEmpty();
         }
 
         [TestMethod]
