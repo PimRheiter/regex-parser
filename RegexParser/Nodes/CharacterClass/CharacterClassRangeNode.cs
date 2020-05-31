@@ -5,8 +5,8 @@ namespace RegexParser.Nodes.CharacterClass
 {
     public class CharacterClassRangeNode : RegexNode
     {
-        public RegexNode Start => ChildNodes.First();
-        public RegexNode End => ChildNodes.Last();
+        public RegexNode Start => ChildNodes.FirstOrDefault();
+        public RegexNode End => ChildNodes.LastOrDefault();
 
         private CharacterClassRangeNode()
         {
@@ -19,7 +19,7 @@ namespace RegexParser.Nodes.CharacterClass
 
         public override string ToString()
         {
-            return $"{ChildNodes.First()}-{ChildNodes.Last()}";
+            return $"{Start}-{End}";
         }
     }
 }

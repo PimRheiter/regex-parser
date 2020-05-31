@@ -15,7 +15,7 @@ namespace RegexParser.Nodes.GroupNodes
     /// </summary>
     public class ConditionalGroupNode : GroupNode
     {
-        public RegexNode Condition => ChildNodes.First();
+        public RegexNode Condition => ChildNodes.FirstOrDefault();
         public RegexNode Alternates => ChildNodes.ElementAtOrDefault(1);
 
         internal ConditionalGroupNode() { }

@@ -10,7 +10,7 @@ namespace RegexParser.Nodes.CharacterClass
     public class CharacterClassNode : RegexNode
     {
         public bool Negated { get; }
-        public CharacterClassCharacterSetNode CharacterSet => ChildNodes.First() as CharacterClassCharacterSetNode;
+        public CharacterClassCharacterSetNode CharacterSet => ChildNodes.FirstOrDefault() as CharacterClassCharacterSetNode;
         public CharacterClassNode Subtraction => ChildNodes.ElementAtOrDefault(1) as CharacterClassNode;
 
         private CharacterClassNode(bool negated)
@@ -44,18 +44,14 @@ namespace RegexParser.Nodes.CharacterClass
                 stringBuilder.Append("^");
             }
 
-            if (ChildNodes.Any())
+            stringBuilder.Append(CharacterSet);
+            
+            if (Subtraction != null)
             {
-                stringBuilder.Append(ChildNodes.First());
-
-                if (ChildNodes.Count() > 1)
-                {
-                    stringBuilder.Append($"-{ChildNodes.Last()}");
-                }
+                stringBuilder.Append($"-{Subtraction}");
             }
 
             stringBuilder.Append("]");
-
             return stringBuilder.ToString();
         }
     }
