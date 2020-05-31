@@ -47,6 +47,8 @@ namespace RegexParser.Exceptions
 		IncompleteUnicodeCategory,
 		[Description("Unterminated comment group (?#... .")]
 		UnterminatedCommentGroup,
+		[Description("Illegal quantifier {x,y} with x > y.")]
+		IllegalQuantifierRange,
 	}
 
 	internal static class RegexParseErrorExtension

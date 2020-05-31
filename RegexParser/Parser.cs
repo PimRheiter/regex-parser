@@ -674,10 +674,16 @@ namespace RegexParser
                         quantifier = new QuantifierNOrMoreNode(n, previousNode);
                     }
 
-                    // Opening '{', followed by some decimal number, followed by ',', followed by some decimal number, followed by closing '}'. It is a quantifier "{n,m}".
-                    else
+                    // Opening '{', followed by some decimal number, followed by ',', followed by some decimal number, followed by closing '}'. It is a quantifier "{n,m}" where n <= m.
+                    else if (int.Parse(n) <= int.Parse(m))
                     {
                         quantifier = new QuantifierNMNode(n, m, previousNode);
+                    }
+
+                    // Illegal quantifier {n,m} where n > m
+                    else
+                    {
+                        throw MakeException(RegexParseError.IllegalQuantifierRange);
                     }
                 }
 

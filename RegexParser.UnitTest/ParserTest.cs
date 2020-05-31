@@ -1392,10 +1392,10 @@ namespace RegexParser.UnitTest
         }
 
         [TestMethod]
-        public void ParsingIntegerCommaIntegerBetweenCurlyBracketsShouldReturnQuantifierNNodeWithFirstIntegerAsNAndSecondIntegerAsM()
+        public void ParsingIntegerCommaIntegerBetweenCurlyBracketsShouldReturnQuantifierNMNodeIfNIsLessThanM()
         {
             // Arrange
-            var target = new Parser("a{5,10}");
+            var target = new Parser("a{9,10}");
 
             // Act
             var result = target.Parse();
@@ -1404,8 +1404,39 @@ namespace RegexParser.UnitTest
             RegexNode root = result.Root;
             var childNode = root.ChildNodes.ShouldHaveSingleItem();
             var quantifierNode = childNode.ShouldBeOfType<QuantifierNMNode>();
-            quantifierNode.N.ShouldBe(5);
+            quantifierNode.N.ShouldBe(9);
             quantifierNode.M.ShouldBe(10);
+        }
+
+        [TestMethod]
+        public void ParsingIntegerNCommaIntegerMBetweenCurlyBracketsShouldReturnQuantifierNMNodeIfNIsEqualToM()
+        {
+            // Arrange
+            var target = new Parser("a{10,10}");
+
+            // Act
+            var result = target.Parse();
+
+            // Assert
+            RegexNode root = result.Root;
+            var childNode = root.ChildNodes.ShouldHaveSingleItem();
+            var quantifierNode = childNode.ShouldBeOfType<QuantifierNMNode>();
+            quantifierNode.N.ShouldBe(10);
+            quantifierNode.M.ShouldBe(10);
+        }
+
+        [TestMethod]
+        public void ParsingIntegerNCommaIntegerMBetweenCurlyBracketsShouldThrowRegexParseExceptionIfNIsGreaterThanM()
+        {
+            // Act
+            Action act = () => {
+                var target = new Parser("a{11,10}");
+                target.Parse();
+            };
+
+            // Assert
+            act.ShouldThrow<RegexParseException>();
+
         }
 
         [TestMethod]
