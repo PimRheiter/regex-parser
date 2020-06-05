@@ -2,6 +2,9 @@
 
 namespace RegexParser.Nodes.GroupNodes
 {
+    /// <summary>
+    /// RegexNode representing an atomic group "(?>...)".
+    /// </summary>
     public class AtomicGroupNode : GroupNode
     {
         protected override int ChildSpanOffset => 3;

@@ -1,5 +1,8 @@
 ﻿namespace RegexParser.Nodes
 {
+    /// <summary>
+    /// RegexNode representing a character class shorthand "\d".
+    /// </summary>
     public class CharacterClassShorthandNode : RegexNode
     {
         public char Shorthand { get; }

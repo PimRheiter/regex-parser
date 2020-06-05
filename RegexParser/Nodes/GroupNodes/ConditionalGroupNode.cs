@@ -5,10 +5,10 @@ namespace RegexParser.Nodes.GroupNodes
 {
     /// <summary>
     /// RegexNode representing a conditional group "(?(condition)then|else)".
-    /// A ConditionalGroupNode should have exactly at least one child.
+    /// A ConditionalGroupNode should have at least one child.
     /// The first child is the condition and should be a GroupNode.
     /// A ConditionalGroupNode should have at most two children.
-    /// The second child is should be an AlternationNode with exactly two children or a ConcatenationNode.
+    /// The second child should be an AlternationNode with exactly two children or a ConcatenationNode.
     /// If the second child is an AlternationNode, the first alternate is the "then" branch, the second alternate is the "else" branch.
     /// If the second child is a ConcatenationNode, the concatenation is the "then" branch, the "else" branch will implicitly match an empty string.
     /// If there is no second child, both the "then" and "else" braches will implicitly match an empty string.

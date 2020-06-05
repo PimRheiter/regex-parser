@@ -2,6 +2,9 @@
 
 namespace RegexParser.Nodes.GroupNodes
 {
+    /// <summary>
+    /// RegexNode representing a non capture group "(?:...)".
+    /// </summary>
     public class NonCaptureGroupNode : GroupNode
     {
         protected override int ChildSpanOffset => 3;

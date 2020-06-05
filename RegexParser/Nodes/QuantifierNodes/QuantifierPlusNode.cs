@@ -2,6 +2,9 @@
 
 namespace RegexParser.Nodes.QuantifierNodes
 {
+    /// <summary>
+    /// RegexNode representing a quantifier "+".
+    /// </summary>
     public class QuantifierPlusNode : QuantifierNode
     {
         private QuantifierPlusNode()

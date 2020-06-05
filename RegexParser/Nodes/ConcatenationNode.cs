@@ -2,6 +2,9 @@
 
 namespace RegexParser.Nodes
 {
+    /// <summary>
+    /// RegexNode used to concatenate multiple RegexNodes.
+    /// </summary>
     public class ConcatenationNode : RegexNode
     {
         public ConcatenationNode() { }

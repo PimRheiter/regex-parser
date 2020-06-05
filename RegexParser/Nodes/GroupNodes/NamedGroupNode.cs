@@ -2,6 +2,9 @@
 
 namespace RegexParser.Nodes.GroupNodes
 {
+    /// <summary>
+    /// RegexNode representing a named capture group "(?&lt;Name&gt;...)".
+    /// </summary>
     public class NamedGroupNode : GroupNode
     {
         protected override int ChildSpanOffset => Name.Length + 4;

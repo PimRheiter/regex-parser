@@ -3,6 +3,9 @@ using System.Linq;
 
 namespace RegexParser.Nodes.GroupNodes
 {
+    /// <summary>
+    /// RegexNode representing a mode modifier group "(?imnsx-imnsx:...)".
+    /// </summary>
     public class ModeModifierGroupNode : GroupNode
     {
         protected override int ChildSpanOffset => Modifiers.Length + 3;

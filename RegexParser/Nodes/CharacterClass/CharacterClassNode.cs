@@ -5,7 +5,11 @@ using System.Text;
 namespace RegexParser.Nodes.CharacterClass
 {
     /// <summary>
-    /// Represents a character class [] in the RegexTree.
+    /// RegexNode representing the characters used in a character class "[...]".
+    /// A CharacterClassNode should have at least one child.
+    /// The first child represents the characters contained in the character class and should be a CharacterClassCharacterSetNode.
+    /// A CharacterClassNode should have at most two children.
+    /// The second child represents a subtraction "[...-[...]]" and should be a CharacterClass.
     /// </summary>
     public class CharacterClassNode : RegexNode
     {

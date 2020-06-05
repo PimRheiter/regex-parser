@@ -2,6 +2,9 @@
 
 namespace RegexParser.Nodes.QuantifierNodes
 {
+    /// <summary>
+    /// RegexNode representing a quantifier "{n}".
+    /// </summary>
     public class QuantifierNNode : QuantifierNode
     {
         private QuantifierNNode(string n)

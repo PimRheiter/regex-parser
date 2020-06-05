@@ -1,5 +1,8 @@
 ﻿namespace RegexParser.Nodes
 {
+    /// <summary>
+    /// RegexNode representing a named reference "\k&lt;Name&gt;".
+    /// </summary>
     public class NamedReferenceNode : RegexNode
     {
         public string Name { get; }

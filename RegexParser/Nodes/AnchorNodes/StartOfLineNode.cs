@@ -1,5 +1,8 @@
 ﻿namespace RegexParser.Nodes.AnchorNodes
 {
+    /// <summary>
+    /// RegexNode representing an start-of-line token "^".
+    /// </summary>
     public class StartOfLineNode : AnchorNode
     {
         public override string ToString()

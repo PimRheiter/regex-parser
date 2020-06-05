@@ -1,5 +1,8 @@
 ﻿namespace RegexParser.Nodes
 {
+    /// <summary>
+    /// RegexNode representing a backreference "\1".
+    /// </summary>
     public class BackreferenceNode : RegexNode
     {
         public int GroupNumber { get; }

@@ -2,6 +2,9 @@
 
 namespace RegexParser.Nodes.GroupNodes
 {
+    /// <summary>
+    /// RegexNode representing a lookaround group "(?=...)", "(?!...)", "(?&lt;=)", "(?&lt;!)"
+    /// </summary>
     public class LookaroundGroupNode : GroupNode
     {
         protected override int ChildSpanOffset => Lookahead ? 4 : 3;

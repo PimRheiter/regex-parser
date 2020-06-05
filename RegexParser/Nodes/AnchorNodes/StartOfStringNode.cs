@@ -1,5 +1,8 @@
 ﻿namespace RegexParser.Nodes.AnchorNodes
 {
+    /// <summary>
+    /// RegexNode representing an start-of-string token "\A".
+    /// </summary>
     public class StartOfStringNode : AnchorNode
     {
         public override string ToString()

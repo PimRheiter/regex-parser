@@ -2,6 +2,9 @@
 
 namespace RegexParser.Nodes
 {
+    /// <summary>
+    /// RegexNode representing an escaped character "\a".
+    /// </summary>
     public class EscapeCharacterNode : RegexNode
     {
         private const int MaxOctalEscapeValue = 255;

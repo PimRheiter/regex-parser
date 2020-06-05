@@ -2,6 +2,11 @@
 
 namespace RegexParser.Nodes.GroupNodes
 {
+    /// <summary>
+    /// RegexNode representing a balancing group "(?&lt;Name-BalancedGroupName&gt;...)".
+    /// Name is the name of the balancing group and is optional.
+    /// BalancedGroupName is the name of the group being balanced and is required.
+    /// </summary>
     public class BalancingGroupNode : GroupNode
     {
         protected override int ChildSpanOffset => BalancedGroupName.Length + (Name?.Length ?? 0) + 5;

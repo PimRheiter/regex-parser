@@ -3,7 +3,7 @@
 namespace RegexParser.Nodes.QuantifierNodes
 {
     /// <summary>
-    /// Node for quantifier {n,m}
+    /// RegexNode representing a quantifier "{n,m}" where m >= n.
     /// </summary>
     public class QuantifierNMNode : QuantifierNode
     {

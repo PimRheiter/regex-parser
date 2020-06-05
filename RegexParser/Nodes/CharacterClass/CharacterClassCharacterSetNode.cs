@@ -2,6 +2,9 @@
 
 namespace RegexParser.Nodes.CharacterClass
 {
+    /// <summary>
+    /// RegexNode representing the characters used in a character class "[...]".
+    /// </summary>
     public class CharacterClassCharacterSetNode : RegexNode
     {
         public CharacterClassCharacterSetNode() { }

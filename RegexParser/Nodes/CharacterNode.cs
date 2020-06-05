@@ -1,5 +1,8 @@
 ﻿namespace RegexParser.Nodes
 {
+    /// <summary>
+    /// RegexNode representing a single character "a".
+    /// </summary>
     public class CharacterNode : RegexNode
     {
         public char Character { get; }

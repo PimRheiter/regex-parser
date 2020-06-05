@@ -1,5 +1,8 @@
 ﻿namespace RegexParser.Nodes
 {
+    /// <summary>
+    /// RegexNode representing a unicode category or block "\p{IsBasicLatin}".
+    /// </summary>
     public class UnicodeCategoryNode : RegexNode
     {
         public string Category { get; }

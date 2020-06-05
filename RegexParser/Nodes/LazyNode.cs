@@ -2,6 +2,9 @@
 
 namespace RegexParser.Nodes
 {
+    /// <summary>
+    /// RegexNode representing a lazy token "?" used to make a quantifier lazy.
+    /// </summary>
     public class LazyNode : RegexNode
     {
         protected override int ChildSpanOffset => 0 - (ChildNodes.FirstOrDefault()?.ToString().Length ?? 0) - (Prefix?.ToString().Length ?? 0);

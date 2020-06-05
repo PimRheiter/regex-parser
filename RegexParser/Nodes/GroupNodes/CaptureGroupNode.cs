@@ -2,6 +2,9 @@
 
 namespace RegexParser.Nodes.GroupNodes
 {
+    /// <summary>
+    /// RegexNode representing a capture group "(...)".
+    /// </summary>
     public class CaptureGroupNode : GroupNode
     {
         protected override int ChildSpanOffset => 1;
