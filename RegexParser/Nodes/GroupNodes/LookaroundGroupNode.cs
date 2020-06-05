@@ -7,7 +7,10 @@ namespace RegexParser.Nodes.GroupNodes
     /// </summary>
     public class LookaroundGroupNode : GroupNode
     {
-        protected override int ChildSpanOffset => Lookahead ? 4 : 3;
+        private const int _lookaheadChildSpanOffset = 4;
+        private const int _lookbehindChildSpanOffset = 3;
+
+        protected override int ChildSpanOffset => Lookahead ? _lookaheadChildSpanOffset : _lookbehindChildSpanOffset;
         public bool Lookahead { get; }
         public bool Possitive { get; }
 

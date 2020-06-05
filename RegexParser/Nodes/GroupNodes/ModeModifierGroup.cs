@@ -8,7 +8,9 @@ namespace RegexParser.Nodes.GroupNodes
     /// </summary>
     public class ModeModifierGroupNode : GroupNode
     {
-        protected override int ChildSpanOffset => Modifiers.Length + 3;
+        private const int _childSpanOffset = 3;
+
+        protected override int ChildSpanOffset => Modifiers.Length + _childSpanOffset;
         public string Modifiers { get; }
 
         public ModeModifierGroupNode(string modifiers)

@@ -13,7 +13,10 @@ namespace RegexParser.Nodes.CharacterClass
     /// </summary>
     public class CharacterClassNode : RegexNode
     {
-        protected override int ChildSpanOffset => Negated ? 2 : 1;
+        private const int _negatedChildSpanOffset = 2;
+        private const int _unnegatedChildSpanOffset = 1;
+
+        protected override int ChildSpanOffset => Negated ? _negatedChildSpanOffset : _unnegatedChildSpanOffset;
         public bool Negated { get; }
         public CharacterClassCharacterSetNode CharacterSet => ChildNodes.FirstOrDefault() as CharacterClassCharacterSetNode;
         public CharacterClassNode Subtraction => ChildNodes.ElementAtOrDefault(1) as CharacterClassNode;

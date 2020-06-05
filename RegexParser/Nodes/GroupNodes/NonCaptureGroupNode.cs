@@ -7,7 +7,9 @@ namespace RegexParser.Nodes.GroupNodes
     /// </summary>
     public class NonCaptureGroupNode : GroupNode
     {
-        protected override int ChildSpanOffset => 3;
+        private const int _childSpanOffset = 3;
+
+        protected override int ChildSpanOffset => _childSpanOffset;
 
         public NonCaptureGroupNode()
         {

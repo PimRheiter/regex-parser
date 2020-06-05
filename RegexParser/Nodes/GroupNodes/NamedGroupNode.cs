@@ -7,7 +7,9 @@ namespace RegexParser.Nodes.GroupNodes
     /// </summary>
     public class NamedGroupNode : GroupNode
     {
-        protected override int ChildSpanOffset => Name.Length + 4;
+        private const int _childSpanOffset = 4;
+
+        protected override int ChildSpanOffset => Name.Length + _childSpanOffset;
         public string Name { get; }
         public bool UseQuotes { get; }
 

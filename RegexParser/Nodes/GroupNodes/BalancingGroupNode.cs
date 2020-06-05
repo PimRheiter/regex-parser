@@ -9,8 +9,9 @@ namespace RegexParser.Nodes.GroupNodes
     /// </summary>
     public class BalancingGroupNode : GroupNode
     {
-        protected override int ChildSpanOffset => BalancedGroupName.Length + (Name?.Length ?? 0) + 5;
+        private const int _childSpanOffset = 5;
 
+        protected override int ChildSpanOffset => BalancedGroupName.Length + (Name?.Length ?? 0) + _childSpanOffset;
         public string Name { get; }
         public string BalancedGroupName { get; }
         public bool UseQuotes  { get; }
