@@ -9,6 +9,7 @@ namespace RegexParser.Nodes.CharacterClass
     /// </summary>
     public class CharacterClassNode : RegexNode
     {
+        protected override int ChildSpanOffset => Negated ? 2 : 1;
         public bool Negated { get; }
         public CharacterClassCharacterSetNode CharacterSet => ChildNodes.FirstOrDefault() as CharacterClassCharacterSetNode;
         public CharacterClassNode Subtraction => ChildNodes.ElementAtOrDefault(1) as CharacterClassNode;

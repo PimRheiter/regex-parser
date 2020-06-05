@@ -4,6 +4,7 @@ namespace RegexParser.Nodes.GroupNodes
 {
     public class NamedGroupNode : GroupNode
     {
+        protected override int ChildSpanOffset => Name.Length + 4;
         public string Name { get; }
         public bool UseQuotes { get; }
 

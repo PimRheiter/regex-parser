@@ -5,6 +5,7 @@ namespace RegexParser.Nodes.GroupNodes
 {
     public class ModeModifierGroupNode : GroupNode
     {
+        protected override int ChildSpanOffset => Modifiers.Length + 3;
         public string Modifiers { get; }
 
         public ModeModifierGroupNode(string modifiers)

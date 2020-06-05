@@ -13,6 +13,16 @@
             Comment = comment;
         }
 
+        protected override int GetSpanStart()
+        {
+            if (Parent == null)
+            {
+                return 0;
+            }
+
+            return Parent.GetSpan().Start - GetSpanLength();
+        }
+
         protected override RegexNode CopyInstance()
         {
             return new CommentGroupNode(Comment);

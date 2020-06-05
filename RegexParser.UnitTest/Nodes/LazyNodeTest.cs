@@ -39,5 +39,71 @@ namespace RegexParser.UnitTest.Nodes
             // Assert
             result.ShouldBe("a*(?#This is a comment.)?");
         }
+
+        [TestMethod]
+        public void SpanShouldStartAfterQuantifier()
+        {
+            // Arrange
+            var childNode = new CharacterNode('a');
+            var quantifier = new QuantifierStarNode(childNode);
+            var target = new LazyNode(quantifier);
+
+            // Act
+            var (Start, Length) = target.GetSpan();
+
+            // Assert
+            Start.ShouldBe(2);
+            Length.ShouldBe(1);
+        }
+
+        [TestMethod]
+        public void SpanShouldStartAfterPrefix()
+        {
+            // Arrange
+            var childNode = new CharacterNode('a');
+            var quantifier = new QuantifierStarNode(childNode);
+            var prefix = new CommentGroupNode("X");
+            var target = new LazyNode(quantifier) { Prefix = prefix };
+
+            // Act
+            var (Start, Length) = target.GetSpan();
+
+            // Assert
+            Start.ShouldBe(7);
+            Length.ShouldBe(1);
+        }
+
+        [TestMethod]
+        public void QuantifierShouldStartBeforeLazyToken()
+        {
+            // Arrange
+            var childNode = new CharacterNode('a');
+            var target = new QuantifierStarNode(childNode);
+            _ = new LazyNode(target);
+
+            // Act
+            var (Start, Length) = target.GetSpan();
+
+            // Assert
+            Start.ShouldBe(1);
+            Length.ShouldBe(1);
+        }
+
+        [TestMethod]
+        public void QuantifierShouldStartBeforeLazyTokensPrefix()
+        {
+            // Arrange
+            var childNode = new CharacterNode('a');
+            var target = new QuantifierStarNode(childNode);
+            var prefix = new CommentGroupNode("X");
+            _ = new LazyNode(target) { Prefix = prefix };
+
+            // Act
+            var (Start, Length) = target.GetSpan();
+
+            // Assert
+            Start.ShouldBe(1);
+            Length.ShouldBe(1);
+        }
     }
 }

@@ -129,5 +129,49 @@ namespace RegexParser.UnitTest.Nodes.CharacterClass
             // Assert
             result.ShouldBe("(?#This is a comment.)[abc]");
         }
+
+        [TestMethod]
+        public void CharacterSetSpanShouldStartAt1fNegatedIsFalse()
+        {
+            // Arrange
+            var characterSet = new CharacterClassCharacterSetNode(new List<RegexNode> { new CharacterNode('a'), new CharacterNode('b'), new CharacterNode('c') });
+            _ = new CharacterClassNode(characterSet, false);
+
+            // Act
+            var (Start, _) = characterSet.GetSpan();
+
+            // Assert
+            Start.ShouldBe(1);
+        }
+
+        [TestMethod]
+        public void CharacterSetSpanShouldStartAt2IfNegatedIsTrue()
+        {
+            // Arrange
+            var characterSet = new CharacterClassCharacterSetNode(new List<RegexNode> { new CharacterNode('a'), new CharacterNode('b'), new CharacterNode('c') });
+            _ = new CharacterClassNode(characterSet, true);
+
+            // Act
+            var (Start, _) = characterSet.GetSpan();
+
+            // Assert
+            Start.ShouldBe(2);
+        }
+
+        [TestMethod]
+        public void SubtractionSpanShouldStartAfterCharacterSetAndDash()
+        {
+            // Arrange
+            var subtractionCharacterSet = new CharacterClassCharacterSetNode(new CharacterNode('a'));
+            var subtraction = new CharacterClassNode(subtractionCharacterSet, false);
+            var characterSet = new CharacterClassCharacterSetNode(new List<RegexNode> { new CharacterNode('a'), new CharacterNode('b'), new CharacterNode('c') });
+            _ = new CharacterClassNode(characterSet, subtraction, false);
+
+            // Act
+            var (Start, _) = subtraction.GetSpan();
+
+            // Assert
+            Start.ShouldBe(5);
+        }
     }
 }

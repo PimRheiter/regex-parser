@@ -4,6 +4,7 @@ namespace RegexParser.Nodes.GroupNodes
 {
     public class LookaroundGroupNode : GroupNode
     {
+        protected override int ChildSpanOffset => Lookahead ? 4 : 3;
         public bool Lookahead { get; }
         public bool Possitive { get; }
 

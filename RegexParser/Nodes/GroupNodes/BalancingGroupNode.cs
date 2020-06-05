@@ -4,6 +4,8 @@ namespace RegexParser.Nodes.GroupNodes
 {
     public class BalancingGroupNode : GroupNode
     {
+        protected override int ChildSpanOffset => BalancedGroupName.Length + (Name?.Length ?? 0) + 5;
+
         public string Name { get; }
         public string BalancedGroupName { get; }
         public bool UseQuotes  { get; }

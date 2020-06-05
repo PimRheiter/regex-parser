@@ -4,6 +4,8 @@ namespace RegexParser.Nodes.GroupNodes
 {
     public class NonCaptureGroupNode : GroupNode
     {
+        protected override int ChildSpanOffset => 3;
+
         public NonCaptureGroupNode()
         {
         }

@@ -1,4 +1,5 @@
-﻿using RegexParser.Nodes.GroupNodes;
+﻿using RegexParser.Nodes.CharacterClass;
+using RegexParser.Nodes.GroupNodes;
 using System;
 using System.Collections.Generic;
 
@@ -7,10 +8,25 @@ namespace RegexParser.Nodes
     public abstract class RegexNode
     {
         private readonly List<RegexNode> _childNodes = new List<RegexNode>();
+        private CommentGroupNode _prefix;
 
         public IEnumerable<RegexNode> ChildNodes => _childNodes;
         public RegexNode Parent { get; private set; }
-        public CommentGroupNode Prefix { get; set; }
+        public CommentGroupNode Prefix
+        {
+            get => _prefix;
+            set
+            {
+                if (value != null)
+                {
+                    value.Parent = this;
+                }
+
+                _prefix = value;
+            }
+        }
+
+        protected virtual int ChildSpanOffset { get; }
 
         protected RegexNode() { }
 
@@ -194,6 +210,58 @@ namespace RegexParser.Nodes
                 currentNode = currentNode.Prefix;
             }
             currentNode.Prefix = newPrefix;
+        }
+
+        /// <summary>
+        /// Gets the span (int Start, int Length) of the current node. Prefixes are not included in the span.
+        /// </summary>
+        public (int Start, int Length) GetSpan()
+        {
+            return (GetSpanStart(), GetSpanLength());
+        }
+
+        protected virtual int GetSpanStart()
+        {
+            if (Parent == null)
+            {
+                return Prefix == null ? 0 : Prefix.ToString().Length;
+            }
+
+            int startPosition = Parent.GetSpan().Start + Parent.ChildSpanOffset;
+            
+            foreach (RegexNode siblingNode in Parent.ChildNodes)
+            {
+                if (siblingNode == this)
+                {
+                    break;
+                }
+
+                startPosition += siblingNode.ToString().Length;
+
+                if (Parent is AlternationNode || Parent is CharacterClassRangeNode || Parent is CharacterClassNode)
+                {
+                    startPosition += 1;
+                }
+            }
+
+            if (Prefix != null)
+            {
+                startPosition += Prefix.ToString().Length;
+            }
+
+            return startPosition;
+        }
+
+        protected virtual int GetSpanLength()
+        {
+            int length = ToString().Length;
+
+            if (Prefix != null)
+            {
+                length -= Prefix.ToString().Length;
+            }
+
+            return length;
         }
 
         public abstract override string ToString();

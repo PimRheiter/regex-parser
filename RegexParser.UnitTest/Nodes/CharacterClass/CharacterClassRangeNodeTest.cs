@@ -52,5 +52,52 @@ namespace RegexParser.UnitTest.Nodes.CharacterClass
             // Assert
             result.ShouldBe(end);
         }
+
+        [TestMethod]
+        public void SpanLengthShouldBeEqualToToStringLength()
+        {
+            // Arrange
+            var start = new CharacterNode('a');
+            var end = new CharacterNode('z');
+            var target = new CharacterClassRangeNode(start, end);
+
+            // Act
+            var (_, Length) = target.GetSpan();
+
+            // Assert
+            Length.ShouldBe(3);
+        }
+
+        [TestMethod]
+        public void StartSpanShouldStartBe0()
+        {
+            // Arrange
+            var start = new CharacterNode('a');
+            var end = new CharacterNode('z');
+            _ = new CharacterClassRangeNode(start, end);
+
+            // Act
+            var (Start, Length) = start.GetSpan();
+
+            // Assert
+            Start.ShouldBe(0);
+            Length.ShouldBe(1);
+        }
+
+        [TestMethod]
+        public void EndSpanShouldStartAfterStartAndDash()
+        {
+            // Arrange
+            var start = new CharacterNode('a');
+            var end = new CharacterNode('z');
+            _ = new CharacterClassRangeNode(start, end);
+
+            // Act
+            var (Start, Length) = end.GetSpan();
+
+            // Assert
+            Start.ShouldBe(2);
+            Length.ShouldBe(1);
+        }
     }
 }

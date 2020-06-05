@@ -69,5 +69,67 @@ namespace RegexParser.UnitTest.Nodes.QuantifierNodes
             // Assert
             result.ShouldBe("a(?#This is a comment.){05}");
         }
+
+        [TestMethod]
+        public void SpanShouldStartAfterChildNodes()
+        {
+            // Arrange
+            var childNode = new CharacterNode('a');
+            var target = new QuantifierNNode(5, childNode);
+
+            // Act
+            var (Start, Length) = target.GetSpan();
+
+            // Assert
+            Start.ShouldBe(childNode.ToString().Length);
+            Length.ShouldBe(3);
+        }
+
+        [TestMethod]
+        public void SpanShouldStartAfterPrefix()
+        {
+            // Arrange
+            var childNode = new CharacterNode('a');
+            var prefix = new CommentGroupNode("X");
+            var target = new QuantifierNNode(5, childNode) { Prefix = prefix };
+
+            // Act
+            var (Start, Length) = target.GetSpan();
+
+            // Assert
+            Start.ShouldBe(6);
+            Length.ShouldBe(3);
+        }
+        
+        [TestMethod]
+        public void ChildNodeShouldStartBeforeQuantifier()
+        {
+            // Arrange
+            var target = new CharacterNode('a');
+            _ = new QuantifierNNode(5, target);
+
+            // Act
+            var (Start, Length) = target.GetSpan();
+
+            // Assert
+            Start.ShouldBe(0);
+            Length.ShouldBe(1);
+        }
+
+        [TestMethod]
+        public void ChildNodeShouldStartBeforeQuantifiersPrefix()
+        {
+            // Arrange
+            var target = new CharacterNode('a');
+            var prefix = new CommentGroupNode("X");
+            _ = new QuantifierNNode(5, target) { Prefix = prefix };
+
+            // Act
+            var (Start, Length) = target.GetSpan();
+
+            // Assert
+            Start.ShouldBe(0);
+            Length.ShouldBe(1);
+        }
     }
 }

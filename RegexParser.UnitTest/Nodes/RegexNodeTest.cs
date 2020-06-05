@@ -565,6 +565,38 @@ namespace RegexParser.UnitTest.Nodes
             childNode.Prefix.Prefix.Prefix.ShouldNotBeNull();
             childNode.Prefix.Prefix.Prefix.Comment.ShouldBe(oldNodePrefix.Comment);
         }
+
+        [TestMethod]
+        public void GetSpanShouldReturnTupleWithStart0AndLenghtEqualToToStringLength()
+        {
+            // Arrange
+            var target = new TestRegexNode();
+            var targetLength = target.ToString().Length;
+
+            // Act
+            var (Start, Length) = target.GetSpan();
+
+            // Assert
+            Start.ShouldBe(0);
+            Length.ShouldBe(targetLength);
+        }
+
+        [TestMethod]
+        public void GetSpanShouldReturnTupleWithStartEqualToPrefixLengthAndEqualToToStringLengthMinusPrefixLength()
+        {
+            // Arrange
+            var commentGroup = new CommentGroupNode("X");
+            var target = new TestRegexNode() { Prefix = commentGroup };
+            var prefixLength = commentGroup.ToString().Length;
+            var targetLength = target.ToString().Length;
+
+            // Act
+            var (Start, Length) = target.GetSpan();
+
+            // Assert
+            Start.ShouldBe(prefixLength);
+            Length.ShouldBe(targetLength - prefixLength);
+        }
     }
 
     public class TestRegexNode : RegexNode

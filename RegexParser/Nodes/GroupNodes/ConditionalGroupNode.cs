@@ -15,6 +15,7 @@ namespace RegexParser.Nodes.GroupNodes
     /// </summary>
     public class ConditionalGroupNode : GroupNode
     {
+        protected override int ChildSpanOffset => 2;
         public RegexNode Condition => ChildNodes.FirstOrDefault();
         public RegexNode Alternates => ChildNodes.ElementAtOrDefault(1);
 

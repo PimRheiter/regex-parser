@@ -3,6 +3,7 @@ using RegexParser.Nodes;
 using RegexParser.Nodes.GroupNodes;
 using Shouldly;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace RegexParser.UnitTest.Nodes.GroupNodes
 {
@@ -82,6 +83,26 @@ namespace RegexParser.UnitTest.Nodes.GroupNodes
 
             // Assert
             result.ShouldBe("(?#This is a comment.)(?imsnx-imsnx)");
+        }
+
+        [TestMethod]
+        public void ChildNodesGetSpanShouldReturnTupleWithStartEqualToPreviousChildsStartPlusLengthStartingAtModesLengthPlus3()
+        {
+            // Arrange
+            var modes = "imsnx-imsnx";
+            var childNodes = new List<RegexNode> { new CharacterNode('a'), new CharacterNode('b'), new CharacterNode('c') };
+            var target = new ModeModifierGroupNode(modes, childNodes);
+            var start = modes.Length + 3;
+
+            // Act
+            var (Start, Length) = target.ChildNodes.First().GetSpan();
+            var (Start2, Length2) = target.ChildNodes.ElementAt(1).GetSpan();
+            var (Start3, _) = target.ChildNodes.ElementAt(2).GetSpan();
+
+            // Assert
+            Start.ShouldBe(start);
+            Start2.ShouldBe(Start + Length);
+            Start3.ShouldBe(Start2 + Length2);
         }
     }
 }

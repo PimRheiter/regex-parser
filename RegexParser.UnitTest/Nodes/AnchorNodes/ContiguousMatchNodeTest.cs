@@ -30,6 +30,10 @@ namespace RegexParser.UnitTest.Nodes.AnchorNodes
 
             // Act
             var result = target.ToString();
+            var (Start, Length) = target.GetSpan();
+
+            Start.ShouldBe(22);
+            Length.ShouldBe(2);
 
             // Assert
             result.ShouldBe(@"(?#This is a comment.)\G");
