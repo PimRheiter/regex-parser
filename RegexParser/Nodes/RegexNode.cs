@@ -170,6 +170,7 @@ namespace RegexParser.Nodes
         {
             RegexNode copy = Copy();
             var lastWasOldNode = false;
+
             foreach (RegexNode childNode in _childNodes)
             {
                 if (childNode == oldNode)
@@ -179,11 +180,12 @@ namespace RegexParser.Nodes
 
                 else
                 {
+                    RegexNode childCopy = childNode.RemoveNode(oldNode, false);
                     if (lastWasOldNode && oldNode.Prefix != null)
                     {
-                        childNode.AddPrefixToPrefix(oldNode.Prefix.Copy() as CommentGroupNode);
+                        childCopy.AddPrefixToPrefix(oldNode.Prefix.Copy() as CommentGroupNode);
                     }
-                    copy.Add(childNode.RemoveNode(oldNode, false));
+                    copy.Add(childCopy);
                     lastWasOldNode = false;
                 }
 

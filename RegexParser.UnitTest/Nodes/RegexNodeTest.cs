@@ -382,7 +382,7 @@ namespace RegexParser.UnitTest.Nodes
         }
 
         [TestMethod]
-        public void RemoveNodeShouldMoveOldNodesPrefixToNextNode()
+        public void RemoveNodeShouldMoveOldNodesPrefixToNextNodeInTheCopy()
         {
             // Arrange
             var prefix = new CommentGroupNode("This is a prefix.");
@@ -397,6 +397,22 @@ namespace RegexParser.UnitTest.Nodes
             var remainingNode = result.ChildNodes.ShouldHaveSingleItem();
             remainingNode.Prefix.ShouldNotBeNull();
             remainingNode.Prefix.Comment.ShouldBe(prefix.Comment);
+        }
+
+        [TestMethod]
+        public void RemoveNodeShouldNotChangeOriginalNextNodeWhenMovingPrefix()
+        {
+            // Arrange
+            var prefix = new CommentGroupNode("This is a prefix.");
+            var oldNode = new TestRegexNode() { Prefix = prefix };
+            var nextNode = new TestRegexNode();
+            var target = new ConcatenationNode(new List<RegexNode> { oldNode, nextNode });
+
+            // Act
+            _ = target.RemoveNode(oldNode);
+
+            // Assert
+            nextNode.Prefix.ShouldBeNull();
         }
 
         [TestMethod]
