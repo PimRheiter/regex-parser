@@ -12,36 +12,36 @@ namespace RegexParser.Nodes.GroupNodes
 
         protected override int ChildSpanOffset => Lookahead ? _lookaheadChildSpanOffset : _lookbehindChildSpanOffset;
         public bool Lookahead { get; }
-        public bool Possitive { get; }
+        public bool Positive { get; }
 
-        public LookaroundGroupNode(bool lookahead, bool possitive)
+        public LookaroundGroupNode(bool lookahead, bool positive)
         {
             Lookahead = lookahead;
-            Possitive = possitive;
+            Positive = positive;
         }
 
-        public LookaroundGroupNode(bool lookahead, bool negative, RegexNode childNode)
+        public LookaroundGroupNode(bool lookahead, bool positive, RegexNode childNode)
             : base(childNode)
         {
             Lookahead = lookahead;
-            Possitive = negative;
+            Positive = positive;
         }
 
-        public LookaroundGroupNode(bool lookahead, bool negative, IEnumerable<RegexNode> childNodes)
+        public LookaroundGroupNode(bool lookahead, bool positive, IEnumerable<RegexNode> childNodes)
             : base(childNodes)
         {
             Lookahead = lookahead;
-            Possitive = negative;
+            Positive = positive;
         }
 
         protected override RegexNode CopyInstance()
         {
-            return new LookaroundGroupNode(Lookahead, Possitive);
+            return new LookaroundGroupNode(Lookahead, Positive);
         }
 
         public override string ToString()
         {
-            return $"{Prefix}(?{(Lookahead ? "" : "<")}{(Possitive ? "=" : "!")}{string.Concat(ChildNodes)})";
+            return $"{Prefix}(?{(Lookahead ? "" : "<")}{(Positive ? "=" : "!")}{string.Concat(ChildNodes)})";
         }
     }
 }

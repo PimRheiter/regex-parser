@@ -109,7 +109,7 @@ namespace RegexParser.UnitTest.Nodes.GroupNodes
             // Assert
             LookaroundGroupNode lookaroundGroupNode = result.ShouldBeOfType<LookaroundGroupNode>();
             lookaroundGroupNode.Lookahead.ShouldBe(target.Lookahead);
-            lookaroundGroupNode.Possitive.ShouldBe(target.Possitive);
+            lookaroundGroupNode.Positive.ShouldBe(target.Positive);
         }
 
         [TestMethod]

@@ -875,7 +875,7 @@ namespace RegexParser.UnitTest
             var childNode = root.ChildNodes.ShouldHaveSingleItem();
             LookaroundGroupNode lookaroundGroupNode = childNode.ShouldBeOfType<LookaroundGroupNode>();
             lookaroundGroupNode.Lookahead.ShouldBeTrue();
-            lookaroundGroupNode.Possitive.ShouldBeTrue();
+            lookaroundGroupNode.Positive.ShouldBeTrue();
             var groupChildNode = lookaroundGroupNode.ChildNodes.ShouldHaveSingleItem();
             groupChildNode.ShouldBeOfType<EmptyNode>();
         }
@@ -894,7 +894,7 @@ namespace RegexParser.UnitTest
             var childNode = root.ChildNodes.ShouldHaveSingleItem();
             LookaroundGroupNode lookaroundGroupNode = childNode.ShouldBeOfType<LookaroundGroupNode>();
             lookaroundGroupNode.Lookahead.ShouldBeTrue();
-            lookaroundGroupNode.Possitive.ShouldBeTrue();
+            lookaroundGroupNode.Positive.ShouldBeTrue();
             var groupChildNode = lookaroundGroupNode.ChildNodes.ShouldHaveSingleItem();
             ConcatenationNode concatenationNode = groupChildNode.ShouldBeOfType<ConcatenationNode>();
             concatenationNode.ChildNodes.Count().ShouldBe(3);
@@ -917,7 +917,7 @@ namespace RegexParser.UnitTest
             var childNode = root.ChildNodes.ShouldHaveSingleItem();
             LookaroundGroupNode lookaroundGroupNode = childNode.ShouldBeOfType<LookaroundGroupNode>();
             lookaroundGroupNode.Lookahead.ShouldBeTrue();
-            lookaroundGroupNode.Possitive.ShouldBeFalse();
+            lookaroundGroupNode.Positive.ShouldBeFalse();
             var groupChildNode = lookaroundGroupNode.ChildNodes.ShouldHaveSingleItem();
             groupChildNode.ShouldBeOfType<EmptyNode>();
         }
@@ -936,7 +936,7 @@ namespace RegexParser.UnitTest
             var childNode = root.ChildNodes.ShouldHaveSingleItem();
             LookaroundGroupNode lookaroundGroupNode = childNode.ShouldBeOfType<LookaroundGroupNode>();
             lookaroundGroupNode.Lookahead.ShouldBeTrue();
-            lookaroundGroupNode.Possitive.ShouldBeFalse();
+            lookaroundGroupNode.Positive.ShouldBeFalse();
             var groupChildNode = lookaroundGroupNode.ChildNodes.ShouldHaveSingleItem();
             ConcatenationNode concatenationNode = groupChildNode.ShouldBeOfType<ConcatenationNode>();
             concatenationNode.ChildNodes.Count().ShouldBe(3);
@@ -959,7 +959,7 @@ namespace RegexParser.UnitTest
             var childNode = root.ChildNodes.ShouldHaveSingleItem();
             LookaroundGroupNode lookaroundGroupNode = childNode.ShouldBeOfType<LookaroundGroupNode>();
             lookaroundGroupNode.Lookahead.ShouldBeFalse();
-            lookaroundGroupNode.Possitive.ShouldBeTrue();
+            lookaroundGroupNode.Positive.ShouldBeTrue();
             var groupChildNode = lookaroundGroupNode.ChildNodes.ShouldHaveSingleItem();
             groupChildNode.ShouldBeOfType<EmptyNode>();
         }
@@ -978,7 +978,7 @@ namespace RegexParser.UnitTest
             var childNode = root.ChildNodes.ShouldHaveSingleItem();
             LookaroundGroupNode lookaroundGroupNode = childNode.ShouldBeOfType<LookaroundGroupNode>();
             lookaroundGroupNode.Lookahead.ShouldBeFalse();
-            lookaroundGroupNode.Possitive.ShouldBeTrue();
+            lookaroundGroupNode.Positive.ShouldBeTrue();
             var groupChildNode = lookaroundGroupNode.ChildNodes.ShouldHaveSingleItem();
             ConcatenationNode concatenationNode = groupChildNode.ShouldBeOfType<ConcatenationNode>();
             concatenationNode.ChildNodes.Count().ShouldBe(3);
@@ -1001,7 +1001,7 @@ namespace RegexParser.UnitTest
             var childNode = root.ChildNodes.ShouldHaveSingleItem();
             LookaroundGroupNode lookaroundGroupNode = childNode.ShouldBeOfType<LookaroundGroupNode>();
             lookaroundGroupNode.Lookahead.ShouldBeFalse();
-            lookaroundGroupNode.Possitive.ShouldBeFalse();
+            lookaroundGroupNode.Positive.ShouldBeFalse();
             var groupChildNode = lookaroundGroupNode.ChildNodes.ShouldHaveSingleItem();
             groupChildNode.ShouldBeOfType<EmptyNode>();
         }
@@ -1020,7 +1020,7 @@ namespace RegexParser.UnitTest
             var childNode = root.ChildNodes.ShouldHaveSingleItem();
             LookaroundGroupNode lookaroundGroupNode = childNode.ShouldBeOfType<LookaroundGroupNode>();
             lookaroundGroupNode.Lookahead.ShouldBeFalse();
-            lookaroundGroupNode.Possitive.ShouldBeFalse();
+            lookaroundGroupNode.Positive.ShouldBeFalse();
             var groupChildNode = lookaroundGroupNode.ChildNodes.ShouldHaveSingleItem();
             ConcatenationNode concatenationNode = groupChildNode.ShouldBeOfType<ConcatenationNode>();
             concatenationNode.ChildNodes.Count().ShouldBe(3);
